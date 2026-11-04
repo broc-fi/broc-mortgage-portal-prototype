@@ -1,0 +1,1299 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Broc For Lenders — White-Label Mortgage Underwriting Portal (BOI / White-Label)</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    body {
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+      background-color: #f8fafc;
+      color: #0f172a;
+    }
+    h1, h2, h3, h4, .font-display {
+      font-family: 'Outfit', sans-serif;
+    }
+    .row-hover:hover {
+      background-color: #f1f5f9;
+    }
+    .custom-scroll::-webkit-scrollbar { width: 6px; height: 6px; }
+    .custom-scroll::-webkit-scrollbar-thumb { background: rgba(100, 116, 139, 0.3); border-radius: 3px; }
+  </style>
+</head>
+<body class="min-h-screen antialiased">
+
+  <!-- TOP WHITE-LABEL CONTROL RIBBON (Strictly BOI vs Generic White-Label) -->
+  <div class="bg-slate-900 text-white px-6 py-2.5 flex flex-wrap items-center justify-between gap-3">
+    <div class="flex items-center gap-2.5">
+      <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold bg-emerald-500/20 text-emerald-300 border border-emerald-500/30">
+        <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
+        Scenario 2 Prototype: White-Label Mortgage Engine
+      </span>
+      <span class="text-xs text-slate-300 hidden sm:inline">
+        Toggle between <strong>Bank of Ireland</strong> branded instance and <strong>Generic White-Label SaaS</strong> template:
+      </span>
+    </div>
+    <div class="flex items-center gap-2" id="lenderSwitcher"></div>
+  </div>
+
+  <!-- MAIN LENDER PORTAL HEADER -->
+  <header class="bg-white border-b border-slate-200 px-6 py-4 shadow-sm">
+    <div class="max-w-7xl mx-auto flex flex-wrap items-center justify-between gap-4">
+      <div class="flex items-center gap-4">
+        <div id="lenderLogoBadge" class="w-12 h-12 rounded-xl flex items-center justify-center text-white font-display font-bold text-lg shadow-sm" style="background-color: #002663;">
+          BOI
+        </div>
+        <div>
+          <div class="flex items-center gap-2.5">
+            <h1 id="lenderTitle" class="text-xl font-bold tracking-tight text-slate-900">
+              Bank of Ireland — Mortgage Readiness &amp; Underwriting Hub
+            </h1>
+            <span class="px-2.5 py-0.5 rounded-full text-xs font-semibold bg-emerald-50 text-emerald-700 border border-emerald-200">
+              Powered by <strong>Broc AI</strong>
+            </span>
+          </div>
+          <p id="lenderSubtitle" class="text-xs text-slate-500 mt-0.5">
+            18-Point Verified Applicant Pipeline (Yapily Open Banking + CSV + KYC/Citizenship) • CBI Macroprudential Rules
+          </p>
+        </div>
+      </div>
+
+      <div class="flex flex-wrap items-center gap-2.5">
+        <button onclick="openScoreModal()" class="px-3.5 py-2 rounded-lg text-xs font-semibold bg-emerald-50 text-emerald-700 border border-emerald-200 hover:bg-emerald-100 transition cursor-pointer">
+          📊 How the Broc Score (0–100) Works
+        </button>
+        <button onclick="openRulesComparisonModal()" class="px-3.5 py-2 rounded-lg text-xs font-semibold border border-slate-200 bg-slate-50 hover:bg-slate-100 text-slate-700 transition cursor-pointer">
+          📋 Full 18-Criteria Checklist (A: AIP vs B: Full)
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <!-- MAIN WORKSPACE -->
+  <main class="max-w-7xl mx-auto px-6 py-6 space-y-6">
+
+    <!-- KPI SUMMARY RIBBON -->
+    <section class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4" id="kpiRibbon"></section>
+
+    <!-- BROC SCORE EXPLAINER STRIP -->
+    <section class="bg-white border border-slate-200 rounded-xl p-4 shadow-sm">
+      <div class="flex flex-wrap items-center justify-between gap-2 pb-3 mb-3 border-b border-slate-100">
+        <div class="flex items-center gap-2">
+          <span class="px-2.5 py-0.5 rounded-full text-xs font-bold bg-emerald-50 text-emerald-700 border border-emerald-200">
+            THE BROC SCORE (0–100)
+          </span>
+          <h2 class="text-sm font-bold text-slate-900">
+            Composite Mortgage Readiness &amp; Underwriting Confidence Index
+          </h2>
+        </div>
+        <span class="text-xs text-slate-500">
+          90–100: <strong>Fast-Track Auto-Issue</strong> • 80–89: <strong>Standard Pass</strong> • &lt;75: <strong>Held in Clive AI Remediation</strong>
+        </span>
+      </div>
+      <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3 text-xs">
+        <div class="p-2.5 rounded-lg bg-slate-50 border border-slate-200">
+          <div class="flex items-center justify-between font-bold text-slate-900">
+            <span>1. Stress-Test Capacity</span>
+            <span class="text-emerald-600">30 pts</span>
+          </div>
+          <p class="text-slate-600 mt-1">Proven Rent + Savings vs Offered Rate + 2.0% stress test &amp; NDI living buffer.</p>
+        </div>
+        <div class="p-2.5 rounded-lg bg-slate-50 border border-slate-200">
+          <div class="flex items-center justify-between font-bold text-slate-900">
+            <span>2. 6-Mo Account Conduct</span>
+            <span class="text-emerald-600">25 pts</span>
+          </div>
+          <p class="text-slate-600 mt-1">0 unpaid DDs, 0 unarranged overdrafts, gambling &lt;1%, zero active BNPL/Klarna.</p>
+        </div>
+        <div class="p-2.5 rounded-lg bg-slate-50 border border-slate-200">
+          <div class="flex items-center justify-between font-bold text-slate-900">
+            <span>3. Income &amp; Tax Stability</span>
+            <span class="text-emerald-600">20 pts</span>
+          </div>
+          <p class="text-slate-600 mt-1">Permanent role, probation passed, Revenue EDS / P60 or 2-yr Form 11 match.</p>
+        </div>
+        <div class="p-2.5 rounded-lg bg-slate-50 border border-slate-200">
+          <div class="flex items-center justify-between font-bold text-slate-900">
+            <span>4. Deposit AML &amp; CCR</span>
+            <span class="text-emerald-600">15 pts</span>
+          </div>
+          <p class="text-slate-600 mt-1">≥10% deposit source (Savings / HTB / Gift Letter) + clean Central Credit Register.</p>
+        </div>
+        <div class="p-2.5 rounded-lg bg-slate-50 border border-slate-200">
+          <div class="flex items-center justify-between font-bold text-slate-900">
+            <span>5. ID, Citizenship &amp; Docs</span>
+            <span class="text-emerald-600">10 pts</span>
+          </div>
+          <p class="text-slate-600 mt-1">KYC Passport/ID, Irish/EU Citizen or Stamp 4 residency, PPSN &amp; Proof of Address.</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- PIPELINE CONTROLS -->
+    <section class="bg-white border border-slate-200 rounded-xl p-4 shadow-sm space-y-3">
+      <div class="flex flex-wrap items-center justify-between gap-4">
+        <div class="flex flex-wrap items-center gap-1.5 bg-slate-100 p-1 rounded-lg border border-slate-200">
+          <button onclick="setStageFilter('ALL')" id="tab-ALL" class="stage-tab px-3.5 py-1.5 rounded-md text-xs font-semibold transition cursor-pointer">
+            All Applications (7)
+          </button>
+          <button onclick="setStageFilter('AIP')" id="tab-AIP" class="stage-tab px-3.5 py-1.5 rounded-md text-xs font-semibold transition cursor-pointer">
+            A) Mortgage in Principle — AIP (10 Criteria)
+          </button>
+          <button onclick="setStageFilter('FULL')" id="tab-FULL" class="stage-tab px-3.5 py-1.5 rounded-md text-xs font-semibold transition cursor-pointer">
+            B) Full Mortgage Application (18 Criteria)
+          </button>
+          <button onclick="setStageFilter('NURTURE')" id="tab-NURTURE" class="stage-tab px-3.5 py-1.5 rounded-md text-xs font-semibold transition cursor-pointer">
+            Clive AI Pre-Application Remediation
+          </button>
+        </div>
+
+        <div class="flex flex-wrap items-center gap-2.5">
+          <select id="buyerTypeFilter" onchange="renderAll()" class="px-3 py-1.5 rounded-lg text-xs font-medium bg-slate-50 text-slate-800 border border-slate-200">
+            <option value="ALL">All Buyer Types (FTB / Mover / Switcher)</option>
+            <option value="FTB">First Time Buyer (Max 4.0x LTI)</option>
+            <option value="SSB">Second / Mover (Max 3.5x LTI)</option>
+            <option value="SWITCHER">Switcher (Re-mortgage)</option>
+          </select>
+          <input
+            type="text"
+            id="searchInput"
+            oninput="renderAll()"
+            placeholder="Search name, citizenship, county..."
+            class="px-3 py-1.5 rounded-lg text-xs bg-slate-50 text-slate-800 border border-slate-200 w-56 focus:outline-none"
+          />
+        </div>
+      </div>
+
+      <div id="stageExplainerBanner" class="rounded-lg p-3 bg-slate-50 border border-slate-200 flex flex-wrap items-center justify-between gap-3"></div>
+    </section>
+
+    <!-- MASTER-DETAIL SPLIT -->
+    <section class="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
+
+      <!-- LEFT: APPLICANT PIPELINE TABLE (7 cols) -->
+      <div class="lg:col-span-7 bg-white border border-slate-200 rounded-xl shadow-sm overflow-hidden">
+        <div class="px-4 py-3 border-b border-slate-200 flex items-center justify-between">
+          <div>
+            <h2 class="text-sm font-bold text-slate-900">Broc Packaged Applicant Queue</h2>
+            <p class="text-xs text-slate-500">Click any row to inspect their 5-pillar Broc Score, ID/Citizenship &amp; 18-point checklist</p>
+          </div>
+          <span id="tableCountBadge" class="text-xs font-semibold px-2.5 py-1 rounded-full bg-slate-100 text-slate-700">
+            7 Applicants
+          </span>
+        </div>
+
+        <div class="overflow-x-auto">
+          <table class="w-full text-left border-collapse">
+            <thead>
+              <tr class="border-b border-slate-200 bg-slate-50 text-xs font-semibold text-slate-500 uppercase tracking-wider">
+                <th class="py-3 px-4">Applicant, ID &amp; Residency</th>
+                <th class="py-3 px-3">Stage &amp; Readiness</th>
+                <th class="py-3 px-3">Criteria Met</th>
+                <th class="py-3 px-3">Broc Score</th>
+                <th class="py-3 px-4 text-right">Qualified Loan</th>
+              </tr>
+            </thead>
+            <tbody id="applicantTableBody" class="divide-y divide-slate-200 text-sm"></tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- RIGHT: SELECTED APPLICANT DEEP-DIVE INSPECTOR (5 cols) -->
+      <div class="lg:col-span-5 bg-white border border-slate-200 rounded-xl shadow-sm sticky top-4 overflow-hidden" id="applicantDetailPanel"></div>
+
+    </section>
+
+  </main>
+
+  <!-- MODAL 1: BROC SCORE (0-100) METHODOLOGY & MEANING -->
+  <div id="scoreModal" class="fixed inset-0 z-50 hidden items-center justify-center p-4" style="background: rgba(15,23,42,0.65);">
+    <div class="bg-white border border-slate-200 rounded-2xl max-w-3xl w-full max-h-[88vh] flex flex-col shadow-2xl overflow-hidden">
+      <div class="px-6 py-4 border-b border-slate-200 flex items-center justify-between">
+        <div>
+          <h3 class="text-base font-bold text-slate-900">📊 The Broc Score (0–100): What It Means for Underwriters</h3>
+          <p class="text-xs text-slate-500">A deterministic, auditable 5-pillar mortgage readiness score powered by Clara (audit) &amp; Clive (remediation)</p>
+        </div>
+        <button onclick="closeScoreModal()" class="px-3 py-1 rounded-lg text-xs font-semibold border border-slate-200 hover:bg-slate-100 cursor-pointer">
+          ✕ Close
+        </button>
+      </div>
+      <div class="p-6 overflow-y-auto custom-scroll space-y-4 text-xs">
+        <p class="text-xs text-slate-700 leading-relaxed">
+          Unlike a generic credit bureau score (Ireland's CCR does not output a consumer FICO score), the <strong>Broc Score (0–100)</strong> measures <strong>real-time Irish mortgage underwriting pass probability</strong> across 6–12 months of verified transaction data, identity/residency checks, and Central Bank of Ireland rules.
+        </p>
+
+        <div class="space-y-2.5">
+          <div class="p-3.5 rounded-xl bg-slate-50 border border-slate-200">
+            <div class="flex justify-between font-bold text-sm text-slate-900">
+              <span>Pillar 1: Stress-Tested Repayment Capacity &amp; NDI Margin</span>
+              <span class="text-emerald-600">Max 30 Points</span>
+            </div>
+            <p class="text-slate-600 mt-1">
+              Measures verified monthly repayment capacity (<code>Verified Rent + Consistent Savings + Expiring Loans</code>) against the proposed mortgage repayment stressed at <strong>Offered Rate + 2.0%</strong>. Full 30 pts requires ≥115% stress coverage and passing Net Disposable Income (NDI) after standard Irish household living costs.
+            </p>
+          </div>
+
+          <div class="p-3.5 rounded-xl bg-slate-50 border border-slate-200">
+            <div class="flex justify-between font-bold text-sm text-slate-900">
+              <span>Pillar 2: 6-Month Account Conduct &amp; Behavioural Hygiene</span>
+              <span class="text-emerald-600">Max 25 Points</span>
+            </div>
+            <p class="text-slate-600 mt-1">
+              Clara scans 100% of current, joint, savings, and neobank (Revolut/N26) statements. Deducts points for: unpaid direct debits (-10), unarranged overdrafts (-8), referral fees (-5), regular gambling/betting &gt;1.5% of net pay (-10), or active BNPL/Klarna installments (-6).
+            </p>
+          </div>
+
+          <div class="p-3.5 rounded-xl bg-slate-50 border border-slate-200">
+            <div class="flex justify-between font-bold text-sm text-slate-900">
+              <span>Pillar 3: Income Stability, Contract Tenure &amp; Revenue Match</span>
+              <span class="text-emerald-600">Max 20 Points</span>
+            </div>
+            <p class="text-slate-600 mt-1">
+              Cross-checks 3 months payslips + Revenue <strong>Employment Detail Summary (EDS)</strong> against actual salary bank credits. Confirms permanent employment, probation passed, ≥6–12 months tenure, or 2–3 years certified accounts + Form 11 + ROS Tax Clearance for self-employed.
+            </p>
+          </div>
+
+          <div class="p-3.5 rounded-xl bg-slate-50 border border-slate-200">
+            <div class="flex justify-between font-bold text-sm text-slate-900">
+              <span>Pillar 4: Deposit Source (AML), LTV &amp; Central Credit Register</span>
+              <span class="text-emerald-600">Max 15 Points</span>
+            </div>
+            <p class="text-slate-600 mt-1">
+              Verifies ≥10% deposit (90% LTV max) with full Anti-Money Laundering (AML) provenance: organic monthly savings build-up, Revenue Help-to-Buy (HTB) access code, or signed Gift Letter with donor statement proof, plus zero undisclosed loans or arrears on the CCR.
+            </p>
+          </div>
+
+          <div class="p-3.5 rounded-xl bg-slate-50 border border-slate-200">
+            <div class="flex justify-between font-bold text-sm text-slate-900">
+              <span>Pillar 5: Identity (KYC), Citizenship/Residency &amp; Pack Completeness</span>
+              <span class="text-emerald-600">Max 10 Points</span>
+            </div>
+            <p class="text-slate-600 mt-1">
+              Biometric Passport/Driving Licence KYC, Proof of Address (&lt;3 mos), verified PPSN document, and right-to-reside eligibility (Irish/UK/EU/EEA Citizen, or Non-EEA Stamp 4 / Critical Skills Employment Permit with required Irish residency history).
+            </p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL 2: EXHAUSTIVE 18-CRITERIA CHECKLIST (STAGE A vs STAGE B) -->
+  <div id="rulesModal" class="fixed inset-0 z-50 hidden items-center justify-center p-4" style="background: rgba(15,23,42,0.65);">
+    <div class="bg-white border border-slate-200 rounded-2xl max-w-4xl w-full max-h-[88vh] flex flex-col shadow-2xl overflow-hidden">
+      <div class="px-6 py-4 border-b border-slate-200 flex items-center justify-between">
+        <div>
+          <h3 class="text-base font-bold text-slate-900">📋 Complete 18-Point Underwriting Criteria: A) Mortgage in Principle vs B) Full Mortgage</h3>
+          <p class="text-xs text-slate-500">Every identity, citizenship, tax, conduct, property, and legal requirement packaged by Broc</p>
+        </div>
+        <button onclick="closeRulesComparisonModal()" class="px-3 py-1 rounded-lg text-xs font-semibold border border-slate-200 hover:bg-slate-100 cursor-pointer">
+          ✕ Close
+        </button>
+      </div>
+      <div class="p-6 overflow-y-auto custom-scroll space-y-5 text-xs">
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div class="p-4 rounded-xl bg-slate-50 border border-slate-200 space-y-2">
+            <div class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-bold bg-blue-100 text-blue-800">
+              A) MORTGAGE IN PRINCIPLE (AIP) — 10 CORE CRITERIA
+            </div>
+            <h4 class="text-sm font-bold text-slate-900">Identity, Residency, Tax, 6-Mo Conduct &amp; Affordability</h4>
+            <ol class="list-decimal list-inside space-y-1.5 pt-1 text-xs text-slate-700">
+              <li><strong>Photo ID &amp; Biometric Liveness (KYC):</strong> Valid Passport or Irish Driving Licence.</li>
+              <li><strong>Citizenship &amp; Residency Status:</strong> Irish/UK/EU/EEA Citizen, or Non-EEA Stamp 4 / Critical Skills Permit.</li>
+              <li><strong>Proof of Current Address (AML):</strong> Utility bill or bank statement (&lt;3–6 months).</li>
+              <li><strong>PPSN Verification:</strong> Official Revenue/DSP document confirming PPS Number.</li>
+              <li><strong>Central Credit Register (CCR) &amp; Judgments:</strong> Zero undisclosed loans, arrears, or Stubbs/ISI Insolvency flags.</li>
+              <li><strong>Employment Status &amp; Probation:</strong> Permanent PAYE role (probation passed) or ≥2 yrs Self-Employed.</li>
+              <li><strong>Verified Income &amp; Tax Compliance:</strong> 3 mos payslips + Revenue EDS (or 2–3 yrs Audited Accounts + Form 11 + Tax Clearance).</li>
+              <li><strong>6-Month Bank &amp; Savings Statements:</strong> All current, savings &amp; Revolut/N26 accounts via Yapily / CSV.</li>
+              <li><strong>Account Conduct &amp; Red-Flag Screen:</strong> 0 unpaid DDs, 0 overdrafts, gambling &lt;1.5%, BNPL/Klarna cleared.</li>
+              <li><strong>Deposit Source (AML) &amp; +2% Stress Test:</strong> ≥10% deposit proven (Savings/HTB/Gift Letter) + Repayment Capacity ≥ Rate + 2%.</li>
+            </ol>
+          </div>
+
+          <div class="p-4 rounded-xl bg-slate-50 border border-slate-200 space-y-2">
+            <div class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-bold bg-emerald-100 text-emerald-800">
+              B) FULL MORTGAGE APPLICATION — +8 POST-"SALE AGREED" CRITERIA
+            </div>
+            <h4 class="text-sm font-bold text-slate-900">Employer Sign-Off, Valuation, BER, Legal &amp; Insurance</h4>
+            <ol start="11" class="list-decimal list-inside space-y-1.5 pt-1 text-xs text-slate-700">
+              <li><strong>Standardized Lender Salary Certificate:</strong> Employer HR signed &amp; stamped form confirming base pay &amp; standing.</li>
+              <li><strong>Pre-Offer Statement &amp; Payslip Refresh:</strong> Latest month bank feed confirming continued savings &amp; zero new debt.</li>
+              <li><strong>Sale Agreed Sales Advice Note &amp; Booking Deposit:</strong> Estate agent confirmation of Sale Agreed price &amp; paid booking deposit receipt.</li>
+              <li><strong>Lender Panel Property Valuation Report:</strong> Approved panel valuer inspection confirming market value ≥ Sale Agreed price.</li>
+              <li><strong>SEAI BER Certificate &amp; Green Eligibility:</strong> Official BER cert (A1–B3 unlocks BOI EcoSaver / Green discounted rates).</li>
+              <li><strong>Structural Survey &amp; Planning Compliance:</strong> Engineer survey (pre-1980 / rural) &amp; Architect Opinion of Compliance.</li>
+              <li><strong>Solicitor Undertaking &amp; Contracts for Sale:</strong> Approved panel solicitor undertaking, clean title deeds &amp; signed contracts.</li>
+              <li><strong>Mortgage Protection, Home Insurance &amp; SEPA DD:</strong> Bound Life Cover assigned to lender + Buildings Insurance (via Broc Tender) + signed Direct Debit mandate.</li>
+            </ol>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const LENDERS = {
+      BOI: {
+        id: 'BOI',
+        code: 'BOI',
+        name: 'Bank of Ireland (BOI Tenant)',
+        shortName: 'Bank of Ireland',
+        portalName: 'Bank of Ireland — Mortgage Readiness & Underwriting Hub',
+        color: '#002663',
+        greenRate: 3.65,
+        stdRate: 4.10,
+        stressBuffer: 2.0,
+        aipValidity: '6 Months',
+        maxVariableBonusPct: 0.60,
+        livingCostSingle: 1450,
+        livingCostCouple: 2350,
+        livingCostPerChild: 300
+      },
+      WHITELABEL: {
+        id: 'WHITELABEL',
+        code: 'WL',
+        name: 'Broc Generic White-Label (Template)',
+        shortName: 'Your Lender Brand',
+        portalName: 'White-Label Mortgage Underwriting Portal — Powered by Broc',
+        color: '#059669',
+        greenRate: 3.55,
+        stdRate: 3.95,
+        stressBuffer: 2.0,
+        aipValidity: '6–12 Months',
+        maxVariableBonusPct: 0.50,
+        livingCostSingle: 1420,
+        livingCostCouple: 2300,
+        livingCostPerChild: 300
+      }
+    };
+
+    const APPLICANTS = [
+      {
+        id: 'BROC-IE-9041',
+        names: "Ciara & Ronan O'Sullivan",
+        county: 'Dublin 14 (Dundrum)',
+        citizenship: 'Irish Citizens (Both Passports Verified)',
+        kycBadge: 'eKYC Passport + PPSN Verified',
+        buyerType: 'FTB',
+        applicantsCount: 2,
+        dependents: 0,
+        targetStage: 'FULL',
+        statusBadge: 'Full Loan Offer Ready',
+        dataSource: 'Yapily Open Banking (BOI + Revolut)',
+        baseIncome: 112000,
+        bonusIncome: 12000,
+        netMonthlyIncome: 6850,
+        verifiedRentPm: 2150,
+        verifiedSavingsPm: 1150,
+        cliveMonthlySavingsUnlocked: 245,
+        existingDebtPm: 0,
+        depositSaved: 55000,
+        helpToBuyGrant: 30000,
+        giftAmount: 0,
+        targetPropertyAddress: '18 Meadowbrook Park, Dundrum, Dublin 14 (Sale Agreed @ €540,000)',
+        propertyBER: 'A2',
+        termYears: 30,
+        brocScoreBefore: 81,
+        brocScore: 97,
+        scorePillars: [
+          { name: 'Repayment Capacity & +2% Stress Margin', earned: 29, max: 30, note: '€3,300/mo proven vs €2,668 stressed payment (124% coverage)' },
+          { name: '6-Month Account Conduct & Hygiene', earned: 25, max: 25, note: '0 unpaid DDs, 0 overdrafts, 0% gambling, €0 BNPL across 1,420 txns' },
+          { name: 'Income Stability & Revenue EDS Match', earned: 19, max: 20, note: 'Both permanent PAYE (4+ yrs tenure), probation passed, EDS matched' },
+          { name: 'Deposit AML Source & Clean CCR', earned: 14, max: 15, note: '€55k BOI GoalSaver + €30k Revenue HTB code; 0 CCR arrears' },
+          { name: 'KYC ID, Citizenship & Pack Completeness', earned: 10, max: 10, note: 'Irish Passports, PPSNs, Utility Address & all 18 docs verified' }
+        ],
+        cliveStory: 'Over 90 days on app.broc.fi, Clive cancelled €110/mo in duplicate subscriptions and tendered electricity + broadband to save €135/mo, lifting their Broc Score from 81 → 97 and unlocking +€43k in stress-tested borrowing capacity.',
+        aipCriteria: [
+          { cat: 'Identity & KYC', name: '1. Photo ID & Biometric Liveness', met: true, detail: '2x Irish Passports verified via biometric liveness check.' },
+          { cat: 'Citizenship', name: '2. Citizenship & Right to Reside in Ireland', met: true, detail: 'Irish Citizens by birth; permanent Irish tax residents.' },
+          { cat: 'Address AML', name: '3. Proof of Current Address (<3 Mos)', met: true, detail: 'Bord Gáis Energy bill & BOI statement matched to Ranelagh rental.' },
+          { cat: 'Tax ID', name: '4. PPSN Official Verification', met: true, detail: 'Both PPS Numbers matched to Revenue Commissioners EDS.' },
+          { cat: 'Credit Bureau', name: '5. Central Credit Register (CCR) & Judgments', met: true, detail: 'CCR report pulled: 0 active loans, 0 historical arrears, clean ISI/Stubbs.' },
+          { cat: 'Employment', name: '6. Employment Contract, Tenure & Probation', met: true, detail: 'Permanent full-time roles (Pfizer & Stripe); probation passed >3 yrs ago.' },
+          { cat: 'Income & Tax', name: '7. 3 Months Payslips & Revenue EDS (P60)', met: true, detail: '€112k combined base + €12k bonus verified against bank salary credits.' },
+          { cat: 'Open Banking', name: '8. 6-Month Bank, Savings & Revolut Statements', met: true, detail: '6 consecutive months (BOI Current, BOI Saver, Revolut Joint) via Yapily.' },
+          { cat: 'Conduct', name: '9. Account Conduct, Gambling & BNPL Screen', met: true, detail: '0 unpaid DDs, 0 referral fees, 0 overdrafts, 0.0% betting, 0 Klarna.' },
+          { cat: 'Affordability', name: '10. Deposit Source (AML) & +2% Stress Capacity', met: true, detail: '€85k deposit (€55k savings + €30k HTB) + €3,300/mo proven repayment.' }
+        ],
+        fullCriteria: [
+          { cat: 'Employer Cert', name: '11. Standardized Lender Salary Certificates', met: true, detail: 'BOI Salary Certs signed & stamped by Pfizer & Stripe HR.' },
+          { cat: 'Statement Refresh', name: '12. Pre-Offer Statement & Payslip Refresh', met: true, detail: 'Live Yapily sync confirms October savings & zero new credit taken.' },
+          { cat: 'Sale Agreed', name: '13. Sales Advice Note & Booking Deposit Receipt', met: true, detail: 'Sherry FitzGerald Sales Advice (€540k) + €15k booking deposit receipt.' },
+          { cat: 'Valuation', name: '14. Lender Panel Property Valuation Report', met: true, detail: 'Panel valuer inspected 18 Meadowbrook Park — valued at €545,000.' },
+          { cat: 'Green BER', name: '15. SEAI BER Certificate & Advisory Report', met: true, detail: 'BER A2 (#109482910) verified — qualifies for 3.65% EcoSaver Green rate.' },
+          { cat: 'Survey & Planning', name: '16. Structural Survey & Planning Compliance', met: true, detail: 'Chartered Engineer survey & Architect Opinion of Compliance clear.' },
+          { cat: 'Conveyancing', name: '17. Solicitor Undertaking & Contracts for Sale', met: true, detail: 'ByrneWallace LLP (Approved Panel) undertaking & title check complete.' },
+          { cat: 'Protection & DD', name: '18. Mortgage Protection, Home Insurance & SEPA DD', met: true, detail: 'Royal London Life Cover (€42/mo) & Allianz Home Cover bound via Broc Tender.' }
+        ]
+      },
+      {
+        id: 'BROC-IE-9042',
+        names: 'Cian Murphy & Priya Sharma',
+        county: 'Cork City (Blackrock)',
+        citizenship: 'Irish Citizen + Stamp 4 Residency',
+        kycBadge: 'Passport + Stamp 4 IRP Verified',
+        buyerType: 'FTB',
+        applicantsCount: 2,
+        dependents: 0,
+        targetStage: 'AIP',
+        statusBadge: 'Instant AIP Qualified',
+        dataSource: 'Yapily Open Banking (AIB + N26 + BOI)',
+        baseIncome: 104000,
+        bonusIncome: 8000,
+        netMonthlyIncome: 6180,
+        verifiedRentPm: 1750,
+        verifiedSavingsPm: 1050,
+        cliveMonthlySavingsUnlocked: 210,
+        existingDebtPm: 0,
+        depositSaved: 52000,
+        helpToBuyGrant: 0,
+        giftAmount: 15000,
+        targetPropertyAddress: 'Stage A: House Hunting — Cork South / Blackrock (Pre-Approval)',
+        propertyBER: 'B2',
+        termYears: 32,
+        brocScoreBefore: 79,
+        brocScore: 94,
+        scorePillars: [
+          { name: 'Repayment Capacity & +2% Stress Margin', earned: 28, max: 30, note: '€2,800/mo proven (Rent €1,750 + Savings €1,050) vs €2,290 stressed' },
+          { name: '6-Month Account Conduct & Hygiene', earned: 24, max: 25, note: '0 unpaid items, 0 overdrafts; Revolut Pay Later cleared 5 mos ago' },
+          { name: 'Income Stability & Revenue EDS Match', earned: 19, max: 20, note: 'Apple Cork & Eli Lilly permanent roles; EDS & payslips matched' },
+          { name: 'Deposit AML Source & Clean CCR', earned: 14, max: 15, note: '€52k savings + €15k AML-cleared parental Gift Letter; clean CCR' },
+          { name: 'KYC ID, Citizenship & Pack Completeness', earned: 9, max: 10, note: 'Irish Passport + Stamp 4 IRP Card (4 yrs in IE) + PPSNs verified' }
+        ],
+        cliveStory: 'Clive cleared a recurring Revolut Pay Later balance 5 months ago, cut €210/mo in telecom/insurance bills, and pre-verified Priya’s Stamp 4 IRP card + Critical Skills history.',
+        aipCriteria: [
+          { cat: 'Identity & KYC', name: '1. Photo ID & Biometric Liveness', met: true, detail: 'Irish Passport (Cian) + Indian Passport & GNIB/IRP Card (Priya) verified.' },
+          { cat: 'Citizenship', name: '2. Citizenship & Right to Reside in Ireland', met: true, detail: 'Cian: Irish Citizen. Priya: Stamp 4 Residency held >3 yrs (meets BOI policy).' },
+          { cat: 'Address AML', name: '3. Proof of Current Address (<3 Mos)', met: true, detail: 'Electric Ireland bill & RTB tenancy registration at Blackrock Rd, Cork.' },
+          { cat: 'Tax ID', name: '4. PPSN Official Verification', met: true, detail: 'Both PPSNs verified via Revenue Employment Detail Summary.' },
+          { cat: 'Credit Bureau', name: '5. Central Credit Register (CCR) & Judgments', met: true, detail: 'Clean CCR report for both applicants; zero active credit facilities.' },
+          { cat: 'Employment', name: '6. Employment Contract, Tenure & Probation', met: true, detail: 'Apple Cork (3 yrs) & Eli Lilly Kinsale (2.5 yrs); permanent, probation passed.' },
+          { cat: 'Income & Tax', name: '7. 3 Months Payslips & Revenue EDS (P60)', met: true, detail: '€104k combined base + €8k bonus verified via payroll & Revenue EDS.' },
+          { cat: 'Open Banking', name: '8. 6-Month Bank, Savings & Neobank Statements', met: true, detail: '890 transactions audited across AIB, BOI Saver & N26 via Yapily.' },
+          { cat: 'Conduct', name: '9. Account Conduct, Gambling & BNPL Screen', met: true, detail: '0 unpaid DDs, 0 overdrafts, 0.0% gambling, €0 BNPL over last 5 mos.' },
+          { cat: 'Affordability', name: '10. Deposit Source (AML) & +2% Stress Capacity', met: true, detail: '€67k deposit (€52k savings + €15k signed Gift Letter & donor AML proof).' }
+        ],
+        fullCriteria: [
+          { cat: 'Employer Cert', name: '11. Standardized Lender Salary Certificates', met: true, detail: 'Digitally pre-verified via Apple & Eli Lilly HR.' },
+          { cat: 'Statement Refresh', name: '12. Pre-Offer Statement & Payslip Refresh', met: true, detail: 'Live Yapily feed active.' },
+          { cat: 'Sale Agreed', name: '13. Sales Advice Note & Booking Deposit Receipt', met: false, detail: 'Stage A Applicant — currently bidding on properties in Cork.' },
+          { cat: 'Valuation', name: '14. Lender Panel Property Valuation Report', met: false, detail: 'Awaiting Sale Agreed property.' },
+          { cat: 'Green BER', name: '15. SEAI BER Certificate & Advisory Report', met: false, detail: 'Targeting BER B2+ property.' },
+          { cat: 'Survey & Planning', name: '16. Structural Survey & Planning Compliance', met: false, detail: 'Awaiting Sale Agreed property.' },
+          { cat: 'Conveyancing', name: '17. Solicitor Undertaking & Contracts for Sale', met: true, detail: 'JW O’Donovan LLP (Cork) nominated and ready.' },
+          { cat: 'Protection & DD', name: '18. Mortgage Protection, Home Insurance & SEPA DD', met: false, detail: 'Broc Tender pre-quoted Life Cover at €29/mo; binds at Stage B.' }
+        ]
+      },
+      {
+        id: 'BROC-IE-9043',
+        names: 'Aoife Kelly & Liam Doyle',
+        county: 'Galway (Knocknacarra)',
+        citizenship: 'Irish & UK Citizens (CTA Verified)',
+        kycBadge: 'Passports + CTA Residency Verified',
+        buyerType: 'SSB',
+        applicantsCount: 2,
+        dependents: 2,
+        targetStage: 'FULL',
+        statusBadge: 'Full Loan Offer Ready',
+        dataSource: 'Yapily + CSV Upload (BOI + Credit Union)',
+        baseIncome: 138000,
+        bonusIncome: 16000,
+        netMonthlyIncome: 7920,
+        verifiedRentPm: 1650,
+        verifiedSavingsPm: 1400,
+        cliveMonthlySavingsUnlocked: 310,
+        existingDebtPm: 220,
+        depositSaved: 145000,
+        helpToBuyGrant: 0,
+        giftAmount: 0,
+        targetPropertyAddress: '42 Seacrest Road, Knocknacarra, Co. Galway (Sale Agreed @ €620,000)',
+        propertyBER: 'B1',
+        termYears: 25,
+        brocScoreBefore: 78,
+        brocScore: 91,
+        scorePillars: [
+          { name: 'Repayment Capacity & +2% Stress Margin', earned: 27, max: 30, note: '€2,830/mo net capacity after €220 car loan & 2 child buffers' },
+          { name: '6-Month Account Conduct & Hygiene', earned: 24, max: 25, note: 'Clean conduct across BOI & St. Anthony’s Credit Union CSVs' },
+          { name: 'Income Stability & Revenue EDS Match', earned: 19, max: 20, note: 'Medtronic & University of Galway permanent roles (7+ yrs)' },
+          { name: 'Deposit AML Source & Clean CCR', earned: 11, max: 15, note: '€145k net equity deposit (23% deposit); 1 small CCR car loan (€220/mo)' },
+          { name: 'KYC ID, Citizenship & Pack Completeness', earned: 10, max: 10, note: 'Irish & UK Passports (Common Travel Area), PPSNs & all 18 docs met' }
+        ],
+        cliveStory: 'Clive restructured family health insurance, broadband, and energy bills via Broc Tenders, saving €310/mo to comfortably clear the NDI living-cost buffer for 2 dependent children.',
+        aipCriteria: [
+          { cat: 'Identity & KYC', name: '1. Photo ID & Biometric Liveness', met: true, detail: 'Irish Passport (Aoife) & UK Passport (Liam) verified.' },
+          { cat: 'Citizenship', name: '2. Citizenship & Right to Reside in Ireland', met: true, detail: 'Irish Citizen + UK Citizen under Common Travel Area (CTA); 9 yrs in Galway.' },
+          { cat: 'Address AML', name: '3. Proof of Current Address (<3 Mos)', met: true, detail: 'Local Property Tax (LPT) receipt & Electric Ireland bill verified.' },
+          { cat: 'Tax ID', name: '4. PPSN Official Verification', met: true, detail: 'Both PPSNs verified on Revenue EDS & current mortgage deed.' },
+          { cat: 'Credit Bureau', name: '5. Central Credit Register (CCR) & Judgments', met: true, detail: 'CCR shows existing mortgage (redeeming on sale) + €220/mo car loan (0 arrears).' },
+          { cat: 'Employment', name: '6. Employment Contract, Tenure & Probation', met: true, detail: 'Permanent roles at Medtronic & University of Galway.' },
+          { cat: 'Income & Tax', name: '7. 3 Months Payslips & Revenue EDS (P60)', met: true, detail: '€138k base + €16k bonus verified.' },
+          { cat: 'Open Banking', name: '8. 6-Month Bank & Credit Union Statements', met: true, detail: 'BOI Open Banking + St. Anthony’s Credit Union CSV batch verified.' },
+          { cat: 'Conduct', name: '9. Account Conduct, Gambling & BNPL Screen', met: true, detail: '0 unpaid items, 0 overdrafts, 0.1% lottery spend.' },
+          { cat: 'Affordability', name: '10. Deposit Source (AML) & +2% Stress Capacity', met: true, detail: '€145k verified net equity from contracted sale of current home.' }
+        ],
+        fullCriteria: [
+          { cat: 'Employer Cert', name: '11. Standardized Lender Salary Certificates', met: true, detail: 'Signed & stamped Employer Salary Certs uploaded.' },
+          { cat: 'Statement Refresh', name: '12. Pre-Offer Statement & Payslip Refresh', met: true, detail: 'Up-to-date through current month.' },
+          { cat: 'Sale Agreed', name: '13. Sales Advice Note & Back-to-Back Sale Contract', met: true, detail: 'Unconditional contracts signed on existing property sale + purchase.' },
+          { cat: 'Valuation', name: '14. Lender Panel Property Valuation Report', met: true, detail: 'Valued at €620,000 by O’Donnellan & Joyce panel valuer.' },
+          { cat: 'Green BER', name: '15. SEAI BER Certificate & Advisory Report', met: true, detail: 'BER B1 confirmed — qualifies for Green Mortgage discount.' },
+          { cat: 'Survey & Planning', name: '16. Structural Survey & Planning Compliance', met: true, detail: 'Full structural survey & planning search completed.' },
+          { cat: 'Conveyancing', name: '17. Solicitor Undertaking & Contracts for Sale', met: true, detail: 'MacSweeney & Co. Solicitors undertaking received.' },
+          { cat: 'Protection & DD', name: '18. Mortgage Protection, Home Insurance & SEPA DD', met: true, detail: 'Dual-life cover & buildings insurance bound via Broc.' }
+        ]
+      },
+      {
+        id: 'BROC-IE-9044',
+        names: 'Siobhán Ní Bhriain',
+        county: 'Kildare (Naas)',
+        citizenship: 'Irish Citizen (Self-Employed Director)',
+        kycBadge: 'Passport + ROS Tax Clearance Verified',
+        buyerType: 'FTB',
+        applicantsCount: 1,
+        dependents: 0,
+        targetStage: 'AIP',
+        statusBadge: 'AIP Ready (Self-Employed)',
+        dataSource: 'Yapily Open Banking (BOI Business + Personal)',
+        baseIncome: 92000,
+        bonusIncome: 0,
+        netMonthlyIncome: 5150,
+        verifiedRentPm: 1500,
+        verifiedSavingsPm: 1100,
+        cliveMonthlySavingsUnlocked: 195,
+        existingDebtPm: 0,
+        depositSaved: 62000,
+        helpToBuyGrant: 24000,
+        giftAmount: 0,
+        targetPropertyAddress: 'New Build — Finlay Park, Naas, Co. Kildare',
+        propertyBER: 'A1',
+        termYears: 30,
+        brocScoreBefore: 76,
+        brocScore: 89,
+        scorePillars: [
+          { name: 'Repayment Capacity & +2% Stress Margin', earned: 28, max: 30, note: '€2,600/mo proven (Rent €1,500 + Savings €1,100) vs €1,990 stressed' },
+          { name: '6-Month Account Conduct & Hygiene', earned: 24, max: 25, note: '12 mos Business + Personal accounts clean; 0 unpaid items' },
+          { name: 'Income Stability & Revenue EDS Match', earned: 17, max: 20, note: 'Self-Employed (3 yrs): 2 yrs Audited Accounts + Form 11 + Tax Clearance' },
+          { name: 'Deposit AML Source & Clean CCR', earned: 11, max: 15, note: '€62k savings + €24k HTB approved; clean personal & company CCR' },
+          { name: 'KYC ID, Citizenship & Pack Completeness', earned: 9, max: 10, note: 'Irish Passport, CRO Company Printout, PPSN & Address verified' }
+        ],
+        cliveStory: 'Clara automatically separated business vs personal cashflows across 12 months of BOI feeds and packaged 2 years of certified accounts, Form 11s, and ROS Tax Clearance.',
+        aipCriteria: [
+          { cat: 'Identity & KYC', name: '1. Photo ID & Biometric Liveness', met: true, detail: 'Irish Passport & CRO Director ID verified.' },
+          { cat: 'Citizenship', name: '2. Citizenship & Right to Reside in Ireland', met: true, detail: 'Irish Citizen & domicile.' },
+          { cat: 'Address AML', name: '3. Proof of Current Address (<3 Mos)', met: true, detail: 'Sky Broadband bill & BOI Personal statement verified.' },
+          { cat: 'Tax ID', name: '4. PPSN & Revenue Tax Clearance Certificate', met: true, detail: 'PPSN + live eTax Clearance Certificate verified via ROS.' },
+          { cat: 'Credit Bureau', name: '5. Central Credit Register (CCR) & Judgments', met: true, detail: 'Clean personal & SME CCR check; zero Revenue sheriff judgments.' },
+          { cat: 'Employment', name: '6. Self-Employed Trading History (≥2–3 Yrs)', met: true, detail: '3.5 years trading as IT Consultancy Ltd (CRO #684920).' },
+          { cat: 'Income & Tax', name: '7. 2–3 Yrs Certified Accounts & Form 11 / Notice of Assessment', met: true, detail: '2024 & 2025 Chartered Accountant certified accounts + Form 11s (€92k avg).' },
+          { cat: 'Open Banking', name: '8. 12-Month Business & Personal Bank Statements', met: true, detail: '12 mos BOI Business + Personal current/savings audited by Clara.' },
+          { cat: 'Conduct', name: '9. Account Conduct, Gambling & BNPL Screen', met: true, detail: '0 unpaid items, 0 overdrafts, 0 VAT/PREM arrears.' },
+          { cat: 'Affordability', name: '10. Deposit Source (AML) & +2% Stress Capacity', met: true, detail: '€86k deposit (€62k savings + €24k HTB) + €2,600/mo proven capacity.' }
+        ],
+        fullCriteria: [
+          { cat: 'Employer Cert', name: '11. Accountant Letter Confirming Current Trading', met: true, detail: 'Signed Chartered Accountant confirmation of 2026 profit stability.' },
+          { cat: 'Statement Refresh', name: '12. Pre-Offer Statement & Payslip Refresh', met: true, detail: 'Live BOI Open Banking connection active.' },
+          { cat: 'Sale Agreed', name: '13. New Build Booking Deposit & Contracts', met: true, detail: '€10,000 booking deposit receipt for Finlay Park New Build.' },
+          { cat: 'Valuation', name: '14. Lender Panel Property Valuation Report', met: false, detail: 'Scheduled upon developer completion notice.' },
+          { cat: 'Green BER', name: '15. SEAI BER Certificate & Advisory Report', met: true, detail: 'Provisional BER A1 certificate provided by developer.' },
+          { cat: 'Survey & Planning', name: '16. HomeBond Structural Warranty & Certified Costings', met: false, detail: 'Awaiting final architect stage certificate from builder.' },
+          { cat: 'Conveyancing', name: '17. Solicitor Undertaking & Contracts for Sale', met: true, detail: 'Coonan Cawley Solicitors (Naas) reviewing developer contract.' },
+          { cat: 'Protection & DD', name: '18. Mortgage Protection, Home Insurance & SEPA DD', met: false, detail: 'Broc Tender quotes ready to bind at drawdown.' }
+        ]
+      },
+      {
+        id: 'BROC-IE-9045',
+        names: 'Declan & Maeve Gallagher',
+        county: 'Wicklow (Greystones)',
+        citizenship: 'Irish & EU (German) Citizens',
+        kycBadge: 'Irish + EU Passports Verified',
+        buyerType: 'SWITCHER',
+        applicantsCount: 2,
+        dependents: 1,
+        targetStage: 'FULL',
+        statusBadge: 'Fast-Track Switcher',
+        dataSource: 'Yapily Open Banking (AIB + PTSB)',
+        baseIncome: 124000,
+        bonusIncome: 6000,
+        netMonthlyIncome: 7100,
+        verifiedRentPm: 2280,
+        verifiedSavingsPm: 650,
+        cliveMonthlySavingsUnlocked: 410,
+        existingDebtPm: 0,
+        depositSaved: 230000,
+        helpToBuyGrant: 0,
+        giftAmount: 0,
+        targetPropertyAddress: '9 Sea Road, Greystones, Co. Wicklow (Switching €320k Balance, LTV 58%)',
+        propertyBER: 'B2',
+        termYears: 22,
+        brocScoreBefore: 86,
+        brocScore: 96,
+        scorePillars: [
+          { name: 'Repayment Capacity & +2% Stress Margin', earned: 29, max: 30, note: 'Already paying €2,280/mo mortgage + €650/mo savings (€2,930/mo proven)' },
+          { name: '6-Month Account Conduct & Hygiene', earned: 25, max: 25, note: '24 consecutive on-time mortgage payments; 0 overdrafts or missed DDs' },
+          { name: 'Income Stability & Revenue EDS Match', earned: 20, max: 20, note: 'Both permanent civil service / tech roles; EDS verified' },
+          { name: 'Deposit AML Source & Clean CCR', earned: 12, max: 15, note: '58.2% LTV (€230k equity); spotless CCR redemption record' },
+          { name: 'KYC ID, Citizenship & Pack Completeness', earned: 10, max: 10, note: 'Irish & German EU Passports, PPSNs & full switcher pack complete' }
+        ],
+        cliveStory: 'Clive detected their 3-year fixed rate expired onto a 4.95% variable rate and auto-packaged a complete 18-point Switcher file saving €340/mo.',
+        aipCriteria: [
+          { cat: 'Identity & KYC', name: '1. Photo ID & Biometric Liveness', met: true, detail: 'Irish Passport (Declan) + German EU Passport (Maeve) verified.' },
+          { cat: 'Citizenship', name: '2. Citizenship & Right to Reside in Ireland', met: true, detail: 'Irish & EU Citizen (unrestricted EU right to reside).' },
+          { cat: 'Address AML', name: '3. Proof of Current Address (<3 Mos)', met: true, detail: 'SSE Airtricity bill & Annual Mortgage Statement for 9 Sea Road.' },
+          { cat: 'Tax ID', name: '4. PPSN Official Verification', met: true, detail: 'Both PPSNs verified via Revenue EDS.' },
+          { cat: 'Credit Bureau', name: '5. Central Credit Register (CCR) & Judgments', met: true, detail: 'CCR confirms 100% on-time repayment history on existing mortgage.' },
+          { cat: 'Employment', name: '6. Employment Contract, Tenure & Probation', met: true, detail: 'Permanent roles (8+ yrs tenure).' },
+          { cat: 'Income & Tax', name: '7. 3 Months Payslips & Revenue EDS (P60)', met: true, detail: '€124k base + €6k bonus verified.' },
+          { cat: 'Open Banking', name: '8. 12-Month Current & Mortgage Account Statements', met: true, detail: 'Full 12-month mortgage redemption statement & current account via Yapily.' },
+          { cat: 'Conduct', name: '9. Account Conduct, Gambling & BNPL Screen', met: true, detail: '0 unpaid DDs, 0 overdrafts, 0% gambling.' },
+          { cat: 'Affordability', name: '10. LTV Equity Check & +2% Stress Capacity', met: true, detail: '58.2% LTV (€230k equity) + €2,930/mo proven capacity.' }
+        ],
+        fullCriteria: [
+          { cat: 'Employer Cert', name: '11. Standardized Lender Salary Certificates', met: true, detail: 'Completed & verified for both applicants.' },
+          { cat: 'Statement Refresh', name: '12. Redemption Statement & Latest Payslips', met: true, detail: 'Up-to-date redemption figure verified.' },
+          { cat: 'Sale Agreed', name: '13. Switcher Redemption Request (N/A Purchase)', met: true, detail: 'Like-for-like balance switch (€320,000).' },
+          { cat: 'Valuation', name: '14. Lender Panel Property Valuation Report', met: true, detail: 'Panel valuation confirmed at €550,000.' },
+          { cat: 'Green BER', name: '15. SEAI BER Certificate & Advisory Report', met: true, detail: 'BER B2 verified on SEAI national register.' },
+          { cat: 'Survey & Planning', name: '16. Title & Planning Compliance', met: true, detail: 'Clean family home title.' },
+          { cat: 'Conveyancing', name: '17. Solicitor Undertaking & Title Deeds Requisition', met: true, detail: 'Panel switcher solicitor undertaking signed.' },
+          { cat: 'Protection & DD', name: '18. Mortgage Protection Assignment & SEPA DD', met: true, detail: 'Existing Irish Life policy assigned + SEPA DD signed.' }
+        ]
+      },
+      {
+        id: 'BROC-IE-9046',
+        names: "Tadhg O'Connor",
+        county: 'Limerick (Castletroy)',
+        citizenship: 'Irish Citizen',
+        kycBadge: 'Driving Licence + Passport Verified',
+        buyerType: 'FTB',
+        applicantsCount: 1,
+        dependents: 0,
+        targetStage: 'AIP',
+        statusBadge: 'Instant AIP Qualified',
+        dataSource: 'CSV Batch Upload (PTSB + Revolut)',
+        baseIncome: 68000,
+        bonusIncome: 4000,
+        netMonthlyIncome: 3990,
+        verifiedRentPm: 1100,
+        verifiedSavingsPm: 750,
+        cliveMonthlySavingsUnlocked: 140,
+        existingDebtPm: 0,
+        depositSaved: 36000,
+        helpToBuyGrant: 0,
+        giftAmount: 0,
+        targetPropertyAddress: 'Stage A: House Hunting — Castletroy / Annacotty, Co. Limerick',
+        propertyBER: 'B3',
+        termYears: 35,
+        brocScoreBefore: 74,
+        brocScore: 86,
+        scorePillars: [
+          { name: 'Repayment Capacity & +2% Stress Margin', earned: 26, max: 30, note: '€1,850/mo proven (Rent €1,100 + Savings €750) vs €1,515 stressed' },
+          { name: '6-Month Account Conduct & Hygiene', earned: 22, max: 25, note: '0 unpaid DDs, 0 overdrafts, €15/mo National Lottery (0.3% net)' },
+          { name: 'Income Stability & Revenue EDS Match', earned: 18, max: 20, note: 'Regeneron Limerick permanent PAYE (2 yrs); EDS matched' },
+          { name: 'Deposit AML Source & Clean CCR', earned: 11, max: 15, note: '€36k organic savings (11.4% deposit); clean CCR' },
+          { name: 'KYC ID, Citizenship & Pack Completeness', earned: 9, max: 10, note: 'Irish Passport, PPSN & Proof of Address verified; Stage A complete' }
+        ],
+        cliveStory: 'Tadhg uploaded 6 months of PTSB & Revolut CSVs; Clara verified running balances in 4 seconds and Clive trimmed €140/mo in broadband & streaming bills, raising his Broc Score from 74 → 86.',
+        aipCriteria: [
+          { cat: 'Identity & KYC', name: '1. Photo ID & Biometric Liveness', met: true, detail: 'Irish Passport & Irish Driving Licence verified.' },
+          { cat: 'Citizenship', name: '2. Citizenship & Right to Reside in Ireland', met: true, detail: 'Irish Citizen.' },
+          { cat: 'Address AML', name: '3. Proof of Current Address (<3 Mos)', met: true, detail: 'Virgin Media bill & PTSB statement matched.' },
+          { cat: 'Tax ID', name: '4. PPSN Official Verification', met: true, detail: 'PPSN matched to Revenue EDS.' },
+          { cat: 'Credit Bureau', name: '5. Central Credit Register (CCR) & Judgments', met: true, detail: 'Clean CCR report; 0 loans or credit cards.' },
+          { cat: 'Employment', name: '6. Employment Contract, Tenure & Probation', met: true, detail: 'Regeneron Ireland permanent bioprocess associate (2 yrs).' },
+          { cat: 'Income & Tax', name: '7. 3 Months Payslips & Revenue EDS (P60)', met: true, detail: '€68k base + €4k shift/bonus verified.' },
+          { cat: 'Open Banking', name: '8. 6-Month Bank & Revolut Statements (CSV Verified)', met: true, detail: '6-month PTSB + Revolut CSV batch cryptographic balance check passed.' },
+          { cat: 'Conduct', name: '9. Account Conduct, Gambling & BNPL Screen', met: true, detail: '0 unpaid DDs, 0 overdrafts, €15/mo lottery (well inside <1.5% threshold).' },
+          { cat: 'Affordability', name: '10. Deposit Source (AML) & +2% Stress Capacity', met: true, detail: '€36k savings accumulated over 36 mos + €1,850/mo proven capacity.' }
+        ],
+        fullCriteria: [
+          { cat: 'Employer Cert', name: '11. Standardized Lender Salary Certificate', met: false, detail: 'Sent to Regeneron HR for signature.' },
+          { cat: 'Statement Refresh', name: '12. Pre-Offer Statement & Payslip Refresh', met: true, detail: 'Current to this month.' },
+          { cat: 'Sale Agreed', name: '13. Sales Advice Note & Booking Deposit Receipt', met: false, detail: 'Stage A Applicant — house hunting.' },
+          { cat: 'Valuation', name: '14. Lender Panel Property Valuation Report', met: false, detail: 'Pending Stage B.' },
+          { cat: 'Green BER', name: '15. SEAI BER Certificate & Advisory Report', met: false, detail: 'Pending Stage B.' },
+          { cat: 'Survey & Planning', name: '16. Structural Survey & Planning Compliance', met: false, detail: 'Pending Stage B.' },
+          { cat: 'Conveyancing', name: '17. Solicitor Undertaking & Contracts for Sale', met: false, detail: 'Pending Stage B.' },
+          { cat: 'Protection & DD', name: '18. Mortgage Protection, Home Insurance & SEPA DD', met: false, detail: 'Pending Stage B.' }
+        ]
+      },
+      {
+        id: 'BROC-IE-9047',
+        names: 'Niamh Fitzpatrick',
+        county: 'Dublin 8 (Portobello)',
+        citizenship: 'Irish Citizen',
+        kycBadge: 'KYC Verified • Conduct Remediating',
+        buyerType: 'FTB',
+        applicantsCount: 1,
+        dependents: 0,
+        targetStage: 'NURTURE',
+        statusBadge: 'Clive Remediating (45 Days to AIP)',
+        dataSource: 'Yapily Open Banking (BOI + Revolut)',
+        baseIncome: 84000,
+        bonusIncome: 6000,
+        netMonthlyIncome: 4720,
+        verifiedRentPm: 1450,
+        verifiedSavingsPm: 450,
+        cliveMonthlySavingsUnlocked: 290,
+        existingDebtPm: 185,
+        depositSaved: 44000,
+        helpToBuyGrant: 0,
+        giftAmount: 0,
+        targetPropertyAddress: 'Held in app.broc.fi until Broc Score hits ≥85 (Est. 18 Dec)',
+        propertyBER: 'B3',
+        termYears: 30,
+        brocScoreBefore: 54,
+        brocScore: 68,
+        scorePillars: [
+          { name: 'Repayment Capacity & +2% Stress Margin', earned: 21, max: 30, note: '€1,900/mo current; rises to €2,190/mo with Clive €290/mo bill cuts' },
+          { name: '6-Month Account Conduct & Hygiene', earned: 13, max: 25, note: 'Flagged: 3 Klarna split-pays 4 mos ago + 1 dipped savings month' },
+          { name: 'Income Stability & Revenue EDS Match', earned: 18, max: 20, note: 'Stripe Dublin permanent PAYE; 3 payslips & Revenue EDS verified' },
+          { name: 'Deposit AML Source & Clean CCR', earned: 9, max: 15, note: '€44k verified in BOI GoalSaver; €185/mo PCP finishing in 60 days' },
+          { name: 'KYC ID, Citizenship & Pack Completeness', earned: 7, max: 10, note: 'Irish Passport, PPSN & Address verified; awaiting Month 6 clean statement' }
+        ],
+        cliveStory: 'Instead of letting Niamh apply to BOI today and get rejected for Klarna usage and inconsistent savings, Broc held her application in Remediation Mode: Clive cleared the Klarna habit, cut €290/mo in bills, and set an automated €740/mo standing order. Her Broc Score has already climbed from 54 → 68 and will hit 88 on 18 December.',
+        aipCriteria: [
+          { cat: 'Identity & KYC', name: '1. Photo ID & Biometric Liveness', met: true, detail: 'Irish Passport verified.' },
+          { cat: 'Citizenship', name: '2. Citizenship & Right to Reside in Ireland', met: true, detail: 'Irish Citizen.' },
+          { cat: 'Address AML', name: '3. Proof of Current Address (<3 Mos)', met: true, detail: 'BOI statement & Electric Ireland bill verified.' },
+          { cat: 'Tax ID', name: '4. PPSN Official Verification', met: true, detail: 'PPSN matched to Revenue EDS.' },
+          { cat: 'Credit Bureau', name: '5. Central Credit Register (CCR) & Judgments', met: true, detail: '€185/mo VW Bank PCP closing in 2 payments; 0 arrears.' },
+          { cat: 'Employment', name: '6. Employment Contract, Tenure & Probation', met: true, detail: 'Stripe Dublin permanent role; probation passed.' },
+          { cat: 'Income & Tax', name: '7. 3 Months Payslips & Revenue EDS (P60)', met: true, detail: '€84k base + €6k bonus verified.' },
+          { cat: 'Open Banking', name: '8. 6-Month Bank & Revolut Statements', met: false, detail: '5 of 6 clean months completed (Month 6 completes 18 Dec).' },
+          { cat: 'Conduct', name: '9. Account Conduct, Gambling & BNPL Screen', met: false, detail: 'Klarna installments detected 4 mos ago — Clive auto-blocked & cleared.' },
+          { cat: 'Affordability', name: '10. Deposit Source (AML) & +2% Stress Capacity', met: true, detail: '€44k deposit verified; Clive standing order building 6-mo streak.' }
+        ],
+        fullCriteria: [
+          { cat: 'Employer Cert', name: '11. Standardized Lender Salary Certificate', met: false, detail: 'Unlocks after Stage A AIP pass.' },
+          { cat: 'Statement Refresh', name: '12. Pre-Offer Statement & Payslip Refresh', met: false, detail: 'Unlocks after Stage A.' },
+          { cat: 'Sale Agreed', name: '13. Sales Advice Note & Booking Deposit Receipt', met: false, detail: 'Unlocks at Stage B.' },
+          { cat: 'Valuation', name: '14. Lender Panel Property Valuation Report', met: false, detail: 'Unlocks at Stage B.' },
+          { cat: 'Green BER', name: '15. SEAI BER Certificate & Advisory Report', met: false, detail: 'Unlocks at Stage B.' },
+          { cat: 'Survey & Planning', name: '16. Structural Survey & Planning Compliance', met: false, detail: 'Unlocks at Stage B.' },
+          { cat: 'Conveyancing', name: '17. Solicitor Undertaking & Contracts for Sale', met: false, detail: 'Unlocks at Stage B.' },
+          { cat: 'Protection & DD', name: '18. Mortgage Protection, Home Insurance & SEPA DD', met: false, detail: 'Unlocks at Stage B.' }
+        ]
+      }
+    ];
+
+    let currentLenderId = 'BOI';
+    let currentStageFilter = 'ALL';
+    let selectedApplicantId = APPLICANTS[0].id;
+    let activeChecklistTab = 'SCORE';
+
+    function calculateLoanQualification(applicant, lender) {
+      const ltiMultiplier = applicant.buyerType === 'FTB' ? 4.0 : 3.5;
+      const recognizedIncome = applicant.baseIncome + (applicant.bonusIncome * lender.maxVariableBonusPct);
+      const maxLoanByLTI = Math.round(recognizedIncome * ltiMultiplier);
+
+      const totalDeposit = applicant.depositSaved + applicant.helpToBuyGrant + applicant.giftAmount;
+      const maxLoanByDeposit90LTV = totalDeposit * 9;
+
+      const isGreenEligible = ['A1', 'A2', 'A3', 'B1', 'B2', 'B3'].includes(applicant.propertyBER);
+      const appliedRate = isGreenEligible ? lender.greenRate : lender.stdRate;
+      const stressedRate = appliedRate + lender.stressBuffer;
+
+      const provenMonthlyCapacity = applicant.verifiedRentPm + applicant.verifiedSavingsPm - applicant.existingDebtPm;
+      const minLivingCost = (applicant.applicantsCount === 2 ? lender.livingCostCouple : lender.livingCostSingle) + (applicant.dependents * lender.livingCostPerChild);
+      const ndiCapacity = applicant.netMonthlyIncome - minLivingCost - applicant.existingDebtPm;
+      const effectiveMonthlyCapacity = Math.min(provenMonthlyCapacity, ndiCapacity);
+
+      const r = (stressedRate / 100) / 12;
+      const n = applicant.termYears * 12;
+      const annuityFactor = (r * Math.pow(1 + r, n)) / (Math.pow(1 + r, n) - 1);
+      const maxLoanByStressTest = Math.round(effectiveMonthlyCapacity / annuityFactor);
+      const cliveLoanBoost = Math.round(applicant.cliveMonthlySavingsUnlocked / annuityFactor);
+
+      const qualifiedLoan = Math.round(Math.min(maxLoanByLTI, maxLoanByStressTest, maxLoanByDeposit90LTV) / 1000) * 1000;
+      const stressedMonthlyPayment = Math.round(qualifiedLoan * annuityFactor);
+      const actualMonthlyPayment = Math.round(qualifiedLoan * (((appliedRate / 100) / 12 * Math.pow(1 + (appliedRate / 100) / 12, n)) / (Math.pow(1 + (appliedRate / 100) / 12, n) - 1)));
+
+      return {
+        ltiMultiplier,
+        recognizedIncome,
+        maxLoanByLTI,
+        totalDeposit,
+        isGreenEligible,
+        appliedRate,
+        stressedRate,
+        provenMonthlyCapacity,
+        effectiveMonthlyCapacity,
+        maxLoanByStressTest,
+        cliveLoanBoost,
+        qualifiedLoan,
+        maxPurchasingPower: qualifiedLoan + totalDeposit,
+        stressedMonthlyPayment,
+        actualMonthlyPayment
+      };
+    }
+
+    function formatEuro(num) {
+      return '€' + Number(num).toLocaleString('en-IE');
+    }
+
+    function renderLenderSwitcher() {
+      const container = document.getElementById('lenderSwitcher');
+      const lender = LENDERS[currentLenderId];
+
+      container.innerHTML = Object.values(LENDERS).map(l => {
+        const active = l.id === currentLenderId;
+        return `
+          <button
+            onclick="selectLender('${l.id}')"
+            class="px-3.5 py-1.5 rounded-lg text-xs font-semibold transition cursor-pointer border ${
+              active
+                ? 'text-white shadow-sm'
+                : 'bg-slate-800 text-slate-300 border-slate-700 hover:text-white'
+            }"
+            style="${active ? `background-color: ${l.color}; border-color: ${l.color};` : ''}"
+          >
+            ${l.name}
+          </button>
+        `;
+      }).join('');
+
+      const badge = document.getElementById('lenderLogoBadge');
+      badge.style.backgroundColor = lender.color;
+      badge.textContent = lender.code;
+      document.getElementById('lenderTitle').textContent = lender.portalName;
+    }
+
+    function getFilteredApplicants() {
+      const search = (document.getElementById('searchInput')?.value || '').toLowerCase().trim();
+      const buyerType = document.getElementById('buyerTypeFilter')?.value || 'ALL';
+
+      return APPLICANTS.filter(a => {
+        if (currentStageFilter !== 'ALL' && a.targetStage !== currentStageFilter) return false;
+        if (buyerType !== 'ALL' && a.buyerType !== buyerType) return false;
+        if (search) {
+          const hay = `${a.names} ${a.id} ${a.county} ${a.citizenship} ${a.dataSource}`.toLowerCase();
+          if (!hay.includes(search)) return false;
+        }
+        return true;
+      });
+    }
+
+    function renderKpiRibbon() {
+      const lender = LENDERS[currentLenderId];
+      let totalQualifiedVolume = 0;
+      let aipReadyCount = 0;
+      let fullReadyCount = 0;
+      let totalScore = 0;
+      let totalScoreGain = 0;
+
+      APPLICANTS.forEach(a => {
+        const calc = calculateLoanQualification(a, lender);
+        if (a.targetStage !== 'NURTURE') totalQualifiedVolume += calc.qualifiedLoan;
+        if (a.targetStage === 'AIP') aipReadyCount++;
+        if (a.targetStage === 'FULL') fullReadyCount++;
+        totalScore += a.brocScore;
+        totalScoreGain += (a.brocScore - a.brocScoreBefore);
+      });
+
+      const avgScore = Math.round(totalScore / APPLICANTS.length);
+      const avgGain = Math.round(totalScoreGain / APPLICANTS.length);
+
+      document.getElementById('kpiRibbon').innerHTML = `
+        <div class="bg-white border border-slate-200 rounded-xl p-4 shadow-sm">
+          <div class="text-xs font-medium text-slate-500 uppercase tracking-wider">Avg Broc Readiness Score</div>
+          <div class="flex items-baseline gap-2 mt-1">
+            <span class="text-2xl font-bold text-emerald-600">${avgScore}/100</span>
+            <span class="text-xs font-semibold text-emerald-600">↑ +${avgGain} pts via Clive AI</span>
+          </div>
+          <div class="text-xs text-slate-500 mt-1">5-Pillar Affordability, Conduct &amp; KYC Index</div>
+        </div>
+        <div class="bg-white border border-slate-200 rounded-xl p-4 shadow-sm">
+          <div class="text-xs font-medium text-slate-500 uppercase tracking-wider">Pre-Verified Lending Volume</div>
+          <div class="text-2xl font-bold text-slate-900 mt-1">${formatEuro(totalQualifiedVolume)}</div>
+          <div class="text-xs text-emerald-600 font-medium mt-1">✓ 6 Ready Applicants (${lender.shortName})</div>
+        </div>
+        <div class="bg-white border border-slate-200 rounded-xl p-4 shadow-sm">
+          <div class="text-xs font-medium text-slate-500 uppercase tracking-wider">A) Mortgage in Principle (AIP)</div>
+          <div class="text-2xl font-bold text-slate-900 mt-1">${aipReadyCount} Ready Now</div>
+          <div class="text-xs text-slate-500 mt-1">10/10 Identity, Citizenship, Tax &amp; Conduct Met</div>
+        </div>
+        <div class="bg-white border border-slate-200 rounded-xl p-4 shadow-sm">
+          <div class="text-xs font-medium text-slate-500 uppercase tracking-wider">B) Full Mortgage (Sale Agreed)</div>
+          <div class="text-2xl font-bold text-slate-900 mt-1">${fullReadyCount} Offer Ready</div>
+          <div class="text-xs text-slate-500 mt-1">All 18 AIP + Property, Legal &amp; Insurance Met</div>
+        </div>
+      `;
+    }
+
+    function renderStageBanner() {
+      const lender = LENDERS[currentLenderId];
+      const tabs = ['ALL', 'AIP', 'FULL', 'NURTURE'];
+      tabs.forEach(t => {
+        const el = document.getElementById('tab-' + t);
+        if (!el) return;
+        if (t === currentStageFilter) {
+          el.style.backgroundColor = lender.color;
+          el.className = 'stage-tab px-3.5 py-1.5 rounded-md text-xs font-semibold transition cursor-pointer text-white shadow-sm';
+        } else {
+          el.style.backgroundColor = 'transparent';
+          el.className = 'stage-tab px-3.5 py-1.5 rounded-md text-xs font-semibold transition cursor-pointer text-slate-600 hover:text-slate-900';
+        }
+      });
+
+      const banner = document.getElementById('stageExplainerBanner');
+      if (currentStageFilter === 'AIP') {
+        banner.innerHTML = `
+          <div class="flex items-center gap-2.5">
+            <span class="px-2.5 py-1 rounded-md text-xs font-bold bg-blue-100 text-blue-800">STAGE A: MORTGAGE IN PRINCIPLE (10 CRITERIA)</span>
+            <span class="text-xs text-slate-700">
+              Covers: <strong>(1)</strong> Photo ID KYC, <strong>(2)</strong> Citizenship / Stamp 4 Residency, <strong>(3)</strong> Proof of Address, <strong>(4)</strong> PPSN, <strong>(5)</strong> CCR Credit Check, <strong>(6)</strong> Permanent Employment, <strong>(7)</strong> Payslips + Revenue EDS, <strong>(8)</strong> 6-Mo Statements, <strong>(9)</strong> Clean Conduct, <strong>(10)</strong> 10% Deposit AML + Stress Test.
+            </span>
+          </div>
+        `;
+      } else if (currentStageFilter === 'FULL') {
+        banner.innerHTML = `
+          <div class="flex items-center gap-2.5">
+            <span class="px-2.5 py-1 rounded-md text-xs font-bold bg-emerald-100 text-emerald-800">STAGE B: FULL MORTGAGE OFFER (18 CRITERIA)</span>
+            <span class="text-xs text-slate-700">
+              Includes all 10 Stage A checks <strong>PLUS 8 Post-Sale-Agreed checks</strong>: <strong>(11)</strong> Stamped Salary Cert, <strong>(12)</strong> Statement Refresh, <strong>(13)</strong> Sales Advice Note, <strong>(14)</strong> Panel Valuation, <strong>(15)</strong> SEAI BER Cert, <strong>(16)</strong> Structural Survey, <strong>(17)</strong> Solicitor Undertaking, <strong>(18)</strong> Bound Life &amp; Home Insurance.
+            </span>
+          </div>
+        `;
+      } else if (currentStageFilter === 'NURTURE') {
+        banner.innerHTML = `
+          <div class="flex items-center gap-2.5">
+            <span class="px-2.5 py-1 rounded-md text-xs font-bold bg-amber-100 text-amber-800">CLIVE AI REMEDIATION PIPELINE (SCORE &lt; 80)</span>
+            <span class="text-xs text-slate-700">
+              Applicants whose initial Broc Score was below 80 are coached inside <code>app.broc.fi</code> (clearing Klarna/BNPL, cutting bills, completing 6 clean savings months) before releasing a 100% compliant file to ${lender.shortName}.
+            </span>
+          </div>
+        `;
+      } else {
+        banner.innerHTML = `
+          <div class="flex flex-wrap items-center justify-between w-full gap-2">
+            <div class="text-xs text-slate-600">
+              <strong class="text-slate-900">Active Tenant: ${lender.name}</strong> • Green Rate: <strong>${lender.greenRate.toFixed(2)}%</strong> (Stressed @ <strong>${(lender.greenRate + lender.stressBuffer).toFixed(2)}%</strong>) • Standard Rate: <strong>${lender.stdRate.toFixed(2)}%</strong> • CBI LTI Caps: <strong>4.0x FTB / 3.5x Mover</strong>
+            </div>
+          </div>
+        `;
+      }
+    }
+
+    function renderTable() {
+      const lender = LENDERS[currentLenderId];
+      const filtered = getFilteredApplicants();
+      document.getElementById('tableCountBadge').textContent = `${filtered.length} Applicant${filtered.length === 1 ? '' : 's'}`;
+
+      if (filtered.length > 0 && !filtered.some(a => a.id === selectedApplicantId)) {
+        selectedApplicantId = filtered[0].id;
+      }
+
+      const tbody = document.getElementById('applicantTableBody');
+      tbody.innerHTML = filtered.map(a => {
+        const calc = calculateLoanQualification(a, lender);
+        const isSelected = a.id === selectedApplicantId;
+        const aipMet = a.aipCriteria.filter(c => c.met).length;
+        const fullMet = a.fullCriteria.filter(c => c.met).length;
+
+        let stageBadgeHtml = '';
+        if (a.targetStage === 'FULL') {
+          stageBadgeHtml = `<span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-semibold bg-emerald-50 text-emerald-700 border border-emerald-200">B) Full Mortgage</span>`;
+        } else if (a.targetStage === 'AIP') {
+          stageBadgeHtml = `<span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-semibold bg-blue-50 text-blue-700 border border-blue-200">A) AIP Ready</span>`;
+        } else {
+          stageBadgeHtml = `<span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-semibold bg-amber-50 text-amber-700 border border-amber-200">Clive Remediating</span>`;
+        }
+
+        const scoreColor = a.brocScore >= 90
+          ? 'text-emerald-700 bg-emerald-50 border border-emerald-200'
+          : a.brocScore >= 80
+          ? 'text-blue-700 bg-blue-50 border border-blue-200'
+          : 'text-amber-700 bg-amber-50 border border-amber-200';
+
+        return `
+          <tr
+            onclick="selectApplicant('${a.id}')"
+            class="row-hover transition cursor-pointer ${isSelected ? 'bg-emerald-50/50' : ''}"
+            style="${isSelected ? `border-left: 4px solid ${lender.color};` : 'border-left: 4px solid transparent;'}"
+          >
+            <td class="py-3.5 px-4">
+              <div class="font-bold text-slate-900 text-sm flex items-center gap-1.5">
+                ${a.names}
+                <span class="px-1.5 py-0.5 rounded text-xs font-semibold bg-slate-100 border border-slate-200 text-slate-600">${a.buyerType}</span>
+              </div>
+              <div class="text-xs text-slate-600 mt-0.5">🪪 ${a.citizenship}</div>
+              <div class="text-xs text-slate-500">📍 ${a.county} • ${a.dataSource.split('(')[0].trim()}</div>
+            </td>
+            <td class="py-3.5 px-3">
+              ${stageBadgeHtml}
+              <div class="text-xs text-slate-500 mt-1">${a.statusBadge}</div>
+            </td>
+            <td class="py-3.5 px-3">
+              <div class="text-xs font-semibold text-slate-800">A) AIP: ${aipMet}/10</div>
+              <div class="text-xs text-slate-500">B) Full: ${aipMet + fullMet}/18</div>
+            </td>
+            <td class="py-3.5 px-3">
+              <div class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-bold ${scoreColor}">
+                ${a.brocScore}/100
+              </div>
+              <div class="text-xs text-emerald-600 font-medium mt-0.5">↑ from ${a.brocScoreBefore}</div>
+            </td>
+            <td class="py-3.5 px-4 text-right">
+              <div class="text-sm font-bold text-slate-900">${formatEuro(calc.qualifiedLoan)}</div>
+              <div class="text-xs text-emerald-600 font-medium">+${formatEuro(calc.totalDeposit)} Deposit</div>
+            </td>
+          </tr>
+        `;
+      }).join('');
+    }
+
+    function renderDetailPanel() {
+      const lender = LENDERS[currentLenderId];
+      const applicant = APPLICANTS.find(a => a.id === selectedApplicantId) || APPLICANTS[0];
+      const calc = calculateLoanQualification(applicant, lender);
+
+      const aipMetCount = applicant.aipCriteria.filter(c => c.met).length;
+      const fullMetCount = applicant.fullCriteria.filter(c => c.met).length;
+
+      let tabBodyHtml = '';
+      if (activeChecklistTab === 'SCORE') {
+        tabBodyHtml = `
+          <div class="space-y-3">
+            <div class="p-3 rounded-xl bg-emerald-50 border border-emerald-200 flex items-center justify-between">
+              <div class="text-xs">
+                <div class="font-bold text-emerald-800">🤖 Broc Score Trajectory (90-Day Consumer App Prep)</div>
+                <div class="text-emerald-900 mt-0.5">
+                  Initial Score: <strong>${applicant.brocScoreBefore}/100</strong> → Packaged Score: <strong>${applicant.brocScore}/100</strong> (+${applicant.brocScore - applicant.brocScoreBefore} pts)
+                </div>
+              </div>
+              <span class="px-2.5 py-1 rounded-lg text-xs font-bold bg-emerald-100 text-emerald-800">
+                +${formatEuro(calc.cliveLoanBoost)} Loan Boost
+              </span>
+            </div>
+
+            <div class="space-y-2.5">
+              ${applicant.scorePillars.map(p => {
+                const pct = Math.round((p.earned / p.max) * 100);
+                const barColor = pct >= 90 ? 'bg-emerald-500' : pct >= 75 ? 'bg-blue-500' : 'bg-amber-500';
+                return `
+                  <div class="p-2.5 rounded-lg bg-slate-50 border border-slate-200 space-y-1.5">
+                    <div class="flex items-center justify-between text-xs">
+                      <span class="font-bold text-slate-900">${p.name}</span>
+                      <span class="font-bold text-emerald-600">${p.earned} / ${p.max} pts</span>
+                    </div>
+                    <div class="w-full h-2 rounded-full bg-white overflow-hidden border border-slate-200">
+                      <div class="h-full ${barColor}" style="width: ${pct}%;"></div>
+                    </div>
+                    <div class="text-xs text-slate-600">${p.note}</div>
+                  </div>
+                `;
+              }).join('')}
+            </div>
+
+            <div class="p-3 rounded-xl bg-slate-50 border border-slate-200 text-xs space-y-1">
+              <div class="font-bold text-slate-900">How Clara &amp; Clive Prepared This Applicant:</div>
+              <p class="text-slate-600 leading-relaxed">${applicant.cliveStory}</p>
+            </div>
+          </div>
+        `;
+      } else {
+        const checklistItems = activeChecklistTab === 'AIP' ? applicant.aipCriteria : applicant.fullCriteria;
+        tabBodyHtml = `
+          <div class="space-y-2">
+            ${checklistItems.map(item => `
+              <div class="p-2.5 rounded-lg bg-slate-50 border border-slate-200 flex items-start gap-2.5">
+                <span class="mt-0.5 inline-flex items-center justify-center w-5 h-5 rounded-full text-xs font-bold shrink-0 ${
+                  item.met ? 'bg-emerald-100 text-emerald-700' : 'bg-amber-100 text-amber-700'
+                }">
+                  ${item.met ? '✓' : '•'}
+                </span>
+                <div class="text-xs flex-1">
+                  <div class="flex items-center justify-between gap-2">
+                    <span class="font-bold text-slate-900">${item.name}</span>
+                    <span class="px-1.5 py-0.5 rounded text-xs bg-white border border-slate-200 text-slate-500">${item.cat}</span>
+                  </div>
+                  <div class="text-slate-600 mt-0.5">${item.detail}</div>
+                </div>
+              </div>
+            `).join('')}
+          </div>
+        `;
+      }
+
+      const panel = document.getElementById('applicantDetailPanel');
+      panel.innerHTML = `
+        <div class="p-4 border-b border-slate-200" style="background: linear-gradient(135deg, ${lender.color}14, transparent);">
+          <div class="flex items-start justify-between gap-2">
+            <div>
+              <div class="flex flex-wrap items-center gap-1.5">
+                <span class="text-xs font-mono font-semibold text-slate-500">${applicant.id}</span>
+                <span class="px-2 py-0.5 rounded text-xs font-bold bg-emerald-50 text-emerald-700 border border-emerald-200">${applicant.kycBadge}</span>
+              </div>
+              <h3 class="text-lg font-bold text-slate-900 mt-1">${applicant.names}</h3>
+              <p class="text-xs text-slate-600">🪪 ${applicant.citizenship}</p>
+              <p class="text-xs text-slate-500 mt-0.5">🏠 ${applicant.targetPropertyAddress}</p>
+            </div>
+            <div class="text-right shrink-0">
+              <div class="text-xs text-slate-500">Broc Score</div>
+              <div class="text-2xl font-extrabold text-emerald-600">${applicant.brocScore}<span class="text-xs font-normal">/100</span></div>
+              <div class="text-xs text-emerald-600 font-semibold">↑ from ${applicant.brocScoreBefore}</div>
+            </div>
+          </div>
+
+          <div class="mt-3.5 p-3.5 rounded-xl bg-white border border-slate-200 shadow-sm">
+            <div class="flex items-center justify-between">
+              <div>
+                <div class="text-xs font-semibold text-slate-500 uppercase">Max Qualified Loan (${lender.shortName})</div>
+                <div class="text-2xl font-extrabold text-slate-900 mt-0.5">${formatEuro(calc.qualifiedLoan)}</div>
+              </div>
+              <div class="text-right">
+                <div class="text-xs font-semibold text-slate-500 uppercase">Max Purchase Price</div>
+                <div class="text-lg font-bold text-emerald-600 mt-0.5">${formatEuro(calc.maxPurchasingPower)}</div>
+              </div>
+            </div>
+
+            <div class="grid grid-cols-3 gap-2 mt-3 pt-2.5 border-t border-slate-100 text-xs">
+              <div>
+                <span class="text-slate-500 block">CBI LTI Cap (${calc.ltiMultiplier}x)</span>
+                <strong class="text-slate-900">${formatEuro(calc.maxLoanByLTI)}</strong>
+              </div>
+              <div>
+                <span class="text-slate-500 block">Verified Deposit</span>
+                <strong class="text-slate-900">${formatEuro(calc.totalDeposit)}</strong>
+              </div>
+              <div>
+                <span class="text-slate-500 block">Proven / Stressed</span>
+                <strong class="text-emerald-600">${formatEuro(calc.provenMonthlyCapacity)} / ${formatEuro(calc.stressedMonthlyPayment)}</strong>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="p-4 space-y-4 max-h-[640px] overflow-y-auto custom-scroll">
+          <div class="flex items-center gap-1 bg-slate-100 p-1 rounded-lg border border-slate-200">
+            <button
+              onclick="switchChecklistTab('SCORE')"
+              class="flex-1 py-1.5 px-2 rounded-md text-xs font-bold transition cursor-pointer ${
+                activeChecklistTab === 'SCORE'
+                  ? 'bg-white text-emerald-700 shadow-sm border border-slate-200'
+                  : 'text-slate-600 hover:text-slate-900'
+              }"
+            >
+              📊 Broc Score (${applicant.brocScore}/100)
+            </button>
+            <button
+              onclick="switchChecklistTab('AIP')"
+              class="flex-1 py-1.5 px-2 rounded-md text-xs font-bold transition cursor-pointer ${
+                activeChecklistTab === 'AIP'
+                  ? 'bg-white text-slate-900 shadow-sm border border-slate-200'
+                  : 'text-slate-600 hover:text-slate-900'
+              }"
+            >
+              A) AIP Criteria (${aipMetCount}/10)
+            </button>
+            <button
+              onclick="switchChecklistTab('FULL')"
+              class="flex-1 py-1.5 px-2 rounded-md text-xs font-bold transition cursor-pointer ${
+                activeChecklistTab === 'FULL'
+                  ? 'bg-white text-slate-900 shadow-sm border border-slate-200'
+                  : 'text-slate-600 hover:text-slate-900'
+              }"
+            >
+              B) Full Offer (${fullMetCount}/8)
+            </button>
+          </div>
+
+          ${tabBodyHtml}
+
+          <div class="pt-2 flex flex-wrap items-center gap-2">
+            <button
+              onclick="triggerUnderwriterAction('APPROVE')"
+              class="flex-1 py-2.5 px-4 rounded-xl text-xs font-bold text-white shadow-sm transition cursor-pointer"
+              style="background-color: ${lender.color};"
+            >
+              ${applicant.targetStage === 'FULL' ? `Issue Formal ${lender.code} Loan Offer` : `Issue Instant ${lender.code} AIP Certificate`}
+            </button>
+            <button
+              onclick="triggerUnderwriterAction('EXPORT')"
+              class="py-2.5 px-3.5 rounded-xl text-xs font-semibold border border-slate-200 bg-slate-50 hover:bg-slate-100 text-slate-700 transition cursor-pointer"
+            >
+              ⬇ Export 18-Pt Pack
+            </button>
+          </div>
+          <div id="actionFeedbackToast" class="hidden p-2.5 rounded-lg bg-emerald-50 border border-emerald-200 text-xs font-semibold text-emerald-800 text-center"></div>
+        </div>
+      `;
+    }
+
+    function selectLender(lenderId) {
+      currentLenderId = lenderId;
+      renderAll();
+    }
+
+    function setStageFilter(stage) {
+      currentStageFilter = stage;
+      if (stage === 'AIP') activeChecklistTab = 'AIP';
+      else if (stage === 'FULL') activeChecklistTab = 'FULL';
+      else activeChecklistTab = 'SCORE';
+      renderAll();
+    }
+
+    function selectApplicant(id) {
+      selectedApplicantId = id;
+      renderTable();
+      renderDetailPanel();
+    }
+
+    function switchChecklistTab(tab) {
+      activeChecklistTab = tab;
+      renderDetailPanel();
+    }
+
+    function triggerUnderwriterAction(type) {
+      const lender = LENDERS[currentLenderId];
+      const applicant = APPLICANTS.find(a => a.id === selectedApplicantId);
+      const calc = calculateLoanQualification(applicant, lender);
+      const toast = document.getElementById('actionFeedbackToast');
+      toast.classList.remove('hidden');
+      if (type === 'APPROVE') {
+        toast.textContent = `✅ ${lender.shortName} ${applicant.targetStage === 'FULL' ? 'Formal Loan Offer' : 'Approval in Principle'} (${formatEuro(calc.qualifiedLoan)}) generated & pushed to ${applicant.names}'s Broc App!`;
+      } else {
+        toast.textContent = `📦 Complete 18-Criteria Underwriting Pack (${applicant.id} — KYC, Citizenship, Revenue EDS & 6-Mo Audited CSVs) exported.`;
+      }
+    }
+
+    function openScoreModal() {
+      const m = document.getElementById('scoreModal');
+      m.classList.remove('hidden');
+      m.classList.add('flex');
+    }
+
+    function closeScoreModal() {
+      const m = document.getElementById('scoreModal');
+      m.classList.add('hidden');
+      m.classList.remove('flex');
+    }
+
+    function openRulesComparisonModal() {
+      const m = document.getElementById('rulesModal');
+      m.classList.remove('hidden');
+      m.classList.add('flex');
+    }
+
+    function closeRulesComparisonModal() {
+      const m = document.getElementById('rulesModal');
+      m.classList.add('hidden');
+      m.classList.remove('flex');
+    }
+
+    function renderAll() {
+      renderLenderSwitcher();
+      renderKpiRibbon();
+      renderStageBanner();
+      renderTable();
+      renderDetailPanel();
+    }
+
+    renderAll();
+  </script>
+</body>
+</html>
