@@ -3,12 +3,20 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Broc For Lenders — Mortgage Readiness &amp; Underwriting Portal</title>
+  <title>Broc. For Lenders — Mortgage Readiness &amp; Underwriting Portal</title>
+  <link rel="icon" type="image/png" href="assets/icons/broc_favicon1.png" />
+  <link rel="apple-touch-icon" href="assets/icons/broc_favicon1.png" />
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
   <script src="https://cdn.tailwindcss.com"></script>
   <style>
+    :root {
+      --broc-emerald: #10b981;
+      --broc-mint: #43e97b;
+      --broc-cyan: #38f9d7;
+      --broc-dark: #1c1d1f;
+    }
     body {
       font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
       background-color: #f8fafc;
@@ -17,6 +25,10 @@
     h1, h2, h3, h4, .font-display {
       font-family: 'Outfit', sans-serif;
     }
+    .broc-gradient-pill {
+      background: linear-gradient(135deg, #43e97b 0%, #38f9d7 100%);
+      color: #0f172a;
+    }
     .row-hover:hover {
       background-color: #f1f5f9;
     }
@@ -24,56 +36,80 @@
     .custom-scroll::-webkit-scrollbar-thumb { background: rgba(100, 116, 139, 0.3); border-radius: 3px; }
   </style>
 </head>
-<body class="min-h-screen antialiased">
+<body class="min-h-screen antialiased flex flex-col">
 
-  <!-- TOP PORTAL CONTROL RIBBON (Queue Volume Switch + Tenant Brand Switch) -->
-  <div class="bg-slate-900 text-white px-6 py-2.5">
+  <!-- TOP BROC BRAND & CONTROL RIBBON -->
+  <div class="bg-[#1c1d1f] text-white px-6 py-2.5 border-b border-slate-800">
     <div class="max-w-7xl mx-auto flex flex-wrap items-center justify-between gap-3">
-      <!-- Left: Dataset / Cohort Mode Switch (7 Curated Default vs 517 Monthly Volume) -->
-      <div class="flex flex-wrap items-center gap-2.5">
-        <span class="text-xs font-semibold uppercase tracking-wider text-slate-400">
-          Pipeline View:
-        </span>
-        <div class="inline-flex items-center bg-slate-800 p-0.5 rounded-lg border border-slate-700" id="datasetSwitcher">
-          <!-- Populated by JS -->
+      <!-- Left: Broc Brand Lockup + Consumer App Links -->
+      <div class="flex flex-wrap items-center gap-3">
+        <a href="https://broc.fi" target="_blank" rel="noopener noreferrer" class="flex items-center gap-2.5 group">
+          <img
+            src="brokerlyai_logo.jpg"
+            alt="Broc Logo"
+            class="w-8 h-8 rounded-lg object-contain bg-white p-0.5 shadow-sm group-hover:scale-105 transition"
+          />
+          <div class="leading-tight">
+            <span class="font-display font-bold text-sm tracking-tight text-white">Broc<span class="text-[#43e97b]">.</span></span>
+            <span class="text-xs text-slate-400 block -mt-0.5">For Mortgage Lenders</span>
+          </div>
+        </a>
+        <span class="text-slate-700 hidden md:inline">|</span>
+        <div class="hidden md:flex items-center gap-2 text-xs">
+          <a href="https://broc.fi" target="_blank" rel="noopener noreferrer" class="text-slate-400 hover:text-white transition">broc.fi ↗</a>
+          <span class="text-slate-700">•</span>
+          <a href="https://app.broc.fi" target="_blank" rel="noopener noreferrer" class="text-[#43e97b] hover:underline font-medium">Consumer App (app.broc.fi) ↗</a>
         </div>
       </div>
 
-      <!-- Right: Brand Theme Switch (BOI vs Generic White-Label) -->
-      <div class="flex flex-wrap items-center gap-2">
-        <span class="text-xs font-semibold uppercase tracking-wider text-slate-400 hidden sm:inline">
-          Portal Theme:
-        </span>
-        <div class="flex items-center gap-1.5" id="lenderSwitcher"></div>
+      <!-- Right: Pipeline View Switch (7-Select Default vs 517 Monthly) + Portal Theme Switch -->
+      <div class="flex flex-wrap items-center gap-3">
+        <div class="flex items-center gap-2">
+          <span class="text-xs font-semibold uppercase tracking-wider text-slate-400 hidden sm:inline">
+            Queue:
+          </span>
+          <div class="inline-flex items-center bg-slate-800/90 p-0.5 rounded-lg border border-slate-700" id="datasetSwitcher"></div>
+        </div>
+
+        <div class="flex items-center gap-1.5">
+          <span class="text-xs font-semibold uppercase tracking-wider text-slate-400 hidden lg:inline">
+            Brand:
+          </span>
+          <div class="flex items-center gap-1.5" id="lenderSwitcher"></div>
+        </div>
       </div>
     </div>
   </div>
 
-  <!-- MAIN LENDER PORTAL HEADER -->
+  <!-- MAIN LENDER PORTAL HEADER (Co-Branded BOI / Broc White-Label) -->
   <header class="bg-white border-b border-slate-200 px-6 py-4 shadow-sm">
     <div class="max-w-7xl mx-auto flex flex-wrap items-center justify-between gap-4">
       <div class="flex items-center gap-4">
-        <div id="lenderLogoBadge" class="w-12 h-12 rounded-xl flex items-center justify-center text-white font-display font-bold text-lg shadow-sm" style="background-color: #002663;">
-          BOI
+        <!-- Dynamic Lender / Broc Co-Branded Logo Box -->
+        <div id="lenderLogoContainer" class="flex items-center gap-3">
+          <!-- Populated by JS -->
         </div>
+
         <div>
-          <div class="flex items-center gap-2.5">
+          <div class="flex flex-wrap items-center gap-2.5">
             <h1 id="lenderTitle" class="text-xl font-bold tracking-tight text-slate-900">
               Bank of Ireland — Mortgage Readiness &amp; Underwriting Hub
             </h1>
-            <span class="px-2.5 py-0.5 rounded-full text-xs font-semibold bg-emerald-50 text-emerald-700 border border-emerald-200">
-              Powered by <strong>Broc AI</strong>
+            <span class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-semibold bg-emerald-50 text-emerald-800 border border-emerald-200">
+              <img src="assets/icons/broc_favicon1.png" alt="Broc" class="w-4 h-4 object-contain" />
+              Powered by <strong>Broc. AI</strong>
             </span>
           </div>
           <p id="lenderSubtitle" class="text-xs text-slate-500 mt-0.5">
-            18-Point Verified Applicant Pipeline (Yapily Open Banking + CSV + KYC/Citizenship) • CBI Macroprudential Rules
+            18-Point Verified Applicant Pipeline (Yapily Open Banking + CSV + KYC/Citizenship) • Audited by <strong>Clara</strong> &amp; Optimised by <strong>Clive</strong>
           </p>
         </div>
       </div>
 
       <div class="flex flex-wrap items-center gap-2.5">
-        <button onclick="openScoreModal()" class="px-3.5 py-2 rounded-lg text-xs font-semibold bg-emerald-50 text-emerald-700 border border-emerald-200 hover:bg-emerald-100 transition cursor-pointer">
-          📊 How the Broc Score (0–100) Works
+        <button onclick="openScoreModal()" class="px-3.5 py-2 rounded-lg text-xs font-semibold bg-emerald-50 text-emerald-800 border border-emerald-200 hover:bg-emerald-100 transition cursor-pointer flex items-center gap-1.5">
+          <img src="assets/icons/broc_favicon1.png" alt="" class="w-4 h-4 object-contain" />
+          <span>How the Broc Score (0–100) Works</span>
         </button>
         <button onclick="openRulesComparisonModal()" class="px-3.5 py-2 rounded-lg text-xs font-semibold border border-slate-200 bg-slate-50 hover:bg-slate-100 text-slate-700 transition cursor-pointer">
           📋 Full 18-Criteria Checklist (A: AIP vs B: Full)
@@ -83,26 +119,36 @@
   </header>
 
   <!-- MAIN WORKSPACE -->
-  <main class="max-w-7xl mx-auto px-6 py-6 space-y-6">
+  <main class="max-w-7xl mx-auto px-6 py-6 space-y-6 flex-1 w-full">
 
     <!-- KPI SUMMARY RIBBON -->
     <section class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4" id="kpiRibbon"></section>
 
-    <!-- BROC SCORE EXPLAINER STRIP -->
+    <!-- BROC SCORE & AI PERSONAS EXPLAINER STRIP (Featuring Clara & Clive Avatars) -->
     <section class="bg-white border border-slate-200 rounded-xl p-4 shadow-sm">
-      <div class="flex flex-wrap items-center justify-between gap-2 pb-3 mb-3 border-b border-slate-100">
-        <div class="flex items-center gap-2">
-          <span class="px-2.5 py-0.5 rounded-full text-xs font-bold bg-emerald-50 text-emerald-700 border border-emerald-200">
-            THE BROC SCORE (0–100)
-          </span>
+      <div class="flex flex-wrap items-center justify-between gap-3 pb-3 mb-3 border-b border-slate-100">
+        <div class="flex flex-wrap items-center gap-3">
+          <div class="flex items-center gap-2 px-3 py-1 rounded-full broc-gradient-pill font-display font-bold text-xs shadow-sm">
+            <img src="assets/icons/broc_favicon1.png" alt="Broc" class="w-4 h-4 object-contain" />
+            <span>THE BROC SCORE (0–100)</span>
+          </div>
           <h2 class="text-sm font-bold text-slate-900">
-            Composite Mortgage Readiness &amp; Underwriting Confidence Index
+            5-Pillar Mortgage Readiness &amp; Underwriting Confidence Index
           </h2>
         </div>
-        <span class="text-xs text-slate-500">
-          90–100: <strong>Fast-Track Auto-Issue</strong> • 80–89: <strong>Standard Pass</strong> • &lt;80: <strong>Held in Clive AI Remediation</strong>
-        </span>
+
+        <!-- Clara & Clive Dual-Persona Pill -->
+        <div class="flex items-center gap-3 bg-slate-50 px-3 py-1.5 rounded-full border border-slate-200">
+          <div class="flex items-center -space-x-2">
+            <img src="assets/images/avatars/clara.png" alt="Clara AI" class="w-7 h-7 rounded-full object-cover ring-2 ring-white shadow-sm" title="Clara — AI Data Analyst" />
+            <img src="assets/images/avatars/clive.png" alt="Clive AI" class="w-7 h-7 rounded-full object-cover ring-2 ring-white shadow-sm" title="Clive — AI Financial Strategist" />
+          </div>
+          <span class="text-xs text-slate-600">
+            <strong>Clara</strong> audits 6-mo statements &amp; KYC • <strong>Clive</strong> fixes bills &amp; BNPL on <a href="https://app.broc.fi" target="_blank" class="text-emerald-700 font-semibold hover:underline">app.broc.fi</a>
+          </span>
+        </div>
       </div>
+
       <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3 text-xs">
         <div class="p-2.5 rounded-lg bg-slate-50 border border-slate-200">
           <div class="flex items-center justify-between font-bold text-slate-900">
@@ -186,9 +232,12 @@
       <!-- LEFT: APPLICANT PIPELINE TABLE (7 cols) -->
       <div class="lg:col-span-7 bg-white border border-slate-200 rounded-xl shadow-sm overflow-hidden">
         <div class="px-4 py-3 border-b border-slate-200 flex flex-wrap items-center justify-between gap-2">
-          <div>
-            <h2 class="text-sm font-bold text-slate-900" id="queueHeaderTitle">Broc Packaged Applicant Queue</h2>
-            <p class="text-xs text-slate-500">Click any row to inspect their 5-pillar Broc Score, ID/Citizenship &amp; 18-point checklist</p>
+          <div class="flex items-center gap-2.5">
+            <img src="brokerlyai_logo.jpg" alt="Broc" class="w-7 h-7 rounded-md object-contain border border-slate-200 bg-white p-0.5" />
+            <div>
+              <h2 class="text-sm font-bold text-slate-900" id="queueHeaderTitle">Broc Packaged Applicant Queue</h2>
+              <p class="text-xs text-slate-500">Click any row to inspect their 5-pillar Broc Score, ID/Citizenship &amp; 18-point checklist</p>
+            </div>
           </div>
           <span id="tableCountBadge" class="text-xs font-semibold px-2.5 py-1 rounded-full bg-slate-100 text-slate-700">
             7 Applicants
@@ -210,7 +259,7 @@
           </table>
         </div>
 
-        <!-- Pagination Footer (Active when viewing 517 Monthly Queue) -->
+        <!-- Pagination Footer -->
         <div id="paginationFooter" class="px-4 py-3 bg-slate-50 border-t border-slate-200 flex flex-wrap items-center justify-between gap-3 text-xs"></div>
       </div>
 
@@ -221,13 +270,32 @@
 
   </main>
 
+  <!-- BROC BRANDED FOOTER -->
+  <footer class="bg-white border-t border-slate-200 px-6 py-5 mt-10">
+    <div class="max-w-7xl mx-auto flex flex-wrap items-center justify-between gap-4 text-xs text-slate-500">
+      <div class="flex items-center gap-3">
+        <img src="assets/images/logos/broc-logo-horizontal-light.png" alt="Broc." class="h-7 object-contain" />
+        <span>•</span>
+        <span>Understand, optimise and grow your money through data-driven insights &amp; agentic AI.</span>
+      </div>
+      <div class="flex items-center gap-4">
+        <a href="https://broc.fi" target="_blank" rel="noopener noreferrer" class="hover:text-slate-900 font-medium">broc.fi</a>
+        <a href="https://app.broc.fi" target="_blank" rel="noopener noreferrer" class="hover:text-slate-900 font-medium">app.broc.fi</a>
+        <span class="text-slate-400">Read-Only Open Banking via Yapily</span>
+      </div>
+    </div>
+  </footer>
+
   <!-- MODAL 1: BROC SCORE (0-100) METHODOLOGY & MEANING -->
   <div id="scoreModal" class="fixed inset-0 z-50 hidden items-center justify-center p-4" style="background: rgba(15,23,42,0.65);">
     <div class="bg-white border border-slate-200 rounded-2xl max-w-3xl w-full max-h-[88vh] flex flex-col shadow-2xl overflow-hidden">
       <div class="px-6 py-4 border-b border-slate-200 flex items-center justify-between">
-        <div>
-          <h3 class="text-base font-bold text-slate-900">📊 The Broc Score (0–100): What It Means for Underwriters</h3>
-          <p class="text-xs text-slate-500">A deterministic, auditable 5-pillar mortgage readiness score powered by Clara (audit) &amp; Clive (remediation)</p>
+        <div class="flex items-center gap-3">
+          <img src="brokerlyai_logo.jpg" alt="Broc" class="w-9 h-9 rounded-lg object-contain border border-slate-200 p-0.5 bg-white" />
+          <div>
+            <h3 class="text-base font-bold text-slate-900">The Broc Score (0–100): What It Means for Underwriters</h3>
+            <p class="text-xs text-slate-500">A deterministic, auditable 5-pillar mortgage readiness score powered by Clara (audit) &amp; Clive (remediation)</p>
+          </div>
         </div>
         <button onclick="closeScoreModal()" class="px-3 py-1 rounded-lg text-xs font-semibold border border-slate-200 hover:bg-slate-100 cursor-pointer">
           ✕ Close
@@ -297,9 +365,12 @@
   <div id="rulesModal" class="fixed inset-0 z-50 hidden items-center justify-center p-4" style="background: rgba(15,23,42,0.65);">
     <div class="bg-white border border-slate-200 rounded-2xl max-w-4xl w-full max-h-[88vh] flex flex-col shadow-2xl overflow-hidden">
       <div class="px-6 py-4 border-b border-slate-200 flex items-center justify-between">
-        <div>
-          <h3 class="text-base font-bold text-slate-900">📋 Complete 18-Point Underwriting Criteria: A) Mortgage in Principle vs B) Full Mortgage</h3>
-          <p class="text-xs text-slate-500">Every identity, citizenship, tax, conduct, property, and legal requirement packaged by Broc</p>
+        <div class="flex items-center gap-3">
+          <img src="brokerlyai_logo.jpg" alt="Broc" class="w-9 h-9 rounded-lg object-contain border border-slate-200 p-0.5 bg-white" />
+          <div>
+            <h3 class="text-base font-bold text-slate-900">Complete 18-Point Underwriting Criteria: A) Mortgage in Principle vs B) Full Mortgage</h3>
+            <p class="text-xs text-slate-500">Every identity, citizenship, tax, conduct, property, and legal requirement packaged by Broc</p>
+          </div>
         </div>
         <button onclick="closeRulesComparisonModal()" class="px-3 py-1 rounded-lg text-xs font-semibold border border-slate-200 hover:bg-slate-100 cursor-pointer">
           ✕ Close
@@ -348,9 +419,6 @@
   </div>
 
   <script>
-    // ============================================================================
-    // 1. PORTAL THEMES: BANK OF IRELAND vs GENERIC WHITE-LABEL
-    // ============================================================================
     const LENDERS = {
       BOI: {
         id: 'BOI',
@@ -370,10 +438,10 @@
       },
       WHITELABEL: {
         id: 'WHITELABEL',
-        code: 'WL',
-        name: 'Broc White-Label',
-        shortName: 'Partner Lender',
-        portalName: 'White-Label Mortgage Underwriting Portal — Powered by Broc',
+        code: 'BROC',
+        name: 'Broc. White-Label',
+        shortName: 'Broc Partner Lender',
+        portalName: 'Broc. White-Label Mortgage Underwriting Portal',
         color: '#059669',
         greenRate: 3.55,
         stdRate: 3.95,
@@ -386,9 +454,6 @@
       }
     };
 
-    // ============================================================================
-    // 2. CURATED 7 SHOWCASE APPLICANTS (Default Mode)
-    // ============================================================================
     const CURATED_7_APPLICANTS = [
       {
         id: 'BROC-IE-9001',
@@ -798,15 +863,12 @@
       }
     ];
 
-    // ============================================================================
-    // 3. DETERMINISTIC 517 MONTHLY APPLICANTS GENERATOR (7 Curated + 510 Realistic)
-    // ============================================================================
     function buildMonthly517Applicants() {
       const firstNames = [
         'Conor', 'Aoife', 'Seán', 'Ciara', 'Oisín', 'Niamh', 'Cillian', 'Saoirse', 'Fionn', 'Róisín',
-        'Darragh', 'Caoimhe', 'Cathal', ' Aisling', 'Eoin', 'Orla', 'Padraig', 'Clodagh', 'Ronan', 'Maeve',
+        'Darragh', 'Caoimhe', 'Cathal', 'Aisling', 'Eoin', 'Orla', 'Padraig', 'Clodagh', 'Ronan', 'Maeve',
         'Shane', 'Sinead', 'Colm', 'Deirdre', 'Brian', 'Eimear', 'Cormac', 'Fiona', 'Diarmuid', 'Gráinne',
-        'Liam', 'Emma', 'Jack', 'grace', 'Daniel', 'Sophie', 'Luke', 'Hannah', 'Adam', 'Rachel'
+        'Liam', 'Emma', 'Jack', 'Grace', 'Daniel', 'Sophie', 'Luke', 'Hannah', 'Adam', 'Rachel'
       ];
       const surnames = [
         'Murphy', 'Kelly', "O'Sullivan", 'Walsh', 'Smith', "O'Brien", 'Byrne', 'Ryan', "O'Connor", "O'Neill",
@@ -816,7 +878,7 @@
       ];
       const locations = [
         { county: 'Dublin 6 (Ranelagh)', street: 'Beechwood Ave, Ranelagh, Dublin 6' },
-        { county: 'Dublin 15 (Castleknock)', street: ' Collegewood, Castleknock, Dublin 15' },
+        { county: 'Dublin 15 (Castleknock)', street: 'Collegewood, Castleknock, Dublin 15' },
         { county: 'Co. Dublin (Swords)', street: 'Millers Glen, Swords, Co. Dublin' },
         { county: 'Cork (Douglas)', street: 'Maryborough Ridge, Douglas, Cork' },
         { county: 'Cork (Ballincollig)', street: 'Steeplewoods, Ballincollig, Co. Cork' },
@@ -827,7 +889,7 @@
         { county: 'Meath (Dunshaughlin)', street: 'Fairfields, Dunshaughlin, Co. Meath' },
         { county: 'Waterford (Dunmore Rd)', street: 'Ardkeen Woods, Waterford' },
         { county: 'Louth (Drogheda)', street: 'Ballymakenny Park, Drogheda, Co. Louth' },
-        { county: 'Kilkenny City', street: 'archersfield, Kilkenny' },
+        { county: 'Kilkenny City', street: 'Archersfield, Kilkenny' },
         { county: 'Wexford (Gorey)', street: 'Clonattin Village, Gorey, Co. Wexford' },
         { county: 'Clare (Ennis)', street: 'Roslevan, Ennis, Co. Clare' }
       ];
@@ -855,8 +917,6 @@
       const bers = ['A1', 'A2', 'A3', 'B1', 'B2', 'B3', 'C1'];
 
       const all = [...CURATED_7_APPLICANTS];
-
-      // Seeded pseudo-random helper
       let seed = 421337;
       function rand() {
         seed = (seed * 1664525 + 1013904223) % 4294967296;
@@ -865,8 +925,8 @@
 
       for (let i = 8; i <= 517; i++) {
         const isCouple = rand() > 0.36;
-        const fn1 = firstNames[i % firstNames.length].trim();
-        const fn2 = firstNames[(i * 7 + 3) % firstNames.length].trim();
+        const fn1 = firstNames[i % firstNames.length];
+        const fn2 = firstNames[(i * 7 + 3) % firstNames.length];
         const sn = surnames[(i * 3 + 5) % surnames.length];
         const names = isCouple ? `${fn1} & ${fn2} ${sn}` : `${fn1} ${sn}`;
 
@@ -876,11 +936,9 @@
         const emp = employers[i % employers.length];
         const ber = bers[i % bers.length];
 
-        // Buyer type distribution: ~62% FTB, ~24% SSB, ~14% SWITCHER
         const rBuyer = rand();
         const buyerType = rBuyer < 0.62 ? 'FTB' : rBuyer < 0.86 ? 'SSB' : 'SWITCHER';
 
-        // Stage distribution: ~48% Stage A (AIP), ~34% Stage B (Full), ~18% Clive Remediation
         const rStage = rand();
         const targetStage = rStage < 0.48 ? 'AIP' : rStage < 0.82 ? 'FULL' : 'NURTURE';
 
@@ -901,7 +959,6 @@
         const helpToBuyGrant = (buyerType === 'FTB' && ber.startsWith('A') && rand() > 0.4) ? 25000 : 0;
         const giftAmount = (buyerType === 'FTB' && helpToBuyGrant === 0 && rand() > 0.7) ? 15000 : 0;
 
-        // Score pillars
         let p1 = targetStage === 'NURTURE' ? 20 + Math.floor(rand() * 4) : 26 + Math.floor(rand() * 5);
         let p2 = targetStage === 'NURTURE' ? 12 + Math.floor(rand() * 5) : 22 + Math.floor(rand() * 4);
         let p3 = 17 + Math.floor(rand() * 4);
@@ -987,10 +1044,7 @@
 
     const MONTHLY_517_APPLICANTS = buildMonthly517Applicants();
 
-    // ============================================================================
-    // 4. STATE & LOAN QUALIFICATION ENGINE
-    // ============================================================================
-    let currentDatasetMode = 'CURATED_7'; // 'CURATED_7' (default) or 'MONTHLY_517'
+    let currentDatasetMode = 'CURATED_7';
     let currentLenderId = 'BOI';
     let currentStageFilter = 'ALL';
     let selectedApplicantId = CURATED_7_APPLICANTS[0].id;
@@ -1052,11 +1106,7 @@
       return '€' + Number(num).toLocaleString('en-IE');
     }
 
-    // ============================================================================
-    // 5. UI RENDER FUNCTIONS
-    // ============================================================================
     function renderTopRibbon() {
-      // Dataset Mode Switcher (7-Select Default vs 517 Monthly)
       const dsContainer = document.getElementById('datasetSwitcher');
       const modes = [
         { id: 'CURATED_7', label: '7-Select Showcase (Default)' },
@@ -1069,7 +1119,7 @@
             onclick="selectDatasetMode('${m.id}')"
             class="px-3 py-1 rounded-md text-xs font-semibold transition cursor-pointer ${
               active
-                ? 'bg-emerald-500 text-slate-950 shadow-sm'
+                ? 'broc-gradient-pill font-bold shadow-sm'
                 : 'text-slate-300 hover:text-white'
             }"
           >
@@ -1078,7 +1128,6 @@
         `;
       }).join('');
 
-      // Lender Theme Switcher
       const container = document.getElementById('lenderSwitcher');
       const lender = LENDERS[currentLenderId];
 
@@ -1099,9 +1148,23 @@
         `;
       }).join('');
 
-      const badge = document.getElementById('lenderLogoBadge');
-      badge.style.backgroundColor = lender.color;
-      badge.textContent = lender.code;
+      // Co-branded Logo Container in Header
+      const logoContainer = document.getElementById('lenderLogoContainer');
+      if (currentLenderId === 'BOI') {
+        logoContainer.innerHTML = `
+          <div class="flex items-center gap-2 bg-white border border-slate-200 rounded-xl px-3 py-1.5 shadow-sm">
+            <img src="assets/images/banks/bank-of-ireland-logo.png" alt="Bank of Ireland" class="h-9 object-contain" />
+            <span class="text-slate-300 font-light text-lg">×</span>
+            <img src="brokerlyai_logo.jpg" alt="Broc." class="h-9 w-9 object-contain rounded-md" />
+          </div>
+        `;
+      } else {
+        logoContainer.innerHTML = `
+          <div class="flex items-center gap-2 bg-white border border-emerald-200 rounded-xl px-3 py-1.5 shadow-sm">
+            <img src="brokerlyai_logo.jpg" alt="Broc." class="h-10 w-10 object-contain rounded-md" />
+          </div>
+        `;
+      }
       document.getElementById('lenderTitle').textContent = lender.portalName;
     }
 
@@ -1145,7 +1208,6 @@
       const avgGain = Math.round(totalScoreGain / dataset.length);
       const readyCount = aipReadyCount + fullReadyCount;
 
-      // Update stage tab labels with live counts
       document.getElementById('tab-ALL').textContent = `All Applications (${dataset.length})`;
       document.getElementById('tab-AIP').textContent = `A) AIP Ready (${aipReadyCount})`;
       document.getElementById('tab-FULL').textContent = `B) Full Mortgage (${fullReadyCount})`;
@@ -1313,7 +1375,6 @@
         `;
       }).join('');
 
-      // Pagination footer
       const footer = document.getElementById('paginationFooter');
       if (totalFiltered <= PAGE_SIZE) {
         footer.innerHTML = `
@@ -1361,15 +1422,22 @@
       if (activeChecklistTab === 'SCORE') {
         tabBodyHtml = `
           <div class="space-y-3">
-            <div class="p-3 rounded-xl bg-emerald-50 border border-emerald-200 flex items-center justify-between">
-              <div class="text-xs">
-                <div class="font-bold text-emerald-800">🤖 Broc Score Trajectory (Consumer App Prep)</div>
-                <div class="text-emerald-900 mt-0.5">
-                  Initial Score: <strong>${applicant.brocScoreBefore}/100</strong> → Packaged Score: <strong>${applicant.brocScore}/100</strong> (+${applicant.brocScore - applicant.brocScoreBefore} pts)
+            <!-- Clara & Clive Branded Trajectory Banner -->
+            <div class="p-3 rounded-xl bg-emerald-50 border border-emerald-200 flex items-center justify-between gap-2">
+              <div class="flex items-center gap-2.5">
+                <div class="flex -space-x-2 shrink-0">
+                  <img src="assets/images/avatars/clara.png" alt="Clara" class="w-8 h-8 rounded-full object-cover ring-2 ring-white shadow-sm" />
+                  <img src="assets/images/avatars/clive.png" alt="Clive" class="w-8 h-8 rounded-full object-cover ring-2 ring-white shadow-sm" />
+                </div>
+                <div class="text-xs">
+                  <div class="font-bold text-emerald-900">Broc Score Uplift (Clara &amp; Clive)</div>
+                  <div class="text-emerald-800 mt-0.5">
+                    Initial: <strong>${applicant.brocScoreBefore}/100</strong> → Packaged: <strong>${applicant.brocScore}/100</strong> (+${applicant.brocScore - applicant.brocScoreBefore} pts)
+                  </div>
                 </div>
               </div>
-              <span class="px-2.5 py-1 rounded-lg text-xs font-bold bg-emerald-100 text-emerald-800">
-                +${formatEuro(calc.cliveLoanBoost)} Loan Boost
+              <span class="px-2.5 py-1 rounded-lg text-xs font-bold bg-emerald-100 text-emerald-800 shrink-0">
+                +${formatEuro(calc.cliveLoanBoost)} Capacity
               </span>
             </div>
 
@@ -1392,9 +1460,12 @@
               }).join('')}
             </div>
 
-            <div class="p-3 rounded-xl bg-slate-50 border border-slate-200 text-xs space-y-1">
-              <div class="font-bold text-slate-900">How Clara &amp; Clive Prepared This Applicant:</div>
-              <p class="text-slate-600 leading-relaxed">${applicant.cliveStory}</p>
+            <div class="p-3 rounded-xl bg-slate-50 border border-slate-200 text-xs flex items-start gap-2.5">
+              <img src="assets/images/avatars/clive.png" alt="Clive" class="w-8 h-8 rounded-full object-cover border border-slate-300 shrink-0 mt-0.5" />
+              <div class="space-y-1">
+                <div class="font-bold text-slate-900">Clive (AI Financial Strategist) Summary:</div>
+                <p class="text-slate-600 leading-relaxed">${applicant.cliveStory}</p>
+              </div>
             </div>
           </div>
         `;
@@ -1436,7 +1507,10 @@
               <p class="text-xs text-slate-500 mt-0.5">🏠 ${applicant.targetPropertyAddress}</p>
             </div>
             <div class="text-right shrink-0">
-              <div class="text-xs text-slate-500">Broc Score</div>
+              <div class="inline-flex items-center gap-1 text-xs text-slate-500">
+                <img src="assets/icons/broc_favicon1.png" alt="" class="w-3.5 h-3.5 object-contain" />
+                <span>Broc Score</span>
+              </div>
               <div class="text-2xl font-extrabold text-emerald-600">${applicant.brocScore}<span class="text-xs font-normal">/100</span></div>
               <div class="text-xs text-emerald-600 font-semibold">↑ from ${applicant.brocScoreBefore}</div>
             </div>
