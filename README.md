@@ -1,9 +1,10 @@
 # Broc Mortgage Underwriting & Readiness Portal (Prototype)
 
-Lightweight white-label mortgage provider portal prototype (`Bank of Ireland` tenant vs `Broc Generic White-Label` template).
+Lightweight white-label mortgage provider portal prototype (`Bank of Ireland` tenant vs `Broc White-Label` template).
 
 ## Included Features
-- **Tenant Switcher:** Toggle between **Bank of Ireland (BOI)** and **Broc Generic White-Label** rules, rates, and branding.
+- **Pipeline View Switcher:** Toggle between **7-Select Showcase (Default)** and **517 Monthly Avg Queue** (full monthly pipeline volume with pagination and search).
+- **Portal Theme Switcher:** Toggle between **Bank of Ireland (BOI)** and **Broc White-Label** rules, rates, and branding.
 - **5-Pillar Broc Score (0–100):**
   1. Repayment Capacity & +2.0% Stress-Test Margin (30 pts)
   2. 6-Month Account Conduct & Behavioural Hygiene (25 pts)
