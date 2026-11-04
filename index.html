@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Broc For Lenders — White-Label Mortgage Underwriting Portal (BOI / White-Label)</title>
+  <title>Broc For Lenders — Mortgage Readiness &amp; Underwriting Portal</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
@@ -26,18 +26,27 @@
 </head>
 <body class="min-h-screen antialiased">
 
-  <!-- TOP WHITE-LABEL CONTROL RIBBON (Strictly BOI vs Generic White-Label) -->
-  <div class="bg-slate-900 text-white px-6 py-2.5 flex flex-wrap items-center justify-between gap-3">
-    <div class="flex items-center gap-2.5">
-      <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold bg-emerald-500/20 text-emerald-300 border border-emerald-500/30">
-        <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
-        Scenario 2 Prototype: White-Label Mortgage Engine
-      </span>
-      <span class="text-xs text-slate-300 hidden sm:inline">
-        Toggle between <strong>Bank of Ireland</strong> branded instance and <strong>Generic White-Label SaaS</strong> template:
-      </span>
+  <!-- TOP PORTAL CONTROL RIBBON (Queue Volume Switch + Tenant Brand Switch) -->
+  <div class="bg-slate-900 text-white px-6 py-2.5">
+    <div class="max-w-7xl mx-auto flex flex-wrap items-center justify-between gap-3">
+      <!-- Left: Dataset / Cohort Mode Switch (7 Curated Default vs 517 Monthly Volume) -->
+      <div class="flex flex-wrap items-center gap-2.5">
+        <span class="text-xs font-semibold uppercase tracking-wider text-slate-400">
+          Pipeline View:
+        </span>
+        <div class="inline-flex items-center bg-slate-800 p-0.5 rounded-lg border border-slate-700" id="datasetSwitcher">
+          <!-- Populated by JS -->
+        </div>
+      </div>
+
+      <!-- Right: Brand Theme Switch (BOI vs Generic White-Label) -->
+      <div class="flex flex-wrap items-center gap-2">
+        <span class="text-xs font-semibold uppercase tracking-wider text-slate-400 hidden sm:inline">
+          Portal Theme:
+        </span>
+        <div class="flex items-center gap-1.5" id="lenderSwitcher"></div>
+      </div>
     </div>
-    <div class="flex items-center gap-2" id="lenderSwitcher"></div>
   </div>
 
   <!-- MAIN LENDER PORTAL HEADER -->
@@ -91,7 +100,7 @@
           </h2>
         </div>
         <span class="text-xs text-slate-500">
-          90–100: <strong>Fast-Track Auto-Issue</strong> • 80–89: <strong>Standard Pass</strong> • &lt;75: <strong>Held in Clive AI Remediation</strong>
+          90–100: <strong>Fast-Track Auto-Issue</strong> • 80–89: <strong>Standard Pass</strong> • &lt;80: <strong>Held in Clive AI Remediation</strong>
         </span>
       </div>
       <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3 text-xs">
@@ -138,21 +147,21 @@
       <div class="flex flex-wrap items-center justify-between gap-4">
         <div class="flex flex-wrap items-center gap-1.5 bg-slate-100 p-1 rounded-lg border border-slate-200">
           <button onclick="setStageFilter('ALL')" id="tab-ALL" class="stage-tab px-3.5 py-1.5 rounded-md text-xs font-semibold transition cursor-pointer">
-            All Applications (7)
+            All Applications
           </button>
           <button onclick="setStageFilter('AIP')" id="tab-AIP" class="stage-tab px-3.5 py-1.5 rounded-md text-xs font-semibold transition cursor-pointer">
-            A) Mortgage in Principle — AIP (10 Criteria)
+            A) Mortgage in Principle — AIP
           </button>
           <button onclick="setStageFilter('FULL')" id="tab-FULL" class="stage-tab px-3.5 py-1.5 rounded-md text-xs font-semibold transition cursor-pointer">
-            B) Full Mortgage Application (18 Criteria)
+            B) Full Mortgage Application
           </button>
           <button onclick="setStageFilter('NURTURE')" id="tab-NURTURE" class="stage-tab px-3.5 py-1.5 rounded-md text-xs font-semibold transition cursor-pointer">
-            Clive AI Pre-Application Remediation
+            Clive AI Remediation
           </button>
         </div>
 
         <div class="flex flex-wrap items-center gap-2.5">
-          <select id="buyerTypeFilter" onchange="renderAll()" class="px-3 py-1.5 rounded-lg text-xs font-medium bg-slate-50 text-slate-800 border border-slate-200">
+          <select id="buyerTypeFilter" onchange="resetPageAndRender()" class="px-3 py-1.5 rounded-lg text-xs font-medium bg-slate-50 text-slate-800 border border-slate-200">
             <option value="ALL">All Buyer Types (FTB / Mover / Switcher)</option>
             <option value="FTB">First Time Buyer (Max 4.0x LTI)</option>
             <option value="SSB">Second / Mover (Max 3.5x LTI)</option>
@@ -161,9 +170,9 @@
           <input
             type="text"
             id="searchInput"
-            oninput="renderAll()"
-            placeholder="Search name, citizenship, county..."
-            class="px-3 py-1.5 rounded-lg text-xs bg-slate-50 text-slate-800 border border-slate-200 w-56 focus:outline-none"
+            oninput="resetPageAndRender()"
+            placeholder="Search name, ID, citizenship, county..."
+            class="px-3 py-1.5 rounded-lg text-xs bg-slate-50 text-slate-800 border border-slate-200 w-60 focus:outline-none"
           />
         </div>
       </div>
@@ -176,9 +185,9 @@
 
       <!-- LEFT: APPLICANT PIPELINE TABLE (7 cols) -->
       <div class="lg:col-span-7 bg-white border border-slate-200 rounded-xl shadow-sm overflow-hidden">
-        <div class="px-4 py-3 border-b border-slate-200 flex items-center justify-between">
+        <div class="px-4 py-3 border-b border-slate-200 flex flex-wrap items-center justify-between gap-2">
           <div>
-            <h2 class="text-sm font-bold text-slate-900">Broc Packaged Applicant Queue</h2>
+            <h2 class="text-sm font-bold text-slate-900" id="queueHeaderTitle">Broc Packaged Applicant Queue</h2>
             <p class="text-xs text-slate-500">Click any row to inspect their 5-pillar Broc Score, ID/Citizenship &amp; 18-point checklist</p>
           </div>
           <span id="tableCountBadge" class="text-xs font-semibold px-2.5 py-1 rounded-full bg-slate-100 text-slate-700">
@@ -200,6 +209,9 @@
             <tbody id="applicantTableBody" class="divide-y divide-slate-200 text-sm"></tbody>
           </table>
         </div>
+
+        <!-- Pagination Footer (Active when viewing 517 Monthly Queue) -->
+        <div id="paginationFooter" class="px-4 py-3 bg-slate-50 border-t border-slate-200 flex flex-wrap items-center justify-between gap-3 text-xs"></div>
       </div>
 
       <!-- RIGHT: SELECTED APPLICANT DEEP-DIVE INSPECTOR (5 cols) -->
@@ -336,11 +348,14 @@
   </div>
 
   <script>
+    // ============================================================================
+    // 1. PORTAL THEMES: BANK OF IRELAND vs GENERIC WHITE-LABEL
+    // ============================================================================
     const LENDERS = {
       BOI: {
         id: 'BOI',
         code: 'BOI',
-        name: 'Bank of Ireland (BOI Tenant)',
+        name: 'Bank of Ireland (BOI)',
         shortName: 'Bank of Ireland',
         portalName: 'Bank of Ireland — Mortgage Readiness & Underwriting Hub',
         color: '#002663',
@@ -356,8 +371,8 @@
       WHITELABEL: {
         id: 'WHITELABEL',
         code: 'WL',
-        name: 'Broc Generic White-Label (Template)',
-        shortName: 'Your Lender Brand',
+        name: 'Broc White-Label',
+        shortName: 'Partner Lender',
         portalName: 'White-Label Mortgage Underwriting Portal — Powered by Broc',
         color: '#059669',
         greenRate: 3.55,
@@ -371,9 +386,12 @@
       }
     };
 
-    const APPLICANTS = [
+    // ============================================================================
+    // 2. CURATED 7 SHOWCASE APPLICANTS (Default Mode)
+    // ============================================================================
+    const CURATED_7_APPLICANTS = [
       {
-        id: 'BROC-IE-9041',
+        id: 'BROC-IE-9001',
         names: "Ciara & Ronan O'Sullivan",
         county: 'Dublin 14 (Dundrum)',
         citizenship: 'Irish Citizens (Both Passports Verified)',
@@ -431,7 +449,7 @@
         ]
       },
       {
-        id: 'BROC-IE-9042',
+        id: 'BROC-IE-9002',
         names: 'Cian Murphy & Priya Sharma',
         county: 'Cork City (Blackrock)',
         citizenship: 'Irish Citizen + Stamp 4 Residency',
@@ -489,7 +507,7 @@
         ]
       },
       {
-        id: 'BROC-IE-9043',
+        id: 'BROC-IE-9003',
         names: 'Aoife Kelly & Liam Doyle',
         county: 'Galway (Knocknacarra)',
         citizenship: 'Irish & UK Citizens (CTA Verified)',
@@ -547,7 +565,7 @@
         ]
       },
       {
-        id: 'BROC-IE-9044',
+        id: 'BROC-IE-9004',
         names: 'Siobhán Ní Bhriain',
         county: 'Kildare (Naas)',
         citizenship: 'Irish Citizen (Self-Employed Director)',
@@ -605,7 +623,7 @@
         ]
       },
       {
-        id: 'BROC-IE-9045',
+        id: 'BROC-IE-9005',
         names: 'Declan & Maeve Gallagher',
         county: 'Wicklow (Greystones)',
         citizenship: 'Irish & EU (German) Citizens',
@@ -663,7 +681,7 @@
         ]
       },
       {
-        id: 'BROC-IE-9046',
+        id: 'BROC-IE-9006',
         names: "Tadhg O'Connor",
         county: 'Limerick (Castletroy)',
         citizenship: 'Irish Citizen',
@@ -721,7 +739,7 @@
         ]
       },
       {
-        id: 'BROC-IE-9047',
+        id: 'BROC-IE-9007',
         names: 'Niamh Fitzpatrick',
         county: 'Dublin 8 (Portobello)',
         citizenship: 'Irish Citizen',
@@ -780,10 +798,209 @@
       }
     ];
 
+    // ============================================================================
+    // 3. DETERMINISTIC 517 MONTHLY APPLICANTS GENERATOR (7 Curated + 510 Realistic)
+    // ============================================================================
+    function buildMonthly517Applicants() {
+      const firstNames = [
+        'Conor', 'Aoife', 'Seán', 'Ciara', 'Oisín', 'Niamh', 'Cillian', 'Saoirse', 'Fionn', 'Róisín',
+        'Darragh', 'Caoimhe', 'Cathal', ' Aisling', 'Eoin', 'Orla', 'Padraig', 'Clodagh', 'Ronan', 'Maeve',
+        'Shane', 'Sinead', 'Colm', 'Deirdre', 'Brian', 'Eimear', 'Cormac', 'Fiona', 'Diarmuid', 'Gráinne',
+        'Liam', 'Emma', 'Jack', 'grace', 'Daniel', 'Sophie', 'Luke', 'Hannah', 'Adam', 'Rachel'
+      ];
+      const surnames = [
+        'Murphy', 'Kelly', "O'Sullivan", 'Walsh', 'Smith', "O'Brien", 'Byrne', 'Ryan', "O'Connor", "O'Neill",
+        "O'Reilly", 'Doyle', 'McCarthy', 'Gallagher', "O'Doherty", 'Kennedy', 'Lynch', 'Murray', 'Quinn', 'Moore',
+        'McLaughlin', "O'Carroll", 'Connolly', 'Daly', "O'Connell", 'Wilson', 'Dunne', 'Brennan', 'Burke', 'Collins',
+        'Campbell', 'Clarke', 'Johnston', 'Hughes', "O'Farrell", 'Fitzgerald', 'Brown', 'Martin', 'Maguire', 'Nolan'
+      ];
+      const locations = [
+        { county: 'Dublin 6 (Ranelagh)', street: 'Beechwood Ave, Ranelagh, Dublin 6' },
+        { county: 'Dublin 15 (Castleknock)', street: ' Collegewood, Castleknock, Dublin 15' },
+        { county: 'Co. Dublin (Swords)', street: 'Millers Glen, Swords, Co. Dublin' },
+        { county: 'Cork (Douglas)', street: 'Maryborough Ridge, Douglas, Cork' },
+        { county: 'Cork (Ballincollig)', street: 'Steeplewoods, Ballincollig, Co. Cork' },
+        { county: 'Galway (Oranmore)', street: 'Costa Na Mara, Oranmore, Co. Galway' },
+        { county: 'Limerick (Raheen)', street: 'Kylemore, Raheen, Co. Limerick' },
+        { county: 'Kildare (Maynooth)', street: 'Mariavilla, Maynooth, Co. Kildare' },
+        { county: 'Wicklow (Bray)', street: 'Belmont, Southern Cross, Bray, Co. Wicklow' },
+        { county: 'Meath (Dunshaughlin)', street: 'Fairfields, Dunshaughlin, Co. Meath' },
+        { county: 'Waterford (Dunmore Rd)', street: 'Ardkeen Woods, Waterford' },
+        { county: 'Louth (Drogheda)', street: 'Ballymakenny Park, Drogheda, Co. Louth' },
+        { county: 'Kilkenny City', street: 'archersfield, Kilkenny' },
+        { county: 'Wexford (Gorey)', street: 'Clonattin Village, Gorey, Co. Wexford' },
+        { county: 'Clare (Ennis)', street: 'Roslevan, Ennis, Co. Clare' }
+      ];
+      const citizenships = [
+        { label: 'Irish Citizens (Passports Verified)', badge: 'eKYC Passport + PPSN Verified' },
+        { label: 'Irish Citizen', badge: 'Passport + Driving Licence Verified' },
+        { label: 'Irish & EU Citizens', badge: 'Irish + EU Passports Verified' },
+        { label: 'Irish Citizen + Stamp 4 IRP', badge: 'Passport + Stamp 4 IRP Verified' },
+        { label: 'Irish & UK Citizens (CTA)', badge: 'Passports + CTA Residency Verified' },
+        { label: 'EU Citizen (5+ Yrs IE Residency)', badge: 'EU Passport + PPSN Verified' }
+      ];
+      const dataSources = [
+        'Yapily Open Banking (BOI + Revolut)',
+        'Yapily Open Banking (AIB + Revolut)',
+        'Yapily Open Banking (PTSB + N26)',
+        'CSV Batch Upload (BOI + Credit Union)',
+        'Yapily Open Banking (BOI Current + GoalSaver)',
+        'CSV Batch Upload (AIB + Revolut)'
+      ];
+      const employers = [
+        'Pfizer Grange Castle', 'Stripe Dublin', 'Apple Cork', 'Medtronic Galway', 'HSE National',
+        'Dept. of Education', 'Intel Leixlip', 'Eli Lilly Kinsale', 'Google Ireland', 'Regeneron Limerick',
+        'Kerry Group', 'ESB Engineering', 'Deloitte Ireland', 'Arthur Cox LLP', 'Boston Scientific'
+      ];
+      const bers = ['A1', 'A2', 'A3', 'B1', 'B2', 'B3', 'C1'];
+
+      const all = [...CURATED_7_APPLICANTS];
+
+      // Seeded pseudo-random helper
+      let seed = 421337;
+      function rand() {
+        seed = (seed * 1664525 + 1013904223) % 4294967296;
+        return seed / 4294967296;
+      }
+
+      for (let i = 8; i <= 517; i++) {
+        const isCouple = rand() > 0.36;
+        const fn1 = firstNames[i % firstNames.length].trim();
+        const fn2 = firstNames[(i * 7 + 3) % firstNames.length].trim();
+        const sn = surnames[(i * 3 + 5) % surnames.length];
+        const names = isCouple ? `${fn1} & ${fn2} ${sn}` : `${fn1} ${sn}`;
+
+        const loc = locations[i % locations.length];
+        const cit = citizenships[i % citizenships.length];
+        const source = dataSources[i % dataSources.length];
+        const emp = employers[i % employers.length];
+        const ber = bers[i % bers.length];
+
+        // Buyer type distribution: ~62% FTB, ~24% SSB, ~14% SWITCHER
+        const rBuyer = rand();
+        const buyerType = rBuyer < 0.62 ? 'FTB' : rBuyer < 0.86 ? 'SSB' : 'SWITCHER';
+
+        // Stage distribution: ~48% Stage A (AIP), ~34% Stage B (Full), ~18% Clive Remediation
+        const rStage = rand();
+        const targetStage = rStage < 0.48 ? 'AIP' : rStage < 0.82 ? 'FULL' : 'NURTURE';
+
+        const baseIncome = isCouple
+          ? Math.round((86000 + rand() * 78000) / 1000) * 1000
+          : Math.round((58000 + rand() * 52000) / 1000) * 1000;
+        const bonusIncome = rand() > 0.45 ? Math.round((4000 + rand() * 14000) / 1000) * 1000 : 0;
+        const netMonthlyIncome = Math.round((baseIncome * 0.69) / 12);
+
+        const verifiedRentPm = Math.round((1150 + rand() * 1150) / 50) * 50;
+        const verifiedSavingsPm = Math.round((500 + rand() * 1050) / 50) * 50;
+        const cliveMonthlySavingsUnlocked = Math.round((115 + rand() * 260) / 5) * 5;
+        const existingDebtPm = targetStage === 'NURTURE' ? 175 : (rand() > 0.8 ? 190 : 0);
+
+        const depositSaved = buyerType === 'FTB'
+          ? Math.round((34000 + rand() * 48000) / 1000) * 1000
+          : Math.round((95000 + rand() * 130000) / 1000) * 1000;
+        const helpToBuyGrant = (buyerType === 'FTB' && ber.startsWith('A') && rand() > 0.4) ? 25000 : 0;
+        const giftAmount = (buyerType === 'FTB' && helpToBuyGrant === 0 && rand() > 0.7) ? 15000 : 0;
+
+        // Score pillars
+        let p1 = targetStage === 'NURTURE' ? 20 + Math.floor(rand() * 4) : 26 + Math.floor(rand() * 5);
+        let p2 = targetStage === 'NURTURE' ? 12 + Math.floor(rand() * 5) : 22 + Math.floor(rand() * 4);
+        let p3 = 17 + Math.floor(rand() * 4);
+        let p4 = targetStage === 'NURTURE' ? 9 + Math.floor(rand() * 3) : 12 + Math.floor(rand() * 4);
+        let p5 = targetStage === 'NURTURE' ? 7 + Math.floor(rand() * 2) : 9 + Math.floor(rand() * 2);
+        const brocScore = Math.min(99, p1 + p2 + p3 + p4 + p5);
+        const brocScoreBefore = Math.max(48, brocScore - (9 + Math.floor(rand() * 12)));
+
+        const statusBadge = targetStage === 'FULL'
+          ? (buyerType === 'SWITCHER' ? 'Fast-Track Switcher' : 'Full Loan Offer Ready')
+          : targetStage === 'AIP'
+          ? 'Instant AIP Qualified'
+          : 'Clive Remediating (In App)';
+
+        const isNurture = targetStage === 'NURTURE';
+        const isFull = targetStage === 'FULL';
+
+        all.push({
+          id: `BROC-IE-${9000 + i}`,
+          names,
+          county: loc.county,
+          citizenship: cit.label,
+          kycBadge: cit.badge,
+          buyerType,
+          applicantsCount: isCouple ? 2 : 1,
+          dependents: isCouple && rand() > 0.6 ? 1 : 0,
+          targetStage,
+          statusBadge,
+          dataSource: source,
+          baseIncome,
+          bonusIncome,
+          netMonthlyIncome,
+          verifiedRentPm,
+          verifiedSavingsPm,
+          cliveMonthlySavingsUnlocked,
+          existingDebtPm,
+          depositSaved,
+          helpToBuyGrant,
+          giftAmount,
+          targetPropertyAddress: isFull
+            ? `${(i % 64) + 1} ${loc.street} (Sale Agreed)`
+            : isNurture
+            ? `Pre-Application Coaching in app.broc.fi (${loc.county})`
+            : `Stage A: House Hunting — ${loc.county}`,
+          propertyBER: ber,
+          termYears: buyerType === 'FTB' ? 30 : 25,
+          brocScoreBefore,
+          brocScore,
+          scorePillars: [
+            { name: 'Repayment Capacity & +2% Stress Margin', earned: p1, max: 30, note: `€${(verifiedRentPm + verifiedSavingsPm).toLocaleString('en-IE')}/mo proven capacity (Rent + Savings)` },
+            { name: '6-Month Account Conduct & Hygiene', earned: p2, max: 25, note: isNurture ? 'Clive clearing historical BNPL installments & building 6-mo streak' : '0 unpaid DDs, 0 unarranged overdrafts, gambling <0.5%' },
+            { name: 'Income Stability & Revenue EDS Match', earned: p3, max: 20, note: `${emp} permanent PAYE verified via Revenue EDS & 3 mos payslips` },
+            { name: 'Deposit AML Source & Clean CCR', earned: p4, max: 15, note: `€${(depositSaved + helpToBuyGrant + giftAmount).toLocaleString('en-IE')} verified deposit + clean CCR check` },
+            { name: 'KYC ID, Citizenship & Pack Completeness', earned: p5, max: 10, note: `${cit.label}, PPSN & utility address verified` }
+          ],
+          cliveStory: `Clara audited 6 months of ${source} feeds for ${names} (${emp}) and Clive unlocked €${cliveMonthlySavingsUnlocked}/mo in recurring bill & subscription savings, lifting their Broc Score from ${brocScoreBefore} → ${brocScore}.`,
+          aipCriteria: [
+            { cat: 'Identity & KYC', name: '1. Photo ID & Biometric Liveness', met: true, detail: `Biometric Passport / ID verified for ${names}.` },
+            { cat: 'Citizenship', name: '2. Citizenship & Right to Reside in Ireland', met: true, detail: `${cit.label} — right to reside verified.` },
+            { cat: 'Address AML', name: '3. Proof of Current Address (<3 Mos)', met: true, detail: `Utility bill & bank statement matched in ${loc.county}.` },
+            { cat: 'Tax ID', name: '4. PPSN Official Verification', met: true, detail: 'PPSN matched to Revenue Employment Detail Summary (EDS).' },
+            { cat: 'Credit Bureau', name: '5. Central Credit Register (CCR) & Judgments', met: true, detail: 'Clean CCR report pulled; zero arrears or judgments.' },
+            { cat: 'Employment', name: '6. Employment Contract, Tenure & Probation', met: true, detail: `Permanent role at ${emp}; probation confirmed passed.` },
+            { cat: 'Income & Tax', name: '7. 3 Months Payslips & Revenue EDS (P60)', met: true, detail: `€${baseIncome.toLocaleString('en-IE')} base salary matched to payroll credits.` },
+            { cat: 'Open Banking', name: '8. 6-Month Bank, Savings & Neobank Statements', met: !isNurture, detail: isNurture ? '5 of 6 clean months completed in app.broc.fi.' : `6 consecutive months verified via ${source}.` },
+            { cat: 'Conduct', name: '9. Account Conduct, Gambling & BNPL Screen', met: !isNurture, detail: isNurture ? 'Clive remediating BNPL habit prior to submission.' : '0 unpaid DDs, 0 overdrafts, <0.5% betting, €0 BNPL.' },
+            { cat: 'Affordability', name: '10. Deposit Source (AML) & +2% Stress Capacity', met: true, detail: `€${(depositSaved + helpToBuyGrant + giftAmount).toLocaleString('en-IE')} AML-verified deposit + stress test passed.` }
+          ],
+          fullCriteria: [
+            { cat: 'Employer Cert', name: '11. Standardized Lender Salary Certificates', met: isFull, detail: isFull ? `Signed & stamped by ${emp} HR.` : 'Pending Stage B progression.' },
+            { cat: 'Statement Refresh', name: '12. Pre-Offer Statement & Payslip Refresh', met: !isNurture, detail: 'Live Open Banking / CSV feed active.' },
+            { cat: 'Sale Agreed', name: '13. Sales Advice Note & Booking Deposit Receipt', met: isFull, detail: isFull ? `Sales Advice Note & booking deposit verified (${loc.street}).` : 'Awaiting Sale Agreed property.' },
+            { cat: 'Valuation', name: '14. Lender Panel Property Valuation Report', met: isFull, detail: isFull ? 'Approved panel valuation report completed.' : 'Awaiting Sale Agreed property.' },
+            { cat: 'Green BER', name: '15. SEAI BER Certificate & Advisory Report', met: isFull, detail: isFull ? `BER ${ber} verified via SEAI register.` : `Targeting BER ${ber}.` },
+            { cat: 'Survey & Planning', name: '16. Structural Survey & Planning Compliance', met: isFull, detail: isFull ? 'Engineer survey & planning compliance confirmed.' : 'Pending Stage B.' },
+            { cat: 'Conveyancing', name: '17. Solicitor Undertaking & Contracts for Sale', met: isFull, detail: isFull ? 'Approved panel solicitor undertaking signed.' : 'Pending Stage B.' },
+            { cat: 'Protection & DD', name: '18. Mortgage Protection, Home Insurance & SEPA DD', met: isFull, detail: isFull ? 'Life cover & buildings insurance bound via Broc Tender.' : 'Pre-quoted via Broc Tender Engine.' }
+          ]
+        });
+      }
+      return all;
+    }
+
+    const MONTHLY_517_APPLICANTS = buildMonthly517Applicants();
+
+    // ============================================================================
+    // 4. STATE & LOAN QUALIFICATION ENGINE
+    // ============================================================================
+    let currentDatasetMode = 'CURATED_7'; // 'CURATED_7' (default) or 'MONTHLY_517'
     let currentLenderId = 'BOI';
     let currentStageFilter = 'ALL';
-    let selectedApplicantId = APPLICANTS[0].id;
+    let selectedApplicantId = CURATED_7_APPLICANTS[0].id;
     let activeChecklistTab = 'SCORE';
+    let currentPage = 1;
+    const PAGE_SIZE = 25;
+
+    function getActiveDataset() {
+      return currentDatasetMode === 'CURATED_7' ? CURATED_7_APPLICANTS : MONTHLY_517_APPLICANTS;
+    }
 
     function calculateLoanQualification(applicant, lender) {
       const ltiMultiplier = applicant.buyerType === 'FTB' ? 4.0 : 3.5;
@@ -835,7 +1052,33 @@
       return '€' + Number(num).toLocaleString('en-IE');
     }
 
-    function renderLenderSwitcher() {
+    // ============================================================================
+    // 5. UI RENDER FUNCTIONS
+    // ============================================================================
+    function renderTopRibbon() {
+      // Dataset Mode Switcher (7-Select Default vs 517 Monthly)
+      const dsContainer = document.getElementById('datasetSwitcher');
+      const modes = [
+        { id: 'CURATED_7', label: '7-Select Showcase (Default)' },
+        { id: 'MONTHLY_517', label: '517 Monthly Avg Queue' }
+      ];
+      dsContainer.innerHTML = modes.map(m => {
+        const active = m.id === currentDatasetMode;
+        return `
+          <button
+            onclick="selectDatasetMode('${m.id}')"
+            class="px-3 py-1 rounded-md text-xs font-semibold transition cursor-pointer ${
+              active
+                ? 'bg-emerald-500 text-slate-950 shadow-sm'
+                : 'text-slate-300 hover:text-white'
+            }"
+          >
+            ${m.label}
+          </button>
+        `;
+      }).join('');
+
+      // Lender Theme Switcher
       const container = document.getElementById('lenderSwitcher');
       const lender = LENDERS[currentLenderId];
 
@@ -844,7 +1087,7 @@
         return `
           <button
             onclick="selectLender('${l.id}')"
-            class="px-3.5 py-1.5 rounded-lg text-xs font-semibold transition cursor-pointer border ${
+            class="px-3 py-1 rounded-lg text-xs font-semibold transition cursor-pointer border ${
               active
                 ? 'text-white shadow-sm'
                 : 'bg-slate-800 text-slate-300 border-slate-700 hover:text-white'
@@ -863,10 +1106,11 @@
     }
 
     function getFilteredApplicants() {
+      const dataset = getActiveDataset();
       const search = (document.getElementById('searchInput')?.value || '').toLowerCase().trim();
       const buyerType = document.getElementById('buyerTypeFilter')?.value || 'ALL';
 
-      return APPLICANTS.filter(a => {
+      return dataset.filter(a => {
         if (currentStageFilter !== 'ALL' && a.targetStage !== currentStageFilter) return false;
         if (buyerType !== 'ALL' && a.buyerType !== buyerType) return false;
         if (search) {
@@ -878,24 +1122,34 @@
     }
 
     function renderKpiRibbon() {
+      const dataset = getActiveDataset();
       const lender = LENDERS[currentLenderId];
       let totalQualifiedVolume = 0;
       let aipReadyCount = 0;
       let fullReadyCount = 0;
+      let nurtureCount = 0;
       let totalScore = 0;
       let totalScoreGain = 0;
 
-      APPLICANTS.forEach(a => {
+      dataset.forEach(a => {
         const calc = calculateLoanQualification(a, lender);
         if (a.targetStage !== 'NURTURE') totalQualifiedVolume += calc.qualifiedLoan;
         if (a.targetStage === 'AIP') aipReadyCount++;
         if (a.targetStage === 'FULL') fullReadyCount++;
+        if (a.targetStage === 'NURTURE') nurtureCount++;
         totalScore += a.brocScore;
         totalScoreGain += (a.brocScore - a.brocScoreBefore);
       });
 
-      const avgScore = Math.round(totalScore / APPLICANTS.length);
-      const avgGain = Math.round(totalScoreGain / APPLICANTS.length);
+      const avgScore = Math.round(totalScore / dataset.length);
+      const avgGain = Math.round(totalScoreGain / dataset.length);
+      const readyCount = aipReadyCount + fullReadyCount;
+
+      // Update stage tab labels with live counts
+      document.getElementById('tab-ALL').textContent = `All Applications (${dataset.length})`;
+      document.getElementById('tab-AIP').textContent = `A) AIP Ready (${aipReadyCount})`;
+      document.getElementById('tab-FULL').textContent = `B) Full Mortgage (${fullReadyCount})`;
+      document.getElementById('tab-NURTURE').textContent = `Clive Remediation (${nurtureCount})`;
 
       document.getElementById('kpiRibbon').innerHTML = `
         <div class="bg-white border border-slate-200 rounded-xl p-4 shadow-sm">
@@ -904,12 +1158,12 @@
             <span class="text-2xl font-bold text-emerald-600">${avgScore}/100</span>
             <span class="text-xs font-semibold text-emerald-600">↑ +${avgGain} pts via Clive AI</span>
           </div>
-          <div class="text-xs text-slate-500 mt-1">5-Pillar Affordability, Conduct &amp; KYC Index</div>
+          <div class="text-xs text-slate-500 mt-1">Across ${dataset.length} ${currentDatasetMode === 'MONTHLY_517' ? 'Monthly ' : ''}Applicants</div>
         </div>
         <div class="bg-white border border-slate-200 rounded-xl p-4 shadow-sm">
-          <div class="text-xs font-medium text-slate-500 uppercase tracking-wider">Pre-Verified Lending Volume</div>
+          <div class="text-xs font-medium text-slate-500 uppercase tracking-wider">Qualified Lending Pipeline</div>
           <div class="text-2xl font-bold text-slate-900 mt-1">${formatEuro(totalQualifiedVolume)}</div>
-          <div class="text-xs text-emerald-600 font-medium mt-1">✓ 6 Ready Applicants (${lender.shortName})</div>
+          <div class="text-xs text-emerald-600 font-medium mt-1">✓ ${readyCount} Underwriter-Ready (${lender.shortName})</div>
         </div>
         <div class="bg-white border border-slate-200 rounded-xl p-4 shadow-sm">
           <div class="text-xs font-medium text-slate-500 uppercase tracking-wider">A) Mortgage in Principle (AIP)</div>
@@ -971,7 +1225,7 @@
         banner.innerHTML = `
           <div class="flex flex-wrap items-center justify-between w-full gap-2">
             <div class="text-xs text-slate-600">
-              <strong class="text-slate-900">Active Tenant: ${lender.name}</strong> • Green Rate: <strong>${lender.greenRate.toFixed(2)}%</strong> (Stressed @ <strong>${(lender.greenRate + lender.stressBuffer).toFixed(2)}%</strong>) • Standard Rate: <strong>${lender.stdRate.toFixed(2)}%</strong> • CBI LTI Caps: <strong>4.0x FTB / 3.5x Mover</strong>
+              <strong class="text-slate-900">Active Portal: ${lender.name}</strong> • Green Rate: <strong>${lender.greenRate.toFixed(2)}%</strong> (Stressed @ <strong>${(lender.greenRate + lender.stressBuffer).toFixed(2)}%</strong>) • Standard Rate: <strong>${lender.stdRate.toFixed(2)}%</strong> • CBI LTI Caps: <strong>4.0x FTB / 3.5x Mover</strong>
             </div>
           </div>
         `;
@@ -981,14 +1235,28 @@
     function renderTable() {
       const lender = LENDERS[currentLenderId];
       const filtered = getFilteredApplicants();
-      document.getElementById('tableCountBadge').textContent = `${filtered.length} Applicant${filtered.length === 1 ? '' : 's'}`;
+      const totalFiltered = filtered.length;
 
-      if (filtered.length > 0 && !filtered.some(a => a.id === selectedApplicantId)) {
-        selectedApplicantId = filtered[0].id;
+      document.getElementById('queueHeaderTitle').textContent =
+        currentDatasetMode === 'CURATED_7'
+          ? 'Broc Packaged Applicant Queue (7-Select Showcase)'
+          : 'Broc Packaged Applicant Queue (517 Monthly Average Volume)';
+
+      document.getElementById('tableCountBadge').textContent =
+        `${totalFiltered} Matching Applicant${totalFiltered === 1 ? '' : 's'}`;
+
+      const totalPages = Math.max(1, Math.ceil(totalFiltered / PAGE_SIZE));
+      if (currentPage > totalPages) currentPage = totalPages;
+
+      const startIdx = (currentPage - 1) * PAGE_SIZE;
+      const pageItems = filtered.slice(startIdx, startIdx + PAGE_SIZE);
+
+      if (pageItems.length > 0 && !filtered.some(a => a.id === selectedApplicantId)) {
+        selectedApplicantId = pageItems[0].id;
       }
 
       const tbody = document.getElementById('applicantTableBody');
-      tbody.innerHTML = filtered.map(a => {
+      tbody.innerHTML = pageItems.map(a => {
         const calc = calculateLoanQualification(a, lender);
         const isSelected = a.id === selectedApplicantId;
         const aipMet = a.aipCriteria.filter(c => c.met).length;
@@ -1044,11 +1312,46 @@
           </tr>
         `;
       }).join('');
+
+      // Pagination footer
+      const footer = document.getElementById('paginationFooter');
+      if (totalFiltered <= PAGE_SIZE) {
+        footer.innerHTML = `
+          <span class="text-slate-500">Showing all <strong>${totalFiltered}</strong> applications in current view</span>
+          ${currentDatasetMode === 'CURATED_7'
+            ? `<button onclick="selectDatasetMode('MONTHLY_517')" class="text-emerald-700 font-semibold hover:underline cursor-pointer">Switch to 517 Monthly Avg Queue →</button>`
+            : ''
+          }
+        `;
+      } else {
+        footer.innerHTML = `
+          <div class="text-slate-600">
+            Showing <strong>${startIdx + 1}–${Math.min(startIdx + PAGE_SIZE, totalFiltered)}</strong> of <strong>${totalFiltered}</strong> monthly applications (Page ${currentPage} of ${totalPages})
+          </div>
+          <div class="flex items-center gap-1.5">
+            <button
+              onclick="changePage(${currentPage - 1})"
+              ${currentPage === 1 ? 'disabled' : ''}
+              class="px-2.5 py-1 rounded border border-slate-200 bg-white font-semibold ${currentPage === 1 ? 'opacity-40 cursor-not-allowed' : 'hover:bg-slate-100 cursor-pointer'}"
+            >
+              ← Prev
+            </button>
+            <button
+              onclick="changePage(${currentPage + 1})"
+              ${currentPage === totalPages ? 'disabled' : ''}
+              class="px-2.5 py-1 rounded border border-slate-200 bg-white font-semibold ${currentPage === totalPages ? 'opacity-40 cursor-not-allowed' : 'hover:bg-slate-100 cursor-pointer'}"
+            >
+              Next →
+            </button>
+          </div>
+        `;
+      }
     }
 
     function renderDetailPanel() {
+      const dataset = getActiveDataset();
       const lender = LENDERS[currentLenderId];
-      const applicant = APPLICANTS.find(a => a.id === selectedApplicantId) || APPLICANTS[0];
+      const applicant = dataset.find(a => a.id === selectedApplicantId) || dataset[0];
       const calc = calculateLoanQualification(applicant, lender);
 
       const aipMetCount = applicant.aipCriteria.filter(c => c.met).length;
@@ -1060,7 +1363,7 @@
           <div class="space-y-3">
             <div class="p-3 rounded-xl bg-emerald-50 border border-emerald-200 flex items-center justify-between">
               <div class="text-xs">
-                <div class="font-bold text-emerald-800">🤖 Broc Score Trajectory (90-Day Consumer App Prep)</div>
+                <div class="font-bold text-emerald-800">🤖 Broc Score Trajectory (Consumer App Prep)</div>
                 <div class="text-emerald-900 mt-0.5">
                   Initial Score: <strong>${applicant.brocScoreBefore}/100</strong> → Packaged Score: <strong>${applicant.brocScore}/100</strong> (+${applicant.brocScore - applicant.brocScoreBefore} pts)
                 </div>
@@ -1224,6 +1527,12 @@
       `;
     }
 
+    function selectDatasetMode(mode) {
+      currentDatasetMode = mode;
+      currentPage = 1;
+      renderAll();
+    }
+
     function selectLender(lenderId) {
       currentLenderId = lenderId;
       renderAll();
@@ -1231,10 +1540,21 @@
 
     function setStageFilter(stage) {
       currentStageFilter = stage;
+      currentPage = 1;
       if (stage === 'AIP') activeChecklistTab = 'AIP';
       else if (stage === 'FULL') activeChecklistTab = 'FULL';
       else activeChecklistTab = 'SCORE';
       renderAll();
+    }
+
+    function resetPageAndRender() {
+      currentPage = 1;
+      renderAll();
+    }
+
+    function changePage(page) {
+      currentPage = page;
+      renderTable();
     }
 
     function selectApplicant(id) {
@@ -1249,8 +1569,9 @@
     }
 
     function triggerUnderwriterAction(type) {
+      const dataset = getActiveDataset();
       const lender = LENDERS[currentLenderId];
-      const applicant = APPLICANTS.find(a => a.id === selectedApplicantId);
+      const applicant = dataset.find(a => a.id === selectedApplicantId);
       const calc = calculateLoanQualification(applicant, lender);
       const toast = document.getElementById('actionFeedbackToast');
       toast.classList.remove('hidden');
@@ -1286,7 +1607,7 @@
     }
 
     function renderAll() {
-      renderLenderSwitcher();
+      renderTopRibbon();
       renderKpiRibbon();
       renderStageBanner();
       renderTable();
