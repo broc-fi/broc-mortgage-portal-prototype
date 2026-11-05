@@ -21,19 +21,130 @@
       font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
       background-color: #f8fafc;
       color: #0f172a;
+      transition: background-color 0.2s ease, color 0.2s ease;
     }
     h1, h2, h3, h4, .font-display {
       font-family: 'Outfit', sans-serif;
     }
     .broc-gradient-pill {
       background: linear-gradient(135deg, #43e97b 0%, #38f9d7 100%);
-      color: #0f172a;
+      color: #0f172a !important;
     }
     .row-hover:hover {
       background-color: #f1f5f9;
     }
     .custom-scroll::-webkit-scrollbar { width: 6px; height: 6px; }
     .custom-scroll::-webkit-scrollbar-thumb { background: rgba(100, 116, 139, 0.3); border-radius: 3px; }
+
+    /* =========================================================================
+       OPTIONAL DARK MODE THEME OVERRIDES (html.dark)
+       ========================================================================= */
+    html.dark body {
+      background-color: #0b0f19;
+      color: #f1f5f9;
+    }
+    html.dark .bg-white:not(.keep-light) {
+      background-color: #111827 !important;
+    }
+    html.dark .bg-slate-50,
+    html.dark .bg-slate-50\/70,
+    html.dark .bg-slate-50\/50 {
+      background-color: #1e293b !important;
+    }
+    html.dark .bg-slate-100,
+    html.dark .bg-slate-200\/80 {
+      background-color: #0f172a !important;
+    }
+    html.dark .border-slate-100,
+    html.dark .border-slate-200,
+    html.dark .border-slate-300 {
+      border-color: #334155 !important;
+    }
+    html.dark .divide-slate-100 > :not([hidden]) ~ :not([hidden]),
+    html.dark .divide-slate-200 > :not([hidden]) ~ :not([hidden]) {
+      border-color: #1e293b !important;
+    }
+    html.dark .text-slate-900 {
+      color: #f8fafc !important;
+    }
+    html.dark .text-slate-800 {
+      color: #e2e8f0 !important;
+    }
+    html.dark .text-slate-700 {
+      color: #cbd5e1 !important;
+    }
+    html.dark .text-slate-600 {
+      color: #94a3b8 !important;
+    }
+    html.dark .text-slate-500,
+    html.dark .text-slate-400 {
+      color: #64748b !important;
+    }
+    html.dark .row-hover:hover {
+      background-color: rgba(30, 41, 59, 0.75) !important;
+    }
+    /* Tinted semantic badges & banners in dark mode */
+    html.dark .bg-emerald-50,
+    html.dark .bg-emerald-50\/70,
+    html.dark .bg-emerald-50\/50,
+    html.dark .bg-emerald-100 {
+      background-color: rgba(16, 185, 129, 0.14) !important;
+    }
+    html.dark .border-emerald-200 {
+      border-color: rgba(16, 185, 129, 0.35) !important;
+    }
+    html.dark .text-emerald-900,
+    html.dark .text-emerald-800,
+    html.dark .text-emerald-700,
+    html.dark .text-emerald-600 {
+      color: #34d399 !important;
+    }
+    html.dark .bg-blue-50,
+    html.dark .bg-blue-100 {
+      background-color: rgba(59, 130, 246, 0.15) !important;
+    }
+    html.dark .border-blue-200 {
+      border-color: rgba(59, 130, 246, 0.35) !important;
+    }
+    html.dark .text-blue-800,
+    html.dark .text-blue-700,
+    html.dark .text-blue-600 {
+      color: #60a5fa !important;
+    }
+    html.dark .bg-amber-50,
+    html.dark .bg-amber-100 {
+      background-color: rgba(245, 158, 11, 0.15) !important;
+    }
+    html.dark .border-amber-200 {
+      border-color: rgba(245, 158, 11, 0.35) !important;
+    }
+    html.dark .text-amber-800,
+    html.dark .text-amber-700,
+    html.dark .text-amber-600 {
+      color: #fbbf24 !important;
+    }
+    html.dark .bg-purple-50 {
+      background-color: rgba(168, 85, 247, 0.15) !important;
+    }
+    html.dark .border-purple-200 {
+      border-color: rgba(168, 85, 247, 0.35) !important;
+    }
+    html.dark .text-purple-800 {
+      color: #c084fc !important;
+    }
+    html.dark input,
+    html.dark select {
+      background-color: #0f172a !important;
+      color: #f1f5f9 !important;
+      border-color: #334155 !important;
+    }
+    html.dark input::placeholder {
+      color: #64748b !important;
+    }
+    html.dark svg text.fill-slate-500,
+    html.dark svg text.fill-slate-400 {
+      fill: #94a3b8 !important;
+    }
   </style>
 </head>
 <body class="min-h-screen antialiased flex flex-col">
@@ -47,7 +158,7 @@
           <img
             src="brokerlyai_logo.jpg"
             alt="Broc Logo"
-            class="w-8 h-8 rounded-lg object-contain bg-white p-0.5 shadow-sm group-hover:scale-105 transition"
+            class="keep-light w-8 h-8 rounded-lg object-contain bg-white p-0.5 shadow-sm group-hover:scale-105 transition"
           />
           <div class="leading-tight">
             <span class="font-display font-bold text-sm tracking-tight text-white">Broc<span class="text-[#43e97b]">.</span></span>
@@ -62,7 +173,7 @@
         </div>
       </div>
 
-      <!-- Right: Pipeline View Switch (7-Select Default vs 517 Monthly) + Portal Theme Switch -->
+      <!-- Right: Pipeline View Switch (7-Select Default vs 517 Monthly) + Portal Theme Switch + Dark Mode Toggle -->
       <div class="flex flex-wrap items-center gap-3">
         <div class="flex items-center gap-2">
           <span class="text-xs font-semibold uppercase tracking-wider text-slate-400 hidden sm:inline">
@@ -77,6 +188,16 @@
           </span>
           <div class="flex items-center gap-1.5" id="lenderSwitcher"></div>
         </div>
+
+        <button
+          onclick="toggleDarkMode()"
+          id="darkModeToggleBtn"
+          title="Toggle Dark / Light Mode"
+          class="px-3 py-1 rounded-lg text-xs font-semibold bg-slate-800 text-slate-200 border border-slate-700 hover:bg-slate-700 hover:text-white transition cursor-pointer flex items-center gap-1.5"
+        >
+          <span id="darkModeIcon">🌙</span>
+          <span id="darkModeLabel">Dark Mode</span>
+        </button>
       </div>
     </div>
   </div>
@@ -122,7 +243,67 @@
   <main class="max-w-7xl mx-auto px-6 py-6 space-y-6 flex-1 w-full">
 
     <!-- KPI SUMMARY RIBBON -->
-    <section class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4" id="kpiRibbon"></section>
+    <section class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4" id="kpiRibbon"></section>
+
+    <!-- PORTFOLIO ANALYTICS & TIME-SERIES INTELLIGENCE HUB -->
+    <section class="bg-white border border-slate-200 rounded-xl shadow-sm overflow-hidden" id="analyticsSection">
+      <div class="px-5 py-3.5 border-b border-slate-200 bg-slate-50/70 flex flex-wrap items-center justify-between gap-3">
+        <div class="flex flex-wrap items-center gap-3">
+          <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md text-xs font-bold bg-slate-900 text-white">
+            <span>📈</span>
+            <span>PORTFOLIO ANALYTICS &amp; TIME-SERIES PROJECTIONS</span>
+          </span>
+          <div>
+            <h2 class="text-sm font-bold text-slate-900" id="analyticsHeaderSubtitle">
+              Forward Lending Fan, 30-Year LTV Amortization, Fixed-Term Churn Hazard &amp; Credit Readiness Velocity
+            </h2>
+          </div>
+        </div>
+
+        <div class="flex flex-wrap items-center gap-2">
+          <!-- Scope toggle: Portfolio vs Selected Applicant -->
+          <div class="inline-flex items-center bg-slate-200/80 p-0.5 rounded-lg border border-slate-300 text-xs">
+            <button
+              onclick="setAnalyticsScope('PORTFOLIO')"
+              id="scopeBtn-PORTFOLIO"
+              class="px-2.5 py-1 rounded-md font-semibold transition cursor-pointer bg-white text-slate-900 shadow-sm"
+            >
+              Filtered Portfolio
+            </button>
+            <button
+              onclick="setAnalyticsScope('APPLICANT')"
+              id="scopeBtn-APPLICANT"
+              class="px-2.5 py-1 rounded-md font-semibold transition cursor-pointer text-slate-600 hover:text-slate-900"
+            >
+              Selected Applicant
+            </button>
+          </div>
+
+          <!-- HPI / Macro Scenario Selector -->
+          <select
+            id="macroScenarioSelect"
+            onchange="renderAnalyticsHub()"
+            class="px-2.5 py-1 rounded-lg text-xs font-semibold bg-white text-slate-800 border border-slate-300 cursor-pointer"
+          >
+            <option value="BASE">Macro: Base Case (+2.5% HPI / Current Rates)</option>
+            <option value="STRESSED">Macro: Downside Stress (-5% Yr1 HPI / +100bps)</option>
+            <option value="UPSIDE">Macro: Green Growth (+4.0% HPI / Clive Overpay)</option>
+          </select>
+
+          <button
+            onclick="toggleAnalyticsCollapse()"
+            id="analyticsCollapseBtn"
+            class="px-2.5 py-1 rounded-lg text-xs font-semibold border border-slate-200 bg-white hover:bg-slate-100 text-slate-700 transition cursor-pointer"
+          >
+            Hide Charts ▲
+          </button>
+        </div>
+      </div>
+
+      <div id="analyticsChartsBody" class="p-5 space-y-5">
+        <!-- Populated dynamically by renderAnalyticsHub() -->
+      </div>
+    </section>
 
     <!-- BROC SCORE & AI PERSONAS EXPLAINER STRIP (Featuring Clara & Clive Avatars) -->
     <section class="bg-white border border-slate-200 rounded-xl p-4 shadow-sm">
@@ -188,9 +369,84 @@
       </div>
     </section>
 
-    <!-- PIPELINE CONTROLS -->
-    <section class="bg-white border border-slate-200 rounded-xl p-4 shadow-sm space-y-3">
-      <div class="flex flex-wrap items-center justify-between gap-4">
+    <!-- APPLICATION SEARCH, MULTI-CRITERIA FILTER & PIPELINE CONTROLS -->
+    <section class="bg-white border border-slate-200 rounded-xl p-4 shadow-sm space-y-3.5" id="applicationSearchSection">
+      <!-- Top Row: Prominent Search Input + Multi-Criteria Dropdowns -->
+      <div class="flex flex-col lg:flex-row items-stretch lg:items-center justify-between gap-3 pb-3 border-b border-slate-100">
+        <!-- Prominent Search Box -->
+        <div class="relative flex-1 min-w-[280px]">
+          <div class="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3.5 text-slate-400">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-4.35-4.35m0 0A7.5 7.5 0 103.5 10.5a7.5 7.5 0 0013.15 6.15z" />
+            </svg>
+          </div>
+          <input
+            type="text"
+            id="searchInput"
+            oninput="resetPageAndRender()"
+            placeholder="Search applications by name, area / county (e.g. Dublin, Cork, Galway), employer, ID, visa/citizenship, BER..."
+            class="w-full pl-10 pr-20 py-2.5 rounded-xl text-xs font-medium bg-slate-50 text-slate-900 border border-slate-300 focus:bg-white focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/20 focus:outline-none transition"
+          />
+          <button
+            id="clearSearchBtn"
+            onclick="clearAllSearchAndFilters()"
+            class="hidden absolute inset-y-1.5 right-2 px-2.5 rounded-lg text-xs font-semibold bg-slate-200/80 hover:bg-slate-300 text-slate-700 transition cursor-pointer"
+          >
+            Reset ✕
+          </button>
+        </div>
+
+        <!-- Multi-Criteria Filter Selectors -->
+        <div class="flex flex-wrap items-center gap-2">
+          <select id="areaFilter" onchange="resetPageAndRender()" class="px-3 py-2 rounded-xl text-xs font-medium bg-slate-50 text-slate-800 border border-slate-200 cursor-pointer">
+            <option value="ALL">📍 All Areas / Counties</option>
+            <option value="Dublin">Dublin (City &amp; County)</option>
+            <option value="Cork">Cork (City &amp; County)</option>
+            <option value="Galway">Galway</option>
+            <option value="Limerick">Limerick</option>
+            <option value="Kildare">Kildare</option>
+            <option value="Wicklow">Wicklow</option>
+            <option value="Meath">Meath &amp; Louth</option>
+            <option value="OTHER">Other Regional (Waterford, Clare, Wexford, Kilkenny)</option>
+          </select>
+
+          <select id="buyerTypeFilter" onchange="resetPageAndRender()" class="px-3 py-2 rounded-xl text-xs font-medium bg-slate-50 text-slate-800 border border-slate-200 cursor-pointer">
+            <option value="ALL">🏠 All Buyer Types</option>
+            <option value="FTB">First Time Buyer (4.0x LTI)</option>
+            <option value="SSB">Second / Mover (3.5x LTI)</option>
+            <option value="SWITCHER">Switcher (Re-mortgage)</option>
+          </select>
+
+          <select id="berFilter" onchange="resetPageAndRender()" class="px-3 py-2 rounded-xl text-xs font-medium bg-slate-50 text-slate-800 border border-slate-200 cursor-pointer">
+            <option value="ALL">🌱 All BER Ratings</option>
+            <option value="GREEN">Green Eligible (A1–B3)</option>
+            <option value="A_RATED">A-Rated Only (A1–A3)</option>
+            <option value="B_RATED">B-Rated Only (B1–B3)</option>
+            <option value="NON_GREEN">Standard BER (C1+)</option>
+          </select>
+
+          <select id="riskFilter" onchange="resetPageAndRender()" class="px-3 py-2 rounded-xl text-xs font-medium bg-slate-50 text-slate-800 border border-slate-200 cursor-pointer">
+            <option value="ALL">🛡️ All Risk &amp; LTV Profiles</option>
+            <option value="SCORE_90">Broc Score 90+ (Fast-Track)</option>
+            <option value="LOW_LTV">Low Initial LTV (≤75%)</option>
+            <option value="HIGH_LTV">High Initial LTV (&gt;80%)</option>
+            <option value="LOW_CHURN">Low 5-Yr Churn Risk (&lt;20%)</option>
+            <option value="HIGH_CHURN">Elevated Churn Risk (≥30%)</option>
+          </select>
+
+          <select id="sortOrderFilter" onchange="resetPageAndRender()" class="px-3 py-2 rounded-xl text-xs font-semibold bg-slate-100 text-slate-800 border border-slate-200 cursor-pointer">
+            <option value="SCORE_DESC">Sort: Broc Score (High → Low)</option>
+            <option value="LOAN_DESC">Sort: Qualified Loan (High → Low)</option>
+            <option value="LTV_ASC">Sort: Initial LTV (Low → High)</option>
+            <option value="CHURN_ASC">Sort: Churn Risk (Low → High)</option>
+            <option value="CHURN_DESC">Sort: Churn Risk (High → Low)</option>
+            <option value="NAME_ASC">Sort: Applicant Name (A → Z)</option>
+          </select>
+        </div>
+      </div>
+
+      <!-- Quick Search / Criteria Pills + Stage Filter Tabs -->
+      <div class="flex flex-wrap items-center justify-between gap-3">
         <div class="flex flex-wrap items-center gap-1.5 bg-slate-100 p-1 rounded-lg border border-slate-200">
           <button onclick="setStageFilter('ALL')" id="tab-ALL" class="stage-tab px-3.5 py-1.5 rounded-md text-xs font-semibold transition cursor-pointer">
             All Applications
@@ -206,20 +462,27 @@
           </button>
         </div>
 
-        <div class="flex flex-wrap items-center gap-2.5">
-          <select id="buyerTypeFilter" onchange="resetPageAndRender()" class="px-3 py-1.5 rounded-lg text-xs font-medium bg-slate-50 text-slate-800 border border-slate-200">
-            <option value="ALL">All Buyer Types (FTB / Mover / Switcher)</option>
-            <option value="FTB">First Time Buyer (Max 4.0x LTI)</option>
-            <option value="SSB">Second / Mover (Max 3.5x LTI)</option>
-            <option value="SWITCHER">Switcher (Re-mortgage)</option>
-          </select>
-          <input
-            type="text"
-            id="searchInput"
-            oninput="resetPageAndRender()"
-            placeholder="Search name, ID, citizenship, county..."
-            class="px-3 py-1.5 rounded-lg text-xs bg-slate-50 text-slate-800 border border-slate-200 w-60 focus:outline-none"
-          />
+        <!-- Quick-Filter Criteria Chips -->
+        <div class="flex flex-wrap items-center gap-1.5 text-xs">
+          <span class="text-slate-400 font-semibold mr-1">Quick Search:</span>
+          <button onclick="applyQuickPreset('DUBLIN_FTB')" class="px-2.5 py-1 rounded-full bg-slate-100 hover:bg-emerald-50 hover:text-emerald-700 border border-slate-200 text-slate-600 font-medium transition cursor-pointer">
+            Dublin FTBs
+          </button>
+          <button onclick="applyQuickPreset('CORK_GALWAY')" class="px-2.5 py-1 rounded-full bg-slate-100 hover:bg-emerald-50 hover:text-emerald-700 border border-slate-200 text-slate-600 font-medium transition cursor-pointer">
+            Cork &amp; Galway
+          </button>
+          <button onclick="applyQuickPreset('GREEN_A')" class="px-2.5 py-1 rounded-full bg-slate-100 hover:bg-emerald-50 hover:text-emerald-700 border border-slate-200 text-slate-600 font-medium transition cursor-pointer">
+            BER A-Rated Green
+          </button>
+          <button onclick="applyQuickPreset('LOW_LTV')" class="px-2.5 py-1 rounded-full bg-slate-100 hover:bg-emerald-50 hover:text-emerald-700 border border-slate-200 text-slate-600 font-medium transition cursor-pointer">
+            LTV ≤75%
+          </button>
+          <button onclick="applyQuickPreset('STAMP4_EU')" class="px-2.5 py-1 rounded-full bg-slate-100 hover:bg-emerald-50 hover:text-emerald-700 border border-slate-200 text-slate-600 font-medium transition cursor-pointer">
+            Stamp 4 / EU
+          </button>
+          <button onclick="applyQuickPreset('HIGH_CHURN')" class="px-2.5 py-1 rounded-full bg-slate-100 hover:bg-amber-50 hover:text-amber-800 border border-slate-200 text-slate-600 font-medium transition cursor-pointer">
+            Churn Watch
+          </button>
         </div>
       </div>
 
@@ -236,23 +499,26 @@
             <img src="brokerlyai_logo.jpg" alt="Broc" class="w-7 h-7 rounded-md object-contain border border-slate-200 bg-white p-0.5" />
             <div>
               <h2 class="text-sm font-bold text-slate-900" id="queueHeaderTitle">Broc Packaged Applicant Queue</h2>
-              <p class="text-xs text-slate-500">Click any row to inspect their 5-pillar Broc Score, ID/Citizenship &amp; 18-point checklist</p>
+              <p class="text-xs text-slate-500">Click any row to inspect their 30-Yr LTV curve, Churn Risk, 5-pillar Broc Score &amp; 18-point checklist</p>
             </div>
           </div>
-          <span id="tableCountBadge" class="text-xs font-semibold px-2.5 py-1 rounded-full bg-slate-100 text-slate-700">
-            7 Applicants
-          </span>
+          <div class="flex items-center gap-2">
+            <span id="filteredVolumeBadge" class="text-xs font-semibold px-2.5 py-1 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200"></span>
+            <span id="tableCountBadge" class="text-xs font-semibold px-2.5 py-1 rounded-full bg-slate-100 text-slate-700">
+              7 Applicants
+            </span>
+          </div>
         </div>
 
         <div class="overflow-x-auto">
           <table class="w-full text-left border-collapse">
             <thead>
               <tr class="border-b border-slate-200 bg-slate-50 text-xs font-semibold text-slate-500 uppercase tracking-wider">
-                <th class="py-3 px-4">Applicant, ID &amp; Residency</th>
+                <th class="py-3 px-4">Applicant, Area &amp; Residency</th>
                 <th class="py-3 px-3">Stage &amp; Readiness</th>
-                <th class="py-3 px-3">Criteria Met</th>
+                <th class="py-3 px-3">LTV &amp; Churn Risk</th>
                 <th class="py-3 px-3">Broc Score</th>
-                <th class="py-3 px-4 text-right">Qualified Loan</th>
+                <th class="py-3 px-4 text-right">Loan &amp; Grant Range</th>
               </tr>
             </thead>
             <tbody id="applicantTableBody" class="divide-y divide-slate-200 text-sm"></tbody>
@@ -274,7 +540,7 @@
   <footer class="bg-white border-t border-slate-200 px-6 py-5 mt-10">
     <div class="max-w-7xl mx-auto flex flex-wrap items-center justify-between gap-4 text-xs text-slate-500">
       <div class="flex items-center gap-3">
-        <img src="assets/images/logos/broc-logo-horizontal-light.png" alt="Broc." class="h-7 object-contain" />
+        <img id="footerBrocLogo" src="assets/images/logos/broc-logo-horizontal-light.png" alt="Broc." class="h-7 object-contain" />
         <span>•</span>
         <span>Understand, optimise and grow your money through data-driven insights &amp; agentic AI.</span>
       </div>
@@ -1049,11 +1315,58 @@
     let currentStageFilter = 'ALL';
     let selectedApplicantId = CURATED_7_APPLICANTS[0].id;
     let activeChecklistTab = 'SCORE';
+    let analyticsScope = 'PORTFOLIO'; // 'PORTFOLIO' | 'APPLICANT'
+    let analyticsCollapsed = false;
+    let isDarkMode = (typeof localStorage !== 'undefined' && localStorage.getItem('broc_portal_theme') === 'dark');
     let currentPage = 1;
     const PAGE_SIZE = 25;
 
+    function applyThemeUI() {
+      if (typeof document !== 'undefined' && document.documentElement) {
+        document.documentElement.classList.toggle('dark', isDarkMode);
+      }
+      const iconEl = document.getElementById('darkModeIcon');
+      const labelEl = document.getElementById('darkModeLabel');
+      const btnEl = document.getElementById('darkModeToggleBtn');
+      const footerLogo = document.getElementById('footerBrocLogo');
+      if (iconEl) iconEl.textContent = isDarkMode ? '☀️' : '🌙';
+      if (labelEl) labelEl.textContent = isDarkMode ? 'Light Mode' : 'Dark Mode';
+      if (btnEl) {
+        btnEl.className = isDarkMode
+          ? 'px-3 py-1 rounded-lg text-xs font-semibold bg-emerald-500/20 text-[#43e97b] border border-emerald-500/40 hover:bg-emerald-500/30 transition cursor-pointer flex items-center gap-1.5'
+          : 'px-3 py-1 rounded-lg text-xs font-semibold bg-slate-800 text-slate-200 border border-slate-700 hover:bg-slate-700 hover:text-white transition cursor-pointer flex items-center gap-1.5';
+      }
+      if (footerLogo) {
+        footerLogo.src = isDarkMode
+          ? 'assets/images/logos/broc-logo-horizontal.png'
+          : 'assets/images/logos/broc-logo-horizontal-light.png';
+      }
+    }
+
+    function toggleDarkMode() {
+      isDarkMode = !isDarkMode;
+      try {
+        if (typeof localStorage !== 'undefined') {
+          localStorage.setItem('broc_portal_theme', isDarkMode ? 'dark' : 'light');
+        }
+      } catch (e) {}
+      renderAll();
+    }
+
     function getActiveDataset() {
       return currentDatasetMode === 'CURATED_7' ? CURATED_7_APPLICANTS : MONTHLY_517_APPLICANTS;
+    }
+
+    function getMacroScenario() {
+      const el = document.getElementById('macroScenarioSelect');
+      const val = el ? el.value : 'BASE';
+      if (val === 'STRESSED') {
+        return { id: 'STRESSED', label: 'Downside Stress (-5% Yr1 HPI, +1.0% Rate)', hpiAnnual: 0.008, yr1Shock: -0.05, rateAddon: 1.0 };
+      }
+      if (val === 'UPSIDE') {
+        return { id: 'UPSIDE', label: 'Green Growth (+4.0% HPI, Clive Overpay)', hpiAnnual: 0.04, yr1Shock: 0.0, rateAddon: -0.15 };
+      }
+      return { id: 'BASE', label: 'CBI Base Case (+2.5% HPI)', hpiAnnual: 0.025, yr1Shock: 0.0, rateAddon: 0.0 };
     }
 
     function calculateLoanQualification(applicant, lender) {
@@ -1081,7 +1394,97 @@
 
       const qualifiedLoan = Math.round(Math.min(maxLoanByLTI, maxLoanByStressTest, maxLoanByDeposit90LTV) / 1000) * 1000;
       const stressedMonthlyPayment = Math.round(qualifiedLoan * annuityFactor);
-      const actualMonthlyPayment = Math.round(qualifiedLoan * (((appliedRate / 100) / 12 * Math.pow(1 + (appliedRate / 100) / 12, n)) / (Math.pow(1 + (appliedRate / 100) / 12, n) - 1)));
+      const actualMonthlyRate = (appliedRate / 100) / 12;
+      const actualAnnuityFactor = (actualMonthlyRate * Math.pow(1 + actualMonthlyRate, n)) / (Math.pow(1 + actualMonthlyRate, n) - 1);
+      const actualMonthlyPayment = Math.round(qualifiedLoan * actualAnnuityFactor);
+
+      // Projected Grant Range (P10 Conservative Floor vs P50 Qualified Base vs P90 Clive + CBI Exception Ceiling)
+      const rConservative = ((stressedRate + 0.75) / 100) / 12;
+      const conservativeAnnuity = (rConservative * Math.pow(1 + rConservative, n)) / (Math.pow(1 + rConservative, n) - 1);
+      const preCliveCapacity = Math.max(800, effectiveMonthlyCapacity - Math.round(applicant.cliveMonthlySavingsUnlocked * 0.65));
+      const loanGrantLow = Math.round(Math.min(applicant.baseIncome * ltiMultiplier * 0.94, preCliveCapacity / conservativeAnnuity, qualifiedLoan * 0.91) / 1000) * 1000;
+      const loanGrantMid = qualifiedLoan;
+      const cbiExceptionLtiCap = Math.round((applicant.baseIncome + applicant.bonusIncome * 0.85) * (ltiMultiplier + 0.35));
+      const loanGrantHigh = Math.round(Math.min(cbiExceptionLtiCap, maxLoanByStressTest + cliveLoanBoost, maxLoanByDeposit90LTV) / 1000) * 1000;
+
+      // Property Value & Initial LTV
+      const maxPurchasingPower = qualifiedLoan + totalDeposit;
+      const initialLtvPct = maxPurchasingPower > 0 ? Number(((qualifiedLoan / maxPurchasingPower) * 100).toFixed(1)) : 80.0;
+
+      // 30-Year LTV & Amortization Series
+      const macro = getMacroScenario();
+      const ltv30YrSeries = [];
+      let cliveBalance = qualifiedLoan;
+      const effectiveActualRate = Math.max(2.0, appliedRate + (macro.rateAddon * 0.35));
+      const rm = (effectiveActualRate / 100) / 12;
+      const monthlyScheduledPmt = qualifiedLoan * ((rm * Math.pow(1 + rm, n)) / (Math.pow(1 + rm, n) - 1));
+      const monthlyOverpay = Math.round(applicant.cliveMonthlySavingsUnlocked * 0.85);
+      let clivePayoffYear = applicant.termYears;
+
+      for (let yr = 0; yr <= 30; yr++) {
+        const monthsElapsed = yr * 12;
+        let schedBal = 0;
+        if (monthsElapsed < n) {
+          schedBal = qualifiedLoan * ((Math.pow(1 + rm, n) - Math.pow(1 + rm, monthsElapsed)) / (Math.pow(1 + rm, n) - 1));
+        }
+        schedBal = Math.max(0, Math.round(schedBal));
+
+        if (yr > 0) {
+          for (let m = 0; m < 12; m++) {
+            if (cliveBalance > 0) {
+              const interestM = cliveBalance * rm;
+              const principalM = (monthlyScheduledPmt - interestM) + monthlyOverpay;
+              cliveBalance = Math.max(0, cliveBalance - principalM);
+            }
+          }
+          if (cliveBalance === 0 && clivePayoffYear === applicant.termYears) {
+            clivePayoffYear = yr;
+          }
+        }
+
+        const hpiFactor = yr === 0
+          ? 1.0
+          : (1 + macro.yr1Shock) * Math.pow(1 + macro.hpiAnnual, Math.max(0, yr - 1));
+        const projectedPropVal = maxPurchasingPower * hpiFactor;
+
+        const flatHpiLtv = Number(((schedBal / maxPurchasingPower) * 100).toFixed(1));
+        const baseHpiLtv = Number(((schedBal / projectedPropVal) * 100).toFixed(1));
+        const cliveOverpayLtv = Number(((cliveBalance / projectedPropVal) * 100).toFixed(1));
+
+        ltv30YrSeries.push({
+          year: yr,
+          remainingBalance: schedBal,
+          cliveBalance: Math.round(cliveBalance),
+          propertyValue: Math.round(projectedPropVal),
+          flatHpiLtv,
+          baseHpiLtv,
+          cliveOverpayLtv
+        });
+      }
+
+      const year10LtvPct = ltv30YrSeries[10] ? ltv30YrSeries[10].baseHpiLtv : 0;
+      const year20LtvPct = ltv30YrSeries[20] ? ltv30YrSeries[20].baseHpiLtv : 0;
+      const yearsSavedByClive = Math.max(1, applicant.termYears - clivePayoffYear);
+
+      // Churn Risk & Refinance Propensity (5-Year Cumulative & 10-Year Curve)
+      // Switchers & low-LTV non-Green borrowers have higher refinance propensity at Yr 3 / Yr 5 fixed-rate cliff
+      let baseChurn5Yr = 22;
+      if (applicant.buyerType === 'SWITCHER') baseChurn5Yr += 14;
+      else if (applicant.buyerType === 'SSB') baseChurn5Yr += 5;
+      if (!isGreenEligible) baseChurn5Yr += 9;
+      else if (['A1', 'A2'].includes(applicant.propertyBER)) baseChurn5Yr -= 6;
+      if (initialLtvPct <= 70) baseChurn5Yr += 6;
+      if (applicant.baseIncome >= 120000) baseChurn5Yr += 4;
+      if (macro.id === 'STRESSED') baseChurn5Yr += 5;
+
+      const churnRisk5YrPct = Math.min(62, Math.max(11, Math.round(baseChurn5Yr)));
+      const churnRiskManagedPct = Math.max(6, Math.round(churnRisk5YrPct * 0.38));
+      const churnRiskLabel = churnRisk5YrPct < 20 ? 'Low' : churnRisk5YrPct <= 30 ? 'Moderate' : 'Elevated';
+
+      // 12-Month Probability of Default (PD in bps) & 10-Year Net Interest Income (NII)
+      const pd12MoBps = Math.max(12, Math.round(145 - (applicant.brocScore * 1.28) + (initialLtvPct > 82 ? 14 : 0)));
+      const avg10YrBalance = (qualifiedLoan + (ltv30YrSeries[10]?.remainingBalance || qualifiedLoan * 0.75)) / 2;
+      const est10YrNII = Math.round(avg10YrBalance * 0.0185 * 10);
 
       return {
         ltiMultiplier,
@@ -1096,7 +1499,20 @@
         maxLoanByStressTest,
         cliveLoanBoost,
         qualifiedLoan,
-        maxPurchasingPower: qualifiedLoan + totalDeposit,
+        loanGrantLow,
+        loanGrantMid,
+        loanGrantHigh,
+        maxPurchasingPower,
+        initialLtvPct,
+        year10LtvPct,
+        year20LtvPct,
+        yearsSavedByClive,
+        ltv30YrSeries,
+        churnRisk5YrPct,
+        churnRiskManagedPct,
+        churnRiskLabel,
+        pd12MoBps,
+        est10YrNII,
         stressedMonthlyPayment,
         actualMonthlyPayment
       };
@@ -1104,6 +1520,16 @@
 
     function formatEuro(num) {
       return '€' + Number(num).toLocaleString('en-IE');
+    }
+
+    function formatCompactEuro(num) {
+      if (num >= 1000000) {
+        return '€' + (num / 1000000).toFixed(num >= 10000000 ? 1 : 2) + 'M';
+      }
+      if (num >= 1000) {
+        return '€' + Math.round(num / 1000) + 'k';
+      }
+      return '€' + Math.round(num);
     }
 
     function renderTopRibbon() {
@@ -1152,15 +1578,15 @@
       const logoContainer = document.getElementById('lenderLogoContainer');
       if (currentLenderId === 'BOI') {
         logoContainer.innerHTML = `
-          <div class="flex items-center gap-2 bg-white border border-slate-200 rounded-xl px-3 py-1.5 shadow-sm">
+          <div class="keep-light flex items-center gap-2 bg-white border border-slate-200 rounded-xl px-3 py-1.5 shadow-sm">
             <img src="assets/images/banks/bank-of-ireland-logo.png" alt="Bank of Ireland" class="h-9 object-contain" />
-            <span class="text-slate-300 font-light text-lg">×</span>
+            <span class="text-slate-400 font-light text-lg">×</span>
             <img src="brokerlyai_logo.jpg" alt="Broc." class="h-9 w-9 object-contain rounded-md" />
           </div>
         `;
       } else {
         logoContainer.innerHTML = `
-          <div class="flex items-center gap-2 bg-white border border-emerald-200 rounded-xl px-3 py-1.5 shadow-sm">
+          <div class="keep-light flex items-center gap-2 bg-white border border-emerald-200 rounded-xl px-3 py-1.5 shadow-sm">
             <img src="brokerlyai_logo.jpg" alt="Broc." class="h-10 w-10 object-contain rounded-md" />
           </div>
         `;
@@ -1170,43 +1596,184 @@
 
     function getFilteredApplicants() {
       const dataset = getActiveDataset();
+      const lender = LENDERS[currentLenderId];
       const search = (document.getElementById('searchInput')?.value || '').toLowerCase().trim();
+      const area = document.getElementById('areaFilter')?.value || 'ALL';
       const buyerType = document.getElementById('buyerTypeFilter')?.value || 'ALL';
+      const berFilter = document.getElementById('berFilter')?.value || 'ALL';
+      const riskFilter = document.getElementById('riskFilter')?.value || 'ALL';
+      const sortOrder = document.getElementById('sortOrderFilter')?.value || 'SCORE_DESC';
 
-      return dataset.filter(a => {
+      const clearBtn = document.getElementById('clearSearchBtn');
+      if (clearBtn) {
+        const hasActiveFilter = search !== '' || area !== 'ALL' || buyerType !== 'ALL' || berFilter !== 'ALL' || riskFilter !== 'ALL' || currentStageFilter !== 'ALL';
+        clearBtn.classList.toggle('hidden', !hasActiveFilter);
+      }
+
+      const filtered = dataset.filter(a => {
         if (currentStageFilter !== 'ALL' && a.targetStage !== currentStageFilter) return false;
         if (buyerType !== 'ALL' && a.buyerType !== buyerType) return false;
+
+        if (area !== 'ALL') {
+          const countyLower = a.county.toLowerCase();
+          if (area === 'Meath') {
+            if (!countyLower.includes('meath') && !countyLower.includes('louth')) return false;
+          } else if (area === 'OTHER') {
+            const major = ['dublin', 'cork', 'galway', 'limerick', 'kildare', 'wicklow', 'meath', 'louth'];
+            if (major.some(m => countyLower.includes(m))) return false;
+          } else if (!countyLower.includes(area.toLowerCase())) {
+            return false;
+          }
+        }
+
+        if (berFilter !== 'ALL') {
+          if (berFilter === 'GREEN' && !['A1', 'A2', 'A3', 'B1', 'B2', 'B3'].includes(a.propertyBER)) return false;
+          if (berFilter === 'A_RATED' && !a.propertyBER.startsWith('A')) return false;
+          if (berFilter === 'B_RATED' && !a.propertyBER.startsWith('B')) return false;
+          if (berFilter === 'NON_GREEN' && ['A1', 'A2', 'A3', 'B1', 'B2', 'B3'].includes(a.propertyBER)) return false;
+        }
+
+        const calc = calculateLoanQualification(a, lender);
+        if (riskFilter !== 'ALL') {
+          if (riskFilter === 'SCORE_90' && a.brocScore < 90) return false;
+          if (riskFilter === 'LOW_LTV' && calc.initialLtvPct > 75) return false;
+          if (riskFilter === 'HIGH_LTV' && calc.initialLtvPct <= 80) return false;
+          if (riskFilter === 'LOW_CHURN' && calc.churnRisk5YrPct >= 20) return false;
+          if (riskFilter === 'HIGH_CHURN' && calc.churnRisk5YrPct < 30) return false;
+        }
+
         if (search) {
-          const hay = `${a.names} ${a.id} ${a.county} ${a.citizenship} ${a.dataSource}`.toLowerCase();
-          if (!hay.includes(search)) return false;
+          const hay = `${a.names} ${a.id} ${a.county} ${a.targetPropertyAddress} ${a.citizenship} ${a.kycBadge} ${a.buyerType} ${a.propertyBER} ${a.dataSource} ${a.statusBadge} ${a.cliveStory}`.toLowerCase();
+          const terms = search.split(/\s+/).filter(Boolean);
+          if (!terms.every(t => hay.includes(t))) return false;
         }
         return true;
       });
+
+      filtered.sort((a, b) => {
+        if (sortOrder === 'SCORE_DESC') return b.brocScore - a.brocScore;
+        const calcA = calculateLoanQualification(a, lender);
+        const calcB = calculateLoanQualification(b, lender);
+        if (sortOrder === 'LOAN_DESC') return calcB.qualifiedLoan - calcA.qualifiedLoan;
+        if (sortOrder === 'LTV_ASC') return calcA.initialLtvPct - calcB.initialLtvPct;
+        if (sortOrder === 'CHURN_ASC') return calcA.churnRisk5YrPct - calcB.churnRisk5YrPct;
+        if (sortOrder === 'CHURN_DESC') return calcB.churnRisk5YrPct - calcA.churnRisk5YrPct;
+        if (sortOrder === 'NAME_ASC') return a.names.localeCompare(b.names);
+        return 0;
+      });
+
+      return filtered;
+    }
+
+    function clearAllSearchAndFilters() {
+      const s = document.getElementById('searchInput');
+      if (s) s.value = '';
+      ['areaFilter', 'buyerTypeFilter', 'berFilter', 'riskFilter'].forEach(id => {
+        const el = document.getElementById(id);
+        if (el) el.value = 'ALL';
+      });
+      const sortEl = document.getElementById('sortOrderFilter');
+      if (sortEl) sortEl.value = 'SCORE_DESC';
+      currentStageFilter = 'ALL';
+      currentPage = 1;
+      renderAll();
+    }
+
+    function applyQuickPreset(preset) {
+      clearAllSearchAndFilters();
+      if (preset === 'DUBLIN_FTB') {
+        document.getElementById('areaFilter').value = 'Dublin';
+        document.getElementById('buyerTypeFilter').value = 'FTB';
+      } else if (preset === 'CORK_GALWAY') {
+        document.getElementById('searchInput').value = '';
+        document.getElementById('areaFilter').value = 'Cork';
+      } else if (preset === 'GREEN_A') {
+        document.getElementById('berFilter').value = 'A_RATED';
+      } else if (preset === 'LOW_LTV') {
+        document.getElementById('riskFilter').value = 'LOW_LTV';
+        document.getElementById('sortOrderFilter').value = 'LTV_ASC';
+      } else if (preset === 'STAMP4_EU') {
+        document.getElementById('searchInput').value = 'Stamp 4';
+      } else if (preset === 'HIGH_CHURN') {
+        document.getElementById('riskFilter').value = 'HIGH_CHURN';
+        document.getElementById('sortOrderFilter').value = 'CHURN_DESC';
+      }
+      currentPage = 1;
+      renderAll();
+    }
+
+    function setAnalyticsScope(scope) {
+      analyticsScope = scope;
+      const btnP = document.getElementById('scopeBtn-PORTFOLIO');
+      const btnA = document.getElementById('scopeBtn-APPLICANT');
+      if (btnP && btnA) {
+        if (scope === 'PORTFOLIO') {
+          btnP.className = 'px-2.5 py-1 rounded-md font-semibold transition cursor-pointer bg-white text-slate-900 shadow-sm';
+          btnA.className = 'px-2.5 py-1 rounded-md font-semibold transition cursor-pointer text-slate-600 hover:text-slate-900';
+        } else {
+          btnA.className = 'px-2.5 py-1 rounded-md font-semibold transition cursor-pointer bg-white text-slate-900 shadow-sm';
+          btnP.className = 'px-2.5 py-1 rounded-md font-semibold transition cursor-pointer text-slate-600 hover:text-slate-900';
+        }
+      }
+      renderAnalyticsHub();
+    }
+
+    function toggleAnalyticsCollapse() {
+      analyticsCollapsed = !analyticsCollapsed;
+      const body = document.getElementById('analyticsChartsBody');
+      const btn = document.getElementById('analyticsCollapseBtn');
+      if (body && btn) {
+        body.classList.toggle('hidden', analyticsCollapsed);
+        btn.textContent = analyticsCollapsed ? 'Show Analytics ▼' : 'Hide Charts ▲';
+      }
     }
 
     function renderKpiRibbon() {
       const dataset = getActiveDataset();
+      const filtered = getFilteredApplicants();
+      const activeList = filtered.length > 0 ? filtered : dataset;
       const lender = LENDERS[currentLenderId];
+
       let totalQualifiedVolume = 0;
+      let totalLowVolume = 0;
+      let totalHighVolume = 0;
       let aipReadyCount = 0;
       let fullReadyCount = 0;
       let nurtureCount = 0;
       let totalScore = 0;
       let totalScoreGain = 0;
+      let totalInitialLtv = 0;
+      let totalYr10Ltv = 0;
+      let totalChurn5Yr = 0;
+      let totalManagedChurn = 0;
 
+      // Stage tab counts always reflect full dataset
       dataset.forEach(a => {
-        const calc = calculateLoanQualification(a, lender);
-        if (a.targetStage !== 'NURTURE') totalQualifiedVolume += calc.qualifiedLoan;
         if (a.targetStage === 'AIP') aipReadyCount++;
         if (a.targetStage === 'FULL') fullReadyCount++;
         if (a.targetStage === 'NURTURE') nurtureCount++;
-        totalScore += a.brocScore;
-        totalScoreGain += (a.brocScore - a.brocScoreBefore);
       });
 
-      const avgScore = Math.round(totalScore / dataset.length);
-      const avgGain = Math.round(totalScoreGain / dataset.length);
-      const readyCount = aipReadyCount + fullReadyCount;
+      activeList.forEach(a => {
+        const calc = calculateLoanQualification(a, lender);
+        totalQualifiedVolume += calc.qualifiedLoan;
+        totalLowVolume += calc.loanGrantLow;
+        totalHighVolume += calc.loanGrantHigh;
+        totalScore += a.brocScore;
+        totalScoreGain += (a.brocScore - a.brocScoreBefore);
+        totalInitialLtv += calc.initialLtvPct;
+        totalYr10Ltv += calc.year10LtvPct;
+        totalChurn5Yr += calc.churnRisk5YrPct;
+        totalManagedChurn += calc.churnRiskManagedPct;
+      });
+
+      const count = activeList.length;
+      const avgScore = Math.round(totalScore / count);
+      const avgGain = Math.round(totalScoreGain / count);
+      const avgInitLtv = (totalInitialLtv / count).toFixed(1);
+      const avgYr10Ltv = (totalYr10Ltv / count).toFixed(1);
+      const avgChurn = Math.round(totalChurn5Yr / count);
+      const avgManagedChurn = Math.round(totalManagedChurn / count);
 
       document.getElementById('tab-ALL').textContent = `All Applications (${dataset.length})`;
       document.getElementById('tab-AIP').textContent = `A) AIP Ready (${aipReadyCount})`;
@@ -1218,24 +1785,508 @@
           <div class="text-xs font-medium text-slate-500 uppercase tracking-wider">Avg Broc Readiness Score</div>
           <div class="flex items-baseline gap-2 mt-1">
             <span class="text-2xl font-bold text-emerald-600">${avgScore}/100</span>
-            <span class="text-xs font-semibold text-emerald-600">↑ +${avgGain} pts via Clive AI</span>
+            <span class="text-xs font-semibold text-emerald-600">↑ +${avgGain} pts</span>
           </div>
-          <div class="text-xs text-slate-500 mt-1">Across ${dataset.length} ${currentDatasetMode === 'MONTHLY_517' ? 'Monthly ' : ''}Applicants</div>
+          <div class="text-xs text-slate-500 mt-1">Across ${count} Filtered Applicant${count === 1 ? '' : 's'}</div>
         </div>
         <div class="bg-white border border-slate-200 rounded-xl p-4 shadow-sm">
-          <div class="text-xs font-medium text-slate-500 uppercase tracking-wider">Qualified Lending Pipeline</div>
-          <div class="text-2xl font-bold text-slate-900 mt-1">${formatEuro(totalQualifiedVolume)}</div>
-          <div class="text-xs text-emerald-600 font-medium mt-1">✓ ${readyCount} Underwriter-Ready (${lender.shortName})</div>
+          <div class="text-xs font-medium text-slate-500 uppercase tracking-wider">Projected Loans Granted</div>
+          <div class="text-2xl font-bold text-slate-900 mt-1">${formatCompactEuro(totalQualifiedVolume)}</div>
+          <div class="text-xs text-slate-600 mt-1">Range: <strong>${formatCompactEuro(totalLowVolume)}</strong> – <strong class="text-emerald-700">${formatCompactEuro(totalHighVolume)}</strong></div>
         </div>
         <div class="bg-white border border-slate-200 rounded-xl p-4 shadow-sm">
-          <div class="text-xs font-medium text-slate-500 uppercase tracking-wider">A) Mortgage in Principle (AIP)</div>
-          <div class="text-2xl font-bold text-slate-900 mt-1">${aipReadyCount} Ready Now</div>
-          <div class="text-xs text-slate-500 mt-1">10/10 Identity, Citizenship, Tax &amp; Conduct Met</div>
+          <div class="text-xs font-medium text-slate-500 uppercase tracking-wider">Projected LTV Trajectory</div>
+          <div class="flex items-baseline gap-2 mt-1">
+            <span class="text-2xl font-bold text-slate-900">${avgInitLtv}%</span>
+            <span class="text-xs font-semibold text-emerald-600">→ ${avgYr10Ltv}% (Yr 10)</span>
+          </div>
+          <div class="text-xs text-slate-500 mt-1">Weighted Day-1 LTV → 30-Yr Amortized</div>
         </div>
         <div class="bg-white border border-slate-200 rounded-xl p-4 shadow-sm">
-          <div class="text-xs font-medium text-slate-500 uppercase tracking-wider">B) Full Mortgage (Sale Agreed)</div>
-          <div class="text-2xl font-bold text-slate-900 mt-1">${fullReadyCount} Offer Ready</div>
-          <div class="text-xs text-slate-500 mt-1">All 18 AIP + Property, Legal &amp; Insurance Met</div>
+          <div class="text-xs font-medium text-slate-500 uppercase tracking-wider">5-Yr Switcher Churn Risk</div>
+          <div class="flex items-baseline gap-2 mt-1">
+            <span class="text-2xl font-bold text-amber-600">${avgChurn}%</span>
+            <span class="text-xs font-semibold text-emerald-600">→ ${avgManagedChurn}% w/ Broc</span>
+          </div>
+          <div class="text-xs text-slate-500 mt-1">Yr 3 &amp; Yr 5 Fixed-Rate Cliff Retention</div>
+        </div>
+        <div class="bg-white border border-slate-200 rounded-xl p-4 shadow-sm">
+          <div class="text-xs font-medium text-slate-500 uppercase tracking-wider">Underwriter Ready Now</div>
+          <div class="text-2xl font-bold text-slate-900 mt-1">${aipReadyCount + fullReadyCount} <span class="text-sm font-semibold text-emerald-600">(${fullReadyCount} Full / ${aipReadyCount} AIP)</span></div>
+          <div class="text-xs text-slate-500 mt-1">+${nurtureCount} in Clive AI Pre-AIP Coaching</div>
+        </div>
+      `;
+    }
+
+    function renderAnalyticsHub() {
+      const container = document.getElementById('analyticsChartsBody');
+      if (!container) return;
+
+      const dataset = getActiveDataset();
+      const filtered = getFilteredApplicants();
+      const activeList = filtered.length > 0 ? filtered : dataset;
+      const lender = LENDERS[currentLenderId];
+      const macro = getMacroScenario();
+      const selectedApp = dataset.find(a => a.id === selectedApplicantId) || activeList[0] || dataset[0];
+
+      const scopeItems = analyticsScope === 'APPLICANT' ? [selectedApp] : activeList;
+      const scopeLabel = analyticsScope === 'APPLICANT'
+        ? `${selectedApp.names} (${selectedApp.id})`
+        : `${activeList.length} Filtered Application${activeList.length === 1 ? '' : 's'}`;
+
+      const subtitleEl = document.getElementById('analyticsHeaderSubtitle');
+      if (subtitleEl) {
+        subtitleEl.innerHTML = `Viewing: <strong class="text-emerald-700">${scopeLabel}</strong> • Scenario: <strong>${macro.label}</strong> • Lender: <strong>${lender.shortName}</strong>`;
+      }
+
+      // Aggregate metrics across scopeItems
+      let sumLow = 0;
+      let sumMid = 0;
+      let sumHigh = 0;
+      let sumInitLtv = 0;
+      let sumChurnRaw = 0;
+      let sumChurnManaged = 0;
+      let sum10YrNII = 0;
+      let sumPdBps = 0;
+      let greenCount = 0;
+      let highChurnCount = 0;
+
+      const avgLtvSeries = Array.from({ length: 31 }, (_, yr) => ({
+        year: yr,
+        flatHpiLtv: 0,
+        baseHpiLtv: 0,
+        cliveOverpayLtv: 0,
+        remainingBalance: 0
+      }));
+
+      scopeItems.forEach(a => {
+        const c = calculateLoanQualification(a, lender);
+        sumLow += c.loanGrantLow;
+        sumMid += c.loanGrantMid;
+        sumHigh += c.loanGrantHigh;
+        sumInitLtv += c.initialLtvPct;
+        sumChurnRaw += c.churnRisk5YrPct;
+        sumChurnManaged += c.churnRiskManagedPct;
+        sum10YrNII += c.est10YrNII;
+        sumPdBps += c.pd12MoBps;
+        if (c.isGreenEligible) greenCount++;
+        if (c.churnRisk5YrPct >= 30) highChurnCount++;
+
+        c.ltv30YrSeries.forEach((pt, yr) => {
+          avgLtvSeries[yr].flatHpiLtv += pt.flatHpiLtv;
+          avgLtvSeries[yr].baseHpiLtv += pt.baseHpiLtv;
+          avgLtvSeries[yr].cliveOverpayLtv += pt.cliveOverpayLtv;
+          avgLtvSeries[yr].remainingBalance += pt.remainingBalance;
+        });
+      });
+
+      const n = scopeItems.length;
+      avgLtvSeries.forEach(pt => {
+        pt.flatHpiLtv = Number((pt.flatHpiLtv / n).toFixed(1));
+        pt.baseHpiLtv = Number((pt.baseHpiLtv / n).toFixed(1));
+        pt.cliveOverpayLtv = Number((pt.cliveOverpayLtv / n).toFixed(1));
+      });
+
+      const avgChurn5Yr = Math.round(sumChurnRaw / n);
+      const avgManaged5Yr = Math.round(sumChurnManaged / n);
+      const avgPdBps = Math.round(sumPdBps / n);
+      const greenPct = Math.round((greenCount / n) * 100);
+
+      // =========================================================================
+      // CHART 1: PROJECTED RANGE OF LOANS GRANTED (12-MONTH TIME SERIES + FAN)
+      // =========================================================================
+      // 4 Historical Months (Jul–Oct) + 8 Forward Months (Nov–Jun) = 12 points
+      const monthsLabels = ['Jul', 'Aug', 'Sep', 'Oct', 'Nov*', 'Dec*', 'Jan*', 'Feb*', 'Mar*', 'Apr*', 'May*', 'Jun*'];
+      const baseMonthlyVol = sumMid;
+      const histMultipliers = [0.78, 0.84, 0.91, 0.96];
+      const fwdMidMultipliers = [1.00, 1.04, 1.09, 1.13, 1.18, 1.22, 1.27, 1.32];
+      const macroFactor = macro.id === 'STRESSED' ? 0.91 : macro.id === 'UPSIDE' ? 1.08 : 1.0;
+
+      const grantSeries = monthsLabels.map((m, idx) => {
+        if (idx < 4) {
+          const v = baseMonthlyVol * histMultipliers[idx];
+          return { label: m, isForecast: false, low: v, mid: v, high: v };
+        }
+        const fIdx = idx - 4;
+        const spreadGrow = 1 + fIdx * 0.035;
+        const mid = baseMonthlyVol * fwdMidMultipliers[fIdx] * macroFactor;
+        const low = sumLow * fwdMidMultipliers[fIdx] * (macroFactor * 0.94) / Math.pow(spreadGrow, 0.4);
+        const high = sumHigh * fwdMidMultipliers[fIdx] * (macroFactor * 1.05) * Math.pow(spreadGrow, 0.45);
+        return { label: m, isForecast: true, low, mid, high };
+      });
+
+      const maxGrantVal = Math.max(...grantSeries.map(d => d.high)) * 1.1;
+      const minGrantVal = Math.min(...grantSeries.map(d => d.low)) * 0.82;
+      const c1W = 520, c1H = 185, padL = 52, padR = 16, padT = 16, padB = 28;
+      const plotW = c1W - padL - padR;
+      const plotH = c1H - padT - padB;
+      const x1 = i => padL + (i / (grantSeries.length - 1)) * plotW;
+      const y1 = val => padT + plotH - ((val - minGrantVal) / Math.max(1, maxGrantVal - minGrantVal)) * plotH;
+
+      // Fan polygon from idx 3 (Oct actual) to idx 11 (Jun forecast)
+      const fanForecastPts = grantSeries.slice(3);
+      const fanTop = fanForecastPts.map((d, i) => `${x1(i + 3).toFixed(1)},${y1(d.high).toFixed(1)}`).join(' ');
+      const fanBot = [...fanForecastPts].reverse().map((d, revI) => {
+        const origI = fanForecastPts.length - 1 - revI + 3;
+        return `${x1(origI).toFixed(1)},${y1(d.low).toFixed(1)}`;
+      }).join(' ');
+      const fanPolygon = `${fanTop} ${fanBot}`;
+
+      const actualPath = grantSeries.slice(0, 4).map((d, i) => `${i === 0 ? 'M' : 'L'}${x1(i).toFixed(1)},${y1(d.mid).toFixed(1)}`).join(' ');
+      const midForecastPath = grantSeries.slice(3).map((d, i) => `${i === 0 ? 'M' : 'L'}${x1(i + 3).toFixed(1)},${y1(d.mid).toFixed(1)}`).join(' ');
+      const highForecastPath = grantSeries.slice(3).map((d, i) => `${i === 0 ? 'M' : 'L'}${x1(i + 3).toFixed(1)},${y1(d.high).toFixed(1)}`).join(' ');
+      const lowForecastPath = grantSeries.slice(3).map((d, i) => `${i === 0 ? 'M' : 'L'}${x1(i + 3).toFixed(1)},${y1(d.low).toFixed(1)}`).join(' ');
+
+      // =========================================================================
+      // CHART 2: PROJECTED 30-YEAR LTV AMORTIZATION TRAJECTORY (YEARS 0–30)
+      // =========================================================================
+      const ltvMilestones = [0, 3, 5, 10, 15, 20, 25, 30];
+      const x2 = yr => padL + (yr / 30) * plotW;
+      const y2 = pct => padT + plotH - (Math.min(100, Math.max(0, pct)) / 100) * plotH;
+
+      const flatLtvPath = avgLtvSeries.map((d, yr) => `${yr === 0 ? 'M' : 'L'}${x2(yr).toFixed(1)},${y2(d.flatHpiLtv).toFixed(1)}`).join(' ');
+      const baseLtvPath = avgLtvSeries.map((d, yr) => `${yr === 0 ? 'M' : 'L'}${x2(yr).toFixed(1)},${y2(d.baseHpiLtv).toFixed(1)}`).join(' ');
+      const cliveLtvPath = avgLtvSeries.map((d, yr) => `${yr === 0 ? 'M' : 'L'}${x2(yr).toFixed(1)},${y2(d.cliveOverpayLtv).toFixed(1)}`).join(' ');
+      const ltvBandPolygon = avgLtvSeries.map((d, yr) => `${x2(yr).toFixed(1)},${y2(d.flatHpiLtv).toFixed(1)}`).join(' ') + ' ' +
+        [...avgLtvSeries].reverse().map(d => `${x2(d.year).toFixed(1)},${y2(d.cliveOverpayLtv).toFixed(1)}`).join(' ');
+
+      // =========================================================================
+      // CHART 3: 10-YEAR CHURN RISK & FIXED-RATE EXPIRY CLIFF HAZARD
+      // =========================================================================
+      // Models annual switcher hazard rate (%) in Years 1..10
+      // Spikes at Year 3 (3-yr fixed expiry) and Year 5 (5-yr fixed expiry)
+      const scaleChurn = avgChurn5Yr / 24;
+      const rawHazardProfile = [3.2, 5.1, 18.4, 9.8, 22.6, 11.2, 8.5, 13.4, 7.2, 6.0];
+      const brocHazardProfile = [1.4, 2.1, 6.2, 3.8, 7.5, 4.2, 3.3, 4.8, 2.9, 2.4];
+      const churnSeries = Array.from({ length: 10 }, (_, idx) => {
+        const yr = idx + 1;
+        const unmanaged = Math.min(42, Number((rawHazardProfile[idx] * scaleChurn).toFixed(1)));
+        const managed = Math.min(20, Number((brocHazardProfile[idx] * scaleChurn).toFixed(1)));
+        return { year: `Yr ${yr}`, yrNum: yr, unmanaged, managed };
+      });
+      const maxChurnY = 38;
+      const x3 = idx => padL + (idx / 9) * plotW;
+      const y3 = pct => padT + plotH - (Math.min(maxChurnY, pct) / maxChurnY) * plotH;
+      const unmanagedChurnPath = churnSeries.map((d, i) => `${i === 0 ? 'M' : 'L'}${x3(i).toFixed(1)},${y3(d.unmanaged).toFixed(1)}`).join(' ');
+      const managedChurnPath = churnSeries.map((d, i) => `${i === 0 ? 'M' : 'L'}${x3(i).toFixed(1)},${y3(d.managed).toFixed(1)}`).join(' ');
+      const churnSavedPolygon = churnSeries.map((d, i) => `${x3(i).toFixed(1)},${y3(d.unmanaged).toFixed(1)}`).join(' ') + ' ' +
+        [...churnSeries].reverse().map((d, revI) => `${x3(9 - revI).toFixed(1)},${y3(d.managed).toFixed(1)}`).join(' ');
+
+      // =========================================================================
+      // CHART 4: 6-MONTH CREDIT READINESS & DEFAULT RISK (PD) VELOCITY (M-6 → M0)
+      // =========================================================================
+      const avgBeforeScore = Math.round(scopeItems.reduce((s, a) => s + a.brocScoreBefore, 0) / n);
+      const avgNowScore = Math.round(scopeItems.reduce((s, a) => s + a.brocScore, 0) / n);
+      const scoreStep = (avgNowScore - avgBeforeScore) / 6;
+      const readinessMonths = ['M-6', 'M-5', 'M-4', 'M-3', 'M-2', 'M-1', 'Now'];
+      const velocitySeries = readinessMonths.map((m, idx) => {
+        const curveProgress = Math.pow(idx / 6, 0.85);
+        const score = Math.round(avgBeforeScore + (avgNowScore - avgBeforeScore) * curveProgress);
+        const pdBps = Math.max(12, Math.round(150 - score * 1.3));
+        return { label: m, score, pdBps };
+      });
+      const x4 = idx => padL + (idx / 6) * plotW;
+      const y4Score = sc => padT + plotH - ((sc - 40) / 60) * plotH;
+      const y4Pd = pd => padT + plotH - ((pd - 0) / 110) * plotH;
+      const scoreVelPath = velocitySeries.map((d, i) => `${i === 0 ? 'M' : 'L'}${x4(i).toFixed(1)},${y4Score(d.score).toFixed(1)}`).join(' ');
+      const pdVelPath = velocitySeries.map((d, i) => `${i === 0 ? 'M' : 'L'}${x4(i).toFixed(1)},${y4Pd(d.pdBps).toFixed(1)}`).join(' ');
+
+      const gridStroke = isDarkMode ? '#334155' : '#e2e8f0';
+      const actualStroke = isDarkMode ? '#f8fafc' : '#0f172a';
+
+      container.innerHTML = `
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-5">
+
+          <!-- CARD 1: PROJECTED RANGE OF LOANS GRANTED -->
+          <div class="rounded-xl border border-slate-200 bg-slate-50/50 p-4 flex flex-col justify-between">
+            <div>
+              <div class="flex flex-wrap items-start justify-between gap-2 mb-2">
+                <div>
+                  <span class="text-[11px] font-bold uppercase tracking-wider text-emerald-700 bg-emerald-50 border border-emerald-200 px-2 py-0.5 rounded">
+                    Time Series 1 • Lending Volume &amp; Confidence Fan
+                  </span>
+                  <h3 class="text-sm font-bold text-slate-900 mt-1">
+                    Projected Range of Loans Granted (P10 / P50 Base / P90 Clive Upside)
+                  </h3>
+                </div>
+                <div class="text-right text-xs">
+                  <span class="text-slate-500 block">Current Cohort Base</span>
+                  <strong class="text-sm font-extrabold text-slate-900">${formatCompactEuro(sumMid)}</strong>
+                </div>
+              </div>
+
+              <!-- SVG Fan Chart -->
+              <div class="bg-white border border-slate-200 rounded-lg p-2">
+                <svg viewBox="0 0 ${c1W} ${c1H}" class="w-full h-44 overflow-visible">
+                  <!-- Horizontal Gridlines -->
+                  ${[0.2, 0.5, 0.8].map(f => {
+                    const gy = padT + f * plotH;
+                    const gVal = maxGrantVal - f * (maxGrantVal - minGrantVal);
+                    return `
+                      <line x1="${padL}" y1="${gy}" x2="${c1W - padR}" y2="${gy}" stroke="${gridStroke}" stroke-dasharray="3 3" />
+                      <text x="${padL - 6}" y="${gy + 3}" text-anchor="end" class="text-[9px] fill-slate-400 font-medium">${formatCompactEuro(gVal)}</text>
+                    `;
+                  }).join('')}
+
+                  <!-- Forecast Divider Line at Oct -> Nov -->
+                  <line x1="${x1(3)}" y1="${padT}" x2="${x1(3)}" y2="${padT + plotH}" stroke="#94a3b8" stroke-dasharray="4 3" />
+                  <text x="${x1(3) + 5}" y="${padT + 10}" class="text-[9px] fill-slate-500 font-semibold">Forecast Fan →</text>
+
+                  <!-- P10-P90 Shaded Confidence Range -->
+                  <polygon points="${fanPolygon}" fill="rgba(16, 185, 129, 0.16)" />
+
+                  <!-- P90 Upper Bound & P10 Lower Bound -->
+                  <path d="${highForecastPath}" fill="none" stroke="#10b981" stroke-width="1.5" stroke-dasharray="4 3" />
+                  <path d="${lowForecastPath}" fill="none" stroke="#64748b" stroke-width="1.5" stroke-dasharray="3 3" />
+
+                  <!-- Historical Actuals & P50 Base Trajectory -->
+                  <path d="${actualPath}" fill="none" stroke="${actualStroke}" stroke-width="2.5" />
+                  <path d="${midForecastPath}" fill="none" stroke="#059669" stroke-width="2.5" />
+
+                  <!-- Data Points -->
+                  ${grantSeries.map((d, i) => `
+                    <circle cx="${x1(i)}" cy="${y1(d.mid)}" r="3" fill="${d.isForecast ? '#059669' : actualStroke}">
+                      <title>${d.label}: Base ${formatEuro(Math.round(d.mid))} (Range: ${formatEuro(Math.round(d.low))} – ${formatEuro(Math.round(d.high))})</title>
+                    </circle>
+                    <text x="${x1(i)}" y="${c1H - 8}" text-anchor="middle" class="text-[9px] fill-slate-500">${d.label}</text>
+                  `).join('')}
+                </svg>
+              </div>
+            </div>
+
+            <div class="grid grid-cols-3 gap-2 mt-3 text-xs">
+              <div class="p-2 rounded-lg bg-white border border-slate-200">
+                <span class="text-slate-500 block">P10 Stressed Floor</span>
+                <strong class="text-slate-800">${formatCompactEuro(sumLow)}</strong>
+                <span class="text-[11px] text-slate-400 block">+2.75% stress / pre-Clive</span>
+              </div>
+              <div class="p-2 rounded-lg bg-white border border-emerald-200">
+                <span class="text-emerald-700 font-semibold block">P50 Qualified Base</span>
+                <strong class="text-emerald-700">${formatCompactEuro(sumMid)}</strong>
+                <span class="text-[11px] text-slate-500 block">Standard CBI 4x / 3.5x</span>
+              </div>
+              <div class="p-2 rounded-lg bg-white border border-slate-200">
+                <span class="text-slate-500 block">P90 Clive + Exception</span>
+                <strong class="text-slate-900">${formatCompactEuro(sumHigh)}</strong>
+                <span class="text-[11px] text-emerald-600 block">+${formatCompactEuro(sumHigh - sumMid)} upside</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- CARD 2: PROJECTED LTV OVER 30 YEARS -->
+          <div class="rounded-xl border border-slate-200 bg-slate-50/50 p-4 flex flex-col justify-between">
+            <div>
+              <div class="flex flex-wrap items-start justify-between gap-2 mb-2">
+                <div>
+                  <span class="text-[11px] font-bold uppercase tracking-wider text-blue-700 bg-blue-50 border border-blue-200 px-2 py-0.5 rounded">
+                    Time Series 2 • 30-Year LTV &amp; Equity Curve
+                  </span>
+                  <h3 class="text-sm font-bold text-slate-900 mt-1">
+                    Projected Loan-to-Value (LTV %) Over 30 Years (Flat HPI vs Base vs Clive Overpay)
+                  </h3>
+                </div>
+                <div class="text-right text-xs">
+                  <span class="text-slate-500 block">Day-1 → Yr 10 LTV</span>
+                  <strong class="text-sm font-extrabold text-blue-700">${avgLtvSeries[0].baseHpiLtv}% → ${avgLtvSeries[10].baseHpiLtv}%</strong>
+                </div>
+              </div>
+
+              <!-- SVG 30-Yr LTV Chart -->
+              <div class="bg-white border border-slate-200 rounded-lg p-2">
+                <svg viewBox="0 0 ${c1W} ${c1H}" class="w-full h-44 overflow-visible">
+                  <!-- LTV Reference Lines: 80%, 60% (Low Risk Weight), 40%, 20% -->
+                  ${[80, 60, 40, 20].map(pct => {
+                    const gy = y2(pct);
+                    return `
+                      <line x1="${padL}" y1="${gy}" x2="${c1W - padR}" y2="${gy}" stroke="${pct === 60 ? '#93c5fd' : gridStroke}" stroke-dasharray="3 3" />
+                      <text x="${padL - 6}" y="${gy + 3}" text-anchor="end" class="text-[9px] fill-slate-400 font-medium">${pct}%</text>
+                    `;
+                  }).join('')}
+                  <text x="${c1W - padR - 4}" y="${y2(60) - 4}" text-anchor="end" class="text-[9px] fill-blue-600 font-semibold">60% RWA Tier Threshold</text>
+
+                  <!-- Shaded Band between Flat HPI and Clive Overpay -->
+                  <polygon points="${ltvBandPolygon}" fill="rgba(59, 130, 246, 0.10)" />
+
+                  <!-- 3 LTV Curves -->
+                  <path d="${flatLtvPath}" fill="none" stroke="#94a3b8" stroke-width="1.75" stroke-dasharray="4 3" />
+                  <path d="${baseLtvPath}" fill="none" stroke="#2563eb" stroke-width="2.5" />
+                  <path d="${cliveLtvPath}" fill="none" stroke="#10b981" stroke-width="2.25" />
+
+                  <!-- Milestone Dots & X-Axis Labels -->
+                  ${ltvMilestones.map(yr => {
+                    const pt = avgLtvSeries[yr];
+                    return `
+                      <circle cx="${x2(yr)}" cy="${y2(pt.baseHpiLtv)}" r="3" fill="#2563eb">
+                        <title>Year ${yr}: Base LTV ${pt.baseHpiLtv}% | Flat HPI ${pt.flatHpiLtv}% | Clive Overpay ${pt.cliveOverpayLtv}%</title>
+                      </circle>
+                      <circle cx="${x2(yr)}" cy="${y2(pt.cliveOverpayLtv)}" r="2.5" fill="#10b981">
+                        <title>Year ${yr} w/ Clive Overpayment: ${pt.cliveOverpayLtv}% LTV</title>
+                      </circle>
+                      <text x="${x2(yr)}" y="${c1H - 8}" text-anchor="middle" class="text-[9px] fill-slate-500">Yr ${yr}</text>
+                    `;
+                  }).join('')}
+                </svg>
+              </div>
+            </div>
+
+            <div class="grid grid-cols-4 gap-2 mt-3 text-xs">
+              <div class="p-2 rounded-lg bg-white border border-slate-200">
+                <span class="text-slate-500 block">Day 1 / Yr 5 LTV</span>
+                <strong class="text-slate-900">${avgLtvSeries[0].baseHpiLtv}% → ${avgLtvSeries[5].baseHpiLtv}%</strong>
+              </div>
+              <div class="p-2 rounded-lg bg-white border border-slate-200">
+                <span class="text-slate-500 block">Yr 10 / Yr 20 LTV</span>
+                <strong class="text-blue-700">${avgLtvSeries[10].baseHpiLtv}% → ${avgLtvSeries[20].baseHpiLtv}%</strong>
+              </div>
+              <div class="p-2 rounded-lg bg-white border border-slate-200">
+                <span class="text-slate-500 block">Stressed (0% HPI Yr 10)</span>
+                <strong class="text-slate-700">${avgLtvSeries[10].flatHpiLtv}% LTV</strong>
+              </div>
+              <div class="p-2 rounded-lg bg-white border border-emerald-200">
+                <span class="text-emerald-700 font-semibold block">Clive Overpay Yr 10</span>
+                <strong class="text-emerald-700">${avgLtvSeries[10].cliveOverpayLtv}% LTV</strong>
+              </div>
+            </div>
+          </div>
+
+          <!-- CARD 3: CHURN RISK & FIXED-TERM CLIFF RETENTION -->
+          <div class="rounded-xl border border-slate-200 bg-slate-50/50 p-4 flex flex-col justify-between">
+            <div>
+              <div class="flex flex-wrap items-start justify-between gap-2 mb-2">
+                <div>
+                  <span class="text-[11px] font-bold uppercase tracking-wider text-amber-800 bg-amber-50 border border-amber-200 px-2 py-0.5 rounded">
+                    Time Series 3 • Switcher Churn Hazard (Years 1–10)
+                  </span>
+                  <h3 class="text-sm font-bold text-slate-900 mt-1">
+                    Refinance / Churn Risk at Yr 3 &amp; Yr 5 Fixed-Rate Cliffs vs Broc Auto-Retention
+                  </h3>
+                </div>
+                <div class="text-right text-xs">
+                  <span class="text-slate-500 block">5-Yr Churn Reduction</span>
+                  <strong class="text-sm font-extrabold text-emerald-700">${avgChurn5Yr}% → ${avgManaged5Yr}%</strong>
+                </div>
+              </div>
+
+              <!-- SVG Churn Hazard Chart -->
+              <div class="bg-white border border-slate-200 rounded-lg p-2">
+                <svg viewBox="0 0 ${c1W} ${c1H}" class="w-full h-44 overflow-visible">
+                  ${[10, 20, 30].map(pct => {
+                    const gy = y3(pct);
+                    return `
+                      <line x1="${padL}" y1="${gy}" x2="${c1W - padR}" y2="${gy}" stroke="${gridStroke}" stroke-dasharray="3 3" />
+                      <text x="${padL - 6}" y="${gy + 3}" text-anchor="end" class="text-[9px] fill-slate-400 font-medium">${pct}%</text>
+                    `;
+                  }).join('')}
+
+                  <!-- Highlight Yr 3 and Yr 5 Fixed-Rate Expiry Cliffs -->
+                  <line x1="${x3(2)}" y1="${padT}" x2="${x3(2)}" y2="${padT + plotH}" stroke="#f59e0b" stroke-dasharray="3 3" />
+                  <text x="${x3(2)}" y="${padT + 9}" text-anchor="middle" class="text-[8.5px] fill-amber-700 font-bold">3-Yr Fix Cliff</text>
+                  <line x1="${x3(4)}" y1="${padT}" x2="${x3(4)}" y2="${padT + plotH}" stroke="#f59e0b" stroke-dasharray="3 3" />
+                  <text x="${x3(4)}" y="${padT + 9}" text-anchor="middle" class="text-[8.5px] fill-amber-700 font-bold">5-Yr Fix Cliff</text>
+
+                  <!-- Shaded Churn Saved Area -->
+                  <polygon points="${churnSavedPolygon}" fill="rgba(245, 158, 11, 0.13)" />
+
+                  <!-- Unmanaged vs Broc Managed Curves -->
+                  <path d="${unmanagedChurnPath}" fill="none" stroke="#d97706" stroke-width="2.25" />
+                  <path d="${managedChurnPath}" fill="none" stroke="#10b981" stroke-width="2.5" />
+
+                  ${churnSeries.map((d, i) => `
+                    <circle cx="${x3(i)}" cy="${y3(d.unmanaged)}" r="3" fill="#d97706">
+                      <title>${d.year} Unmanaged Switcher Hazard: ${d.unmanaged}%</title>
+                    </circle>
+                    <circle cx="${x3(i)}" cy="${y3(d.managed)}" r="3" fill="#10b981">
+                      <title>${d.year} Broc Proactive Re-Fix Hazard: ${d.managed}%</title>
+                    </circle>
+                    <text x="${x3(i)}" y="${c1H - 8}" text-anchor="middle" class="text-[9px] fill-slate-500">${d.year}</text>
+                  `).join('')}
+                </svg>
+              </div>
+            </div>
+
+            <div class="grid grid-cols-3 gap-2 mt-3 text-xs">
+              <div class="p-2 rounded-lg bg-white border border-amber-200">
+                <span class="text-amber-800 font-semibold block">Baseline 5-Yr Churn</span>
+                <strong class="text-amber-700">${avgChurn5Yr}% (${highChurnCount} Watchlist)</strong>
+                <span class="text-[11px] text-slate-500 block">Spikes at Yr 3 &amp; Yr 5 roll-off</span>
+              </div>
+              <div class="p-2 rounded-lg bg-white border border-emerald-200">
+                <span class="text-emerald-700 font-semibold block">With Clive Re-Fix Alert</span>
+                <strong class="text-emerald-700">${avgManaged5Yr}% (-${avgChurn5Yr - avgManaged5Yr}% pts)</strong>
+                <span class="text-[11px] text-slate-500 block">In-app LTV-band rate lock</span>
+              </div>
+              <div class="p-2 rounded-lg bg-white border border-slate-200">
+                <span class="text-slate-500 block">Est. 10-Yr NII Protected</span>
+                <strong class="text-slate-900">${formatCompactEuro(sum10YrNII)}</strong>
+                <span class="text-[11px] text-emerald-600 block">185 bps avg net margin</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- CARD 4: PRE-SUBMISSION SCORE & DEFAULT RISK (PD) VELOCITY + GREEN MIX -->
+          <div class="rounded-xl border border-slate-200 bg-slate-50/50 p-4 flex flex-col justify-between">
+            <div>
+              <div class="flex flex-wrap items-start justify-between gap-2 mb-2">
+                <div>
+                  <span class="text-[11px] font-bold uppercase tracking-wider text-purple-800 bg-purple-50 border border-purple-200 px-2 py-0.5 rounded">
+                    Time Series 4 • 6-Mo Credit Readiness &amp; PD (bps) Trajectory
+                  </span>
+                  <h3 class="text-sm font-bold text-slate-900 mt-1">
+                    Pre-Application Broc Score Climb vs 12-Mo Probability of Default (M-6 → Now)
+                  </h3>
+                </div>
+                <div class="text-right text-xs">
+                  <span class="text-slate-500 block">Est. 12-Mo PD</span>
+                  <strong class="text-sm font-extrabold text-emerald-700">${avgPdBps} bps (${(avgPdBps / 100).toFixed(2)}%)</strong>
+                </div>
+              </div>
+
+              <!-- SVG Dual-Metric Trajectory -->
+              <div class="bg-white border border-slate-200 rounded-lg p-2">
+                <svg viewBox="0 0 ${c1W} ${c1H}" class="w-full h-44 overflow-visible">
+                  ${[50, 70, 90].map(sc => {
+                    const gy = y4Score(sc);
+                    return `
+                      <line x1="${padL}" y1="${gy}" x2="${c1W - padR}" y2="${gy}" stroke="${gridStroke}" stroke-dasharray="3 3" />
+                      <text x="${padL - 6}" y="${gy + 3}" text-anchor="end" class="text-[9px] fill-slate-400 font-medium">${sc} pts</text>
+                    `;
+                  }).join('')}
+
+                  <path d="${pdVelPath}" fill="none" stroke="#ef4444" stroke-width="2" stroke-dasharray="4 3" />
+                  <path d="${scoreVelPath}" fill="none" stroke="#10b981" stroke-width="2.5" />
+
+                  ${velocitySeries.map((d, i) => `
+                    <circle cx="${x4(i)}" cy="${y4Score(d.score)}" r="3.5" fill="#10b981">
+                      <title>${d.label}: Broc Score ${d.score}/100</title>
+                    </circle>
+                    <circle cx="${x4(i)}" cy="${y4Pd(d.pdBps)}" r="3" fill="#ef4444">
+                      <title>${d.label}: 12-Mo PD ${d.pdBps} bps</title>
+                    </circle>
+                    <text x="${x4(i)}" y="${c1H - 8}" text-anchor="middle" class="text-[9px] fill-slate-500">${d.label}</text>
+                  `).join('')}
+                </svg>
+              </div>
+            </div>
+
+            <div class="grid grid-cols-3 gap-2 mt-3 text-xs">
+              <div class="p-2 rounded-lg bg-white border border-slate-200">
+                <span class="text-slate-500 block">Readiness Climb (6M)</span>
+                <strong class="text-emerald-700">${avgBeforeScore} → ${avgNowScore}/100</strong>
+                <span class="text-[11px] text-slate-500 block">BNPL &amp; bill hygiene fixed</span>
+              </div>
+              <div class="p-2 rounded-lg bg-white border border-slate-200">
+                <span class="text-slate-500 block">12-Mo Default Risk (PD)</span>
+                <strong class="text-slate-900">${velocitySeries[0].pdBps} → ${avgPdBps} bps</strong>
+                <span class="text-[11px] text-emerald-600 block">↓ -${velocitySeries[0].pdBps - avgPdBps} bps risk reduction</span>
+              </div>
+              <div class="p-2 rounded-lg bg-white border border-emerald-200">
+                <span class="text-emerald-700 font-semibold block">Green BER (A1–B3) Mix</span>
+                <strong class="text-emerald-700">${greenPct}% Eligible</strong>
+                <span class="text-[11px] text-slate-500 block">${greenCount} of ${n} @ ${lender.greenRate}% rate</span>
+              </div>
+            </div>
+          </div>
+
         </div>
       `;
     }
@@ -1299,10 +2350,20 @@
       const filtered = getFilteredApplicants();
       const totalFiltered = filtered.length;
 
+      let filteredLoanSum = 0;
+      filtered.forEach(a => {
+        filteredLoanSum += calculateLoanQualification(a, lender).qualifiedLoan;
+      });
+
       document.getElementById('queueHeaderTitle').textContent =
         currentDatasetMode === 'CURATED_7'
           ? 'Broc Packaged Applicant Queue (7-Select Showcase)'
           : 'Broc Packaged Applicant Queue (517 Monthly Average Volume)';
+
+      const volBadge = document.getElementById('filteredVolumeBadge');
+      if (volBadge) {
+        volBadge.textContent = `${formatCompactEuro(filteredLoanSum)} Filtered Volume`;
+      }
 
       document.getElementById('tableCountBadge').textContent =
         `${totalFiltered} Matching Applicant${totalFiltered === 1 ? '' : 's'}`;
@@ -1318,6 +2379,21 @@
       }
 
       const tbody = document.getElementById('applicantTableBody');
+      if (pageItems.length === 0) {
+        tbody.innerHTML = `
+          <tr>
+            <td colspan="5" class="py-10 px-6 text-center text-slate-500">
+              <div class="text-sm font-bold text-slate-800">No applications match your current search or filter criteria</div>
+              <p class="text-xs text-slate-500 mt-1">Try searching for another county (e.g. Dublin, Cork, Galway), name, or click Reset below.</p>
+              <button onclick="clearAllSearchAndFilters()" class="mt-3 px-3.5 py-1.5 rounded-lg text-xs font-semibold bg-emerald-600 text-white hover:bg-emerald-700 transition cursor-pointer">
+                Reset Search &amp; Filters
+              </button>
+            </td>
+          </tr>
+        `;
+        return;
+      }
+
       tbody.innerHTML = pageItems.map(a => {
         const calc = calculateLoanQualification(a, lender);
         const isSelected = a.id === selectedApplicantId;
@@ -1339,6 +2415,12 @@
           ? 'text-blue-700 bg-blue-50 border border-blue-200'
           : 'text-amber-700 bg-amber-50 border border-amber-200';
 
+        const churnBadgeColor = calc.churnRisk5YrPct < 20
+          ? 'bg-emerald-50 text-emerald-700 border-emerald-200'
+          : calc.churnRisk5YrPct <= 30
+          ? 'bg-slate-100 text-slate-700 border-slate-200'
+          : 'bg-amber-50 text-amber-800 border-amber-200';
+
         return `
           <tr
             onclick="selectApplicant('${a.id}')"
@@ -1346,30 +2428,38 @@
             style="${isSelected ? `border-left: 4px solid ${lender.color};` : 'border-left: 4px solid transparent;'}"
           >
             <td class="py-3.5 px-4">
-              <div class="font-bold text-slate-900 text-sm flex items-center gap-1.5">
-                ${a.names}
-                <span class="px-1.5 py-0.5 rounded text-xs font-semibold bg-slate-100 border border-slate-200 text-slate-600">${a.buyerType}</span>
+              <div class="font-bold text-slate-900 text-sm flex flex-wrap items-center gap-1.5">
+                <span>${a.names}</span>
+                <span class="px-1.5 py-0.5 rounded text-[11px] font-semibold bg-slate-100 border border-slate-200 text-slate-600">${a.buyerType}</span>
+                <span class="px-1.5 py-0.5 rounded text-[11px] font-semibold ${calc.isGreenEligible ? 'bg-emerald-50 border border-emerald-200 text-emerald-700' : 'bg-slate-100 border border-slate-200 text-slate-600'}">BER ${a.propertyBER}</span>
               </div>
-              <div class="text-xs text-slate-600 mt-0.5">🪪 ${a.citizenship}</div>
-              <div class="text-xs text-slate-500">📍 ${a.county} • ${a.dataSource.split('(')[0].trim()}</div>
+              <div class="text-xs text-slate-600 mt-0.5">📍 <strong>${a.county}</strong> • 🪪 ${a.citizenship}</div>
+              <div class="text-xs text-slate-400">${a.id} • ${a.dataSource.split('(')[0].trim()}</div>
             </td>
             <td class="py-3.5 px-3">
               ${stageBadgeHtml}
-              <div class="text-xs text-slate-500 mt-1">${a.statusBadge}</div>
+              <div class="text-xs text-slate-600 font-medium mt-1">AIP: ${aipMet}/10 • Full: ${aipMet + fullMet}/18</div>
             </td>
             <td class="py-3.5 px-3">
-              <div class="text-xs font-semibold text-slate-800">A) AIP: ${aipMet}/10</div>
-              <div class="text-xs text-slate-500">B) Full: ${aipMet + fullMet}/18</div>
+              <div class="text-xs font-bold text-slate-900">
+                ${calc.initialLtvPct}% <span class="text-blue-600 font-semibold">→ ${calc.year10LtvPct}% Yr10</span>
+              </div>
+              <div class="mt-1">
+                <span class="inline-flex items-center px-1.5 py-0.5 rounded text-[11px] font-semibold border ${churnBadgeColor}">
+                  Churn: ${calc.churnRisk5YrPct}% (${calc.churnRiskLabel})
+                </span>
+              </div>
             </td>
             <td class="py-3.5 px-3">
               <div class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-bold ${scoreColor}">
                 ${a.brocScore}/100
               </div>
-              <div class="text-xs text-emerald-600 font-medium mt-0.5">↑ from ${a.brocScoreBefore}</div>
+              <div class="text-xs text-emerald-600 font-medium mt-0.5">↑ from ${a.brocScoreBefore} • PD ${calc.pd12MoBps}bps</div>
             </td>
             <td class="py-3.5 px-4 text-right">
               <div class="text-sm font-bold text-slate-900">${formatEuro(calc.qualifiedLoan)}</div>
-              <div class="text-xs text-emerald-600 font-medium">+${formatEuro(calc.totalDeposit)} Deposit</div>
+              <div class="text-[11px] text-slate-500">Range: ${formatCompactEuro(calc.loanGrantLow)}–${formatCompactEuro(calc.loanGrantHigh)}</div>
+              <div class="text-xs text-emerald-600 font-medium">+${formatCompactEuro(calc.totalDeposit)} Deposit</div>
             </td>
           </tr>
         `;
@@ -1469,6 +2559,93 @@
             </div>
           </div>
         `;
+      } else if (activeChecklistTab === 'ANALYTICS') {
+        const milestoneYears = [0, 5, 10, 15, 20, 25, 30];
+        tabBodyHtml = `
+          <div class="space-y-3 text-xs">
+            <!-- 1. Projected Loan Grant Range -->
+            <div class="p-3 rounded-xl bg-slate-50 border border-slate-200 space-y-2">
+              <div class="flex items-center justify-between">
+                <span class="font-bold text-slate-900">1. Projected Loan Grant Range (${lender.shortName})</span>
+                <span class="px-2 py-0.5 rounded bg-emerald-50 text-emerald-700 border border-emerald-200 font-semibold">${calc.appliedRate}% (${calc.isGreenEligible ? 'Green' : 'Std'})</span>
+              </div>
+              <div class="grid grid-cols-3 gap-2">
+                <div class="p-2 rounded-lg bg-white border border-slate-200">
+                  <span class="text-slate-500 block">P10 Stressed Floor</span>
+                  <strong class="text-slate-800 text-sm">${formatEuro(calc.loanGrantLow)}</strong>
+                </div>
+                <div class="p-2 rounded-lg bg-emerald-50/70 border border-emerald-200">
+                  <span class="text-emerald-800 font-semibold block">P50 Qualified Base</span>
+                  <strong class="text-emerald-700 text-sm">${formatEuro(calc.loanGrantMid)}</strong>
+                </div>
+                <div class="p-2 rounded-lg bg-white border border-slate-200">
+                  <span class="text-slate-500 block">P90 Clive + Exception</span>
+                  <strong class="text-slate-900 text-sm">${formatEuro(calc.loanGrantHigh)}</strong>
+                </div>
+              </div>
+            </div>
+
+            <!-- 2. 30-Year LTV Amortization Schedule -->
+            <div class="p-3 rounded-xl bg-slate-50 border border-slate-200 space-y-2">
+              <div class="flex items-center justify-between">
+                <span class="font-bold text-slate-900">2. 30-Year Projected LTV Trajectory (${applicant.termYears}-Yr Term)</span>
+                <span class="text-emerald-700 font-semibold">Clive saves ${calc.yearsSavedByClive} yrs</span>
+              </div>
+              <div class="overflow-x-auto bg-white rounded-lg border border-slate-200">
+                <table class="w-full text-left border-collapse text-[11px]">
+                  <thead>
+                    <tr class="border-b border-slate-200 bg-slate-50 text-slate-500">
+                      <th class="py-1.5 px-2">Year</th>
+                      <th class="py-1.5 px-2">Sched. Balance</th>
+                      <th class="py-1.5 px-2">Flat HPI LTV</th>
+                      <th class="py-1.5 px-2">Base HPI LTV</th>
+                      <th class="py-1.5 px-2 text-emerald-700">Clive Overpay LTV</th>
+                    </tr>
+                  </thead>
+                  <tbody class="divide-y divide-slate-100">
+                    ${milestoneYears.map(yr => {
+                      const pt = calc.ltv30YrSeries[yr];
+                      return `
+                        <tr>
+                          <td class="py-1.5 px-2 font-bold text-slate-800">Yr ${yr}</td>
+                          <td class="py-1.5 px-2 text-slate-600">${formatCompactEuro(pt.remainingBalance)}</td>
+                          <td class="py-1.5 px-2 text-slate-600">${pt.flatHpiLtv}%</td>
+                          <td class="py-1.5 px-2 font-semibold text-blue-700">${pt.baseHpiLtv}%</td>
+                          <td class="py-1.5 px-2 font-bold text-emerald-700">${pt.cliveOverpayLtv}%</td>
+                        </tr>
+                      `;
+                    }).join('')}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+
+            <!-- 3. Churn Risk, PD & 10-Yr Net Interest Income -->
+            <div class="p-3 rounded-xl bg-slate-50 border border-slate-200 space-y-2">
+              <div class="flex items-center justify-between">
+                <span class="font-bold text-slate-900">3. Switcher Churn Risk &amp; Credit Value</span>
+                <span class="px-2 py-0.5 rounded bg-amber-50 text-amber-800 border border-amber-200 font-semibold">5-Yr Churn: ${calc.churnRisk5YrPct}% → ${calc.churnRiskManagedPct}%</span>
+              </div>
+              <div class="grid grid-cols-3 gap-2">
+                <div class="p-2 rounded-lg bg-white border border-slate-200">
+                  <span class="text-slate-500 block">Unmanaged 5-Yr Churn</span>
+                  <strong class="text-amber-700">${calc.churnRisk5YrPct}% (${calc.churnRiskLabel})</strong>
+                </div>
+                <div class="p-2 rounded-lg bg-white border border-emerald-200">
+                  <span class="text-emerald-700 font-semibold block">Broc Auto-Retained</span>
+                  <strong class="text-emerald-700">${calc.churnRiskManagedPct}% Hazard</strong>
+                </div>
+                <div class="p-2 rounded-lg bg-white border border-slate-200">
+                  <span class="text-slate-500 block">Est. 10-Yr Lender NII</span>
+                  <strong class="text-slate-900">${formatEuro(calc.est10YrNII)}</strong>
+                </div>
+              </div>
+              <p class="text-[11px] text-slate-500">
+                12-Month Probability of Default (PD): <strong>${calc.pd12MoBps} bps</strong> • Clive automatically triggers an in-app Green / LTV-tier re-fix offer 90 days before fixed-rate expiry.
+              </p>
+            </div>
+          </div>
+        `;
       } else {
         const checklistItems = activeChecklistTab === 'AIP' ? applicant.aipCriteria : applicant.fullCriteria;
         tabBodyHtml = `
@@ -1521,10 +2698,12 @@
               <div>
                 <div class="text-xs font-semibold text-slate-500 uppercase">Max Qualified Loan (${lender.shortName})</div>
                 <div class="text-2xl font-extrabold text-slate-900 mt-0.5">${formatEuro(calc.qualifiedLoan)}</div>
+                <div class="text-[11px] text-slate-500">Grant Range: <strong>${formatCompactEuro(calc.loanGrantLow)} – ${formatCompactEuro(calc.loanGrantHigh)}</strong></div>
               </div>
               <div class="text-right">
-                <div class="text-xs font-semibold text-slate-500 uppercase">Max Purchase Price</div>
-                <div class="text-lg font-bold text-emerald-600 mt-0.5">${formatEuro(calc.maxPurchasingPower)}</div>
+                <div class="text-xs font-semibold text-slate-500 uppercase">Day-1 → Yr 10 LTV</div>
+                <div class="text-lg font-bold text-blue-700 mt-0.5">${calc.initialLtvPct}% → ${calc.year10LtvPct}%</div>
+                <div class="text-[11px] text-emerald-600 font-semibold">5-Yr Churn: ${calc.churnRisk5YrPct}% (${calc.churnRiskManagedPct}% w/ Broc)</div>
               </div>
             </div>
 
@@ -1546,36 +2725,46 @@
         </div>
 
         <div class="p-4 space-y-4 max-h-[640px] overflow-y-auto custom-scroll">
-          <div class="flex items-center gap-1 bg-slate-100 p-1 rounded-lg border border-slate-200">
+          <div class="grid grid-cols-4 gap-1 bg-slate-100 p-1 rounded-lg border border-slate-200">
             <button
               onclick="switchChecklistTab('SCORE')"
-              class="flex-1 py-1.5 px-2 rounded-md text-xs font-bold transition cursor-pointer ${
+              class="py-1.5 px-1.5 rounded-md text-[11px] font-bold transition cursor-pointer ${
                 activeChecklistTab === 'SCORE'
                   ? 'bg-white text-emerald-700 shadow-sm border border-slate-200'
                   : 'text-slate-600 hover:text-slate-900'
               }"
             >
-              📊 Broc Score (${applicant.brocScore}/100)
+              📊 Score (${applicant.brocScore})
+            </button>
+            <button
+              onclick="switchChecklistTab('ANALYTICS')"
+              class="py-1.5 px-1.5 rounded-md text-[11px] font-bold transition cursor-pointer ${
+                activeChecklistTab === 'ANALYTICS'
+                  ? 'bg-white text-blue-700 shadow-sm border border-slate-200'
+                  : 'text-slate-600 hover:text-slate-900'
+              }"
+            >
+              📈 LTV &amp; Risk
             </button>
             <button
               onclick="switchChecklistTab('AIP')"
-              class="flex-1 py-1.5 px-2 rounded-md text-xs font-bold transition cursor-pointer ${
+              class="py-1.5 px-1.5 rounded-md text-[11px] font-bold transition cursor-pointer ${
                 activeChecklistTab === 'AIP'
                   ? 'bg-white text-slate-900 shadow-sm border border-slate-200'
                   : 'text-slate-600 hover:text-slate-900'
               }"
             >
-              A) AIP Criteria (${aipMetCount}/10)
+              A) AIP (${aipMetCount}/10)
             </button>
             <button
               onclick="switchChecklistTab('FULL')"
-              class="flex-1 py-1.5 px-2 rounded-md text-xs font-bold transition cursor-pointer ${
+              class="py-1.5 px-1.5 rounded-md text-[11px] font-bold transition cursor-pointer ${
                 activeChecklistTab === 'FULL'
                   ? 'bg-white text-slate-900 shadow-sm border border-slate-200'
                   : 'text-slate-600 hover:text-slate-900'
               }"
             >
-              B) Full Offer (${fullMetCount}/8)
+              B) Full (${fullMetCount}/8)
             </button>
           </div>
 
@@ -1635,6 +2824,9 @@
       selectedApplicantId = id;
       renderTable();
       renderDetailPanel();
+      if (analyticsScope === 'APPLICANT') {
+        renderAnalyticsHub();
+      }
     }
 
     function switchChecklistTab(tab) {
@@ -1681,8 +2873,10 @@
     }
 
     function renderAll() {
+      applyThemeUI();
       renderTopRibbon();
       renderKpiRibbon();
+      renderAnalyticsHub();
       renderStageBanner();
       renderTable();
       renderDetailPanel();
