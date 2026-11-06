@@ -1,0 +1,1059 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Broc. End-to-End Mortgage Demo — Consumer App to Bank AIP in Seconds</title>
+  <link rel="icon" type="image/png" href="assets/icons/broc_favicon1.png" />
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Outfit:wght@500;600;700;800;900&display=swap" rel="stylesheet">
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    :root {
+      --broc-mint: #43e97b;
+      --broc-cyan: #38f9d7;
+      --broc-blue: #1A7FE6;
+      --boi-navy: #00205B;
+    }
+    body {
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+      background: #0b0f17;
+      color: #0f172a;
+      margin: 0;
+      overflow-x: hidden;
+      user-select: none;
+    }
+    h1, h2, h3, h4, .font-display {
+      font-family: 'Outfit', 'Inter', sans-serif;
+    }
+
+    /* Video Stage Frame */
+    .video-stage-wrapper {
+      max-width: 1440px;
+      margin: 0 auto;
+      padding: 14px 20px 24px;
+    }
+    .video-viewport {
+      position: relative;
+      width: 100%;
+      height: 760px;
+      background: #F8F9FA;
+      border-radius: 20px;
+      overflow: hidden;
+      box-shadow: 0 25px 80px rgba(0, 0, 0, 0.65), 0 0 0 1px rgba(255, 255, 255, 0.12);
+    }
+
+    /* Fake Animated Cursor */
+    #sim-cursor {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      width: 28px;
+      height: 28px;
+      z-index: 9999;
+      pointer-events: none;
+      transition: top 0.85s cubic-bezier(0.22, 1, 0.36, 1), left 0.85s cubic-bezier(0.22, 1, 0.36, 1), transform 0.15s ease;
+      filter: drop-shadow(0 6px 12px rgba(0,0,0,0.35));
+    }
+    #sim-cursor.clicking {
+      transform: scale(0.82);
+    }
+    .cursor-ripple {
+      position: absolute;
+      top: -10px;
+      left: -10px;
+      width: 44px;
+      height: 44px;
+      border-radius: 50%;
+      border: 3px solid #43e97b;
+      background: rgba(67, 233, 123, 0.25);
+      opacity: 0;
+      transform: scale(0.3);
+      pointer-events: none;
+    }
+    #sim-cursor.clicking .cursor-ripple {
+      animation: rippleAnim 0.55s ease-out forwards;
+    }
+    @keyframes rippleAnim {
+      0% { opacity: 1; transform: scale(0.3); }
+      100% { opacity: 0; transform: scale(1.75); }
+    }
+
+    /* Subtitle / Voiceover Bar */
+    .caption-pill {
+      position: absolute;
+      bottom: 22px;
+      left: 50%;
+      transform: translateX(-50%);
+      z-index: 9000;
+      background: rgba(15, 23, 42, 0.92);
+      backdrop-filter: blur(12px);
+      color: #ffffff;
+      padding: 10px 22px;
+      border-radius: 999px;
+      border: 1px solid rgba(67, 233, 123, 0.35);
+      box-shadow: 0 12px 32px rgba(0, 0, 0, 0.45);
+      font-size: 13.5px;
+      font-weight: 600;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      max-width: 88%;
+      text-align: center;
+      transition: all 0.3s ease;
+    }
+
+    /* Pulse highlight for target buttons */
+    .target-glow {
+      animation: targetPulse 1.5s infinite;
+    }
+    @keyframes targetPulse {
+      0%, 100% { box-shadow: 0 0 0 0 rgba(67, 233, 123, 0.6), 0 10px 25px rgba(26, 127, 230, 0.35); }
+      50% { box-shadow: 0 0 0 10px rgba(67, 233, 123, 0), 0 10px 25px rgba(26, 127, 230, 0.5); }
+    }
+
+    /* Checkmark item animation */
+    .aip-step-row {
+      opacity: 0.35;
+      transform: translateY(4px);
+      transition: all 0.28s cubic-bezier(0.22, 1, 0.36, 1);
+    }
+    .aip-step-row.verified {
+      opacity: 1;
+      transform: translateY(0);
+      background: #f0fdf4;
+      border-color: #86efac;
+    }
+
+    /* Custom Scrollbar */
+    ::-webkit-scrollbar { width: 6px; height: 6px; }
+    ::-webkit-scrollbar-track { background: #f1f5f9; }
+    ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 3px; }
+  </style>
+</head>
+<body class="text-slate-900">
+
+  <!-- TOP PLAYER HEADER & CONTROLS -->
+  <div class="bg-[#141619] border-b border-slate-800 text-white px-6 py-2.5">
+    <div class="max-w-[1440px] mx-auto flex flex-wrap items-center justify-between gap-4">
+      <!-- Brand + Title -->
+      <div class="flex items-center gap-3">
+        <a href="index.html" class="flex items-center gap-2.5 group">
+          <div class="w-8 h-8 rounded-lg bg-white p-0.5 flex items-center justify-center shadow">
+            <img src="brokerlyai_logo.jpg" alt="Broc" class="w-full h-full object-contain rounded" />
+          </div>
+          <div>
+            <div class="flex items-center gap-2">
+              <span class="font-display font-extrabold text-sm tracking-tight text-white">Broc. Interactive Video Walkthrough</span>
+              <span class="text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-300 border border-emerald-500/30">Auto-Play Simulation</span>
+            </div>
+            <p class="text-[11px] text-slate-400">From Consumer clicking <strong class="text-white">"Get Me a Mortgage"</strong> in <code class="text-emerald-300">app.broc.fi</code> → Clive AI Coaching → Bank of Ireland issuing the AIP Letter</p>
+          </div>
+        </a>
+      </div>
+
+      <!-- Playback Controls -->
+      <div class="flex items-center gap-2.5">
+        <button id="btn-play-pause" onclick="togglePlayPause()" class="flex items-center gap-2 px-4 py-1.5 rounded-lg text-xs font-extrabold bg-gradient-to-r from-[#43e97b] to-[#38f9d7] text-slate-950 shadow hover:opacity-95 transition">
+          <span id="play-pause-icon">⏸</span>
+          <span id="play-pause-label">Pause Video</span>
+        </button>
+        <button onclick="restartVideo()" class="px-3 py-1.5 rounded-lg text-xs font-bold bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 transition">
+          ↺ Restart
+        </button>
+        <a href="index.html" class="px-3 py-1.5 rounded-lg text-xs font-bold bg-slate-800/80 hover:bg-slate-700 text-emerald-300 border border-emerald-500/30 transition flex items-center gap-1.5">
+          <span>← Back to Interactive Lender Portal</span>
+        </a>
+      </div>
+    </div>
+
+    <!-- CHAPTER SCRUBBER BAR -->
+    <div class="max-w-[1440px] mx-auto mt-2.5 pt-2 border-t border-slate-800/80">
+      <div class="grid grid-cols-6 gap-1.5" id="chapter-buttons">
+        <button onclick="jumpToScene(1)" id="chap-1" class="text-left px-2.5 py-1.5 rounded-lg border transition bg-slate-800/90 border-emerald-400 text-white">
+          <div class="flex items-center justify-between text-[10px] font-bold text-emerald-300">
+            <span>01 • CONSUMER APP</span>
+            <span>0:00</span>
+          </div>
+          <div class="text-[11px] font-semibold truncate">"Get Me a Mortgage"</div>
+        </button>
+        <button onclick="jumpToScene(2)" id="chap-2" class="text-left px-2.5 py-1.5 rounded-lg border transition bg-slate-900/60 border-slate-800 text-slate-400 hover:text-white">
+          <div class="flex items-center justify-between text-[10px] font-bold">
+            <span>02 • INSTANT AIP CHECK</span>
+            <span>0:09</span>
+          </div>
+          <div class="text-[11px] font-semibold truncate">10/10 Criteria in Seconds</div>
+        </button>
+        <button onclick="jumpToScene(3)" id="chap-3" class="text-left px-2.5 py-1.5 rounded-lg border transition bg-slate-900/60 border-slate-800 text-slate-400 hover:text-white">
+          <div class="flex items-center justify-between text-[10px] font-bold">
+            <span>03 • CLIVE AI ADVICE</span>
+            <span>0:21</span>
+          </div>
+          <div class="text-[11px] font-semibold truncate">Savings & Full Mortgage Plan</div>
+        </button>
+        <button onclick="jumpToScene(4)" id="chap-4" class="text-left px-2.5 py-1.5 rounded-lg border transition bg-slate-900/60 border-slate-800 text-slate-400 hover:text-white">
+          <div class="flex items-center justify-between text-[10px] font-bold">
+            <span>04 • BANK QUEUE LIVE</span>
+            <span>0:34</span>
+          </div>
+          <div class="text-[11px] font-semibold truncate">BOI Underwriter Dashboard</div>
+        </button>
+        <button onclick="jumpToScene(5)" id="chap-5" class="text-left px-2.5 py-1.5 rounded-lg border transition bg-slate-900/60 border-slate-800 text-slate-400 hover:text-white">
+          <div class="flex items-center justify-between text-[10px] font-bold">
+            <span>05 • CREDIT REVIEW</span>
+            <span>0:43</span>
+          </div>
+          <div class="text-[11px] font-semibold truncate">18-Point Pack Inspection</div>
+        </button>
+        <button onclick="jumpToScene(6)" id="chap-6" class="text-left px-2.5 py-1.5 rounded-lg border transition bg-slate-900/60 border-slate-800 text-slate-400 hover:text-white">
+          <div class="flex items-center justify-between text-[10px] font-bold">
+            <span>06 • AIP LETTER ISSUED</span>
+            <span>0:51</span>
+          </div>
+          <div class="text-[11px] font-semibold truncate">Instant Certificate & Sync</div>
+        </button>
+      </div>
+      <!-- Smooth Progress Bar -->
+      <div class="w-full h-1 bg-slate-800 rounded-full overflow-hidden mt-2">
+        <div id="master-progress" class="h-full bg-gradient-to-r from-[#43e97b] to-[#38f9d7] transition-all duration-300" style="width: 5%"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- MAIN 1080p SIMULATED VIDEO STAGE -->
+  <div class="video-stage-wrapper">
+    <div class="video-viewport" id="video-viewport">
+
+      <!-- SIMULATED MOUSE CURSOR -->
+      <div id="sim-cursor" style="top: 62%; left: 72%;">
+        <div class="cursor-ripple"></div>
+        <svg width="28" height="28" viewBox="0 0 28 28" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <path d="M5.5 3.5L22.5 13.2L14.2 15.6L10.5 23.5L5.5 3.5Z" fill="#111827" stroke="#43e97b" stroke-width="2.2" stroke-linejoin="round"/>
+        </svg>
+      </div>
+
+      <!-- ========================================================================= -->
+      <!-- PART A: CONSUMER APP (https://app.broc.fi) — SCENES 1, 2, 3               -->
+      <!-- ========================================================================= -->
+      <div id="consumer-app-stage" class="w-full h-full flex bg-[#F8F9FA] transition-opacity duration-500">
+        
+        <!-- Authentic app.broc.fi Left Desktop Sidebar -->
+        <aside class="w-[225px] bg-white border-r border-slate-200 flex flex-col justify-between shrink-0 h-full">
+          <div>
+            <!-- Logo Header -->
+            <div class="h-[96px] border-b border-slate-100 flex items-center justify-center gap-2.5 px-4">
+              <img src="assets/images/logos/brokerly-logo.png" alt="Broc" class="w-12 h-12 rounded-xl object-cover border border-slate-100 shadow-sm" />
+              <span class="font-display font-extrabold text-2xl tracking-tight text-slate-900">Broc.</span>
+            </div>
+
+            <!-- Nav Items matching app.broc.fi -->
+            <nav class="p-3 space-y-1">
+              <div class="flex items-center gap-3 px-3.5 py-2.5 rounded-xl bg-blue-50 text-[#1A7FE6] font-bold text-sm">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24"><path d="M3 9.5L12 3l9 6.5V20a1 1 0 0 1-1 1h-5v-6h-6v6H4a1 1 0 0 1-1-1V9.5z"/></svg>
+                <span>Overview</span>
+              </div>
+              <div class="flex items-center justify-between px-3.5 py-2.5 rounded-xl text-slate-600 font-semibold text-sm">
+                <div class="flex items-center gap-3">
+                  <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="3"/><path d="m9 12 2 2 4-4"/></svg>
+                  <span>Tasks</span>
+                </div>
+                <span class="px-1.5 py-0.5 text-[10px] font-bold rounded-full bg-emerald-100 text-emerald-700">2</span>
+              </div>
+              <div class="flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-slate-600 font-semibold text-sm">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><rect x="2" y="6" width="20" height="12" rx="2"/><circle cx="12" cy="12" r="2"/></svg>
+                <span>Money</span>
+              </div>
+              <div class="flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-slate-600 font-semibold text-sm">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M4 2v20l2-1 2 1 2-1 2 1 2-1 2 1 2-1 2 1V2l-2 1-2-1-2 1-2-1-2 1-2-1-2 1Z"/></svg>
+                <span>Receipts</span>
+              </div>
+              <div class="flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-slate-600 font-semibold text-sm">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/></svg>
+                <span>Statement</span>
+              </div>
+              <div class="flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-slate-600 font-semibold text-sm">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="6"/><circle cx="12" cy="12" r="2"/></svg>
+                <span>Goals</span>
+              </div>
+              <div class="flex items-center justify-between px-3.5 py-2.5 rounded-xl bg-slate-900 text-white font-bold text-sm mt-2">
+                <div class="flex items-center gap-2.5">
+                  <div class="flex -space-x-2">
+                    <img src="assets/images/avatars/clive.png" alt="Clive" class="w-6 h-6 rounded-full border border-emerald-400 object-cover" />
+                    <img src="assets/images/avatars/clara.png" alt="Clara" class="w-6 h-6 rounded-full border border-cyan-400 object-cover" />
+                  </div>
+                  <span>Assistant</span>
+                </div>
+                <span class="w-2 h-2 rounded-full bg-[#43e97b]"></span>
+              </div>
+            </nav>
+          </div>
+
+          <div class="p-4 border-t border-slate-100">
+            <div class="bg-slate-50 rounded-xl p-2.5 border border-slate-200/80 flex items-center gap-2.5">
+              <div class="w-8 h-8 rounded-full bg-[#1A7FE6] text-white font-bold text-xs flex items-center justify-center">SO</div>
+              <div class="min-w-0">
+                <div class="text-xs font-bold text-slate-900 truncate">Sarah & Liam O'Connor</div>
+                <div class="text-[10px] text-emerald-600 font-semibold">● OpenBanking Synced</div>
+              </div>
+            </div>
+          </div>
+        </aside>
+
+        <!-- Main Consumer App Content Area -->
+        <main class="flex-1 flex flex-col h-full overflow-hidden">
+          <!-- Browser URL Bar Simulation -->
+          <div class="bg-white border-b border-slate-200 px-6 py-2.5 flex items-center justify-between">
+            <div class="flex items-center gap-2">
+              <span class="w-2.5 h-2.5 rounded-full bg-rose-400"></span>
+              <span class="w-2.5 h-2.5 rounded-full bg-amber-400"></span>
+              <span class="w-2.5 h-2.5 rounded-full bg-emerald-400"></span>
+              <div class="ml-3 px-3 py-1 rounded-lg bg-slate-100 border border-slate-200 text-xs font-mono text-slate-600 flex items-center gap-2">
+                <span class="text-emerald-600">🔒</span>
+                <span>https://<strong>app.broc.fi</strong>/overview</span>
+              </div>
+            </div>
+            <div class="flex items-center gap-2 text-xs font-semibold text-slate-500">
+              <span class="px-2.5 py-1 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200 font-bold">AIB + Revolut Live PSD2 Feed</span>
+              <span class="px-2.5 py-1 rounded-full bg-blue-50 text-blue-700 border border-blue-200 font-bold">Revenue.ie EDS Linked</span>
+            </div>
+          </div>
+
+          <!-- SCENE 1: CONSUMER OVERVIEW & "GET ME A MORTGAGE" CTA -->
+          <div id="scene-1-view" class="flex-1 p-6 overflow-y-auto space-y-5">
+            <!-- Clive Signature Assistant Banner -->
+            <div class="bg-white rounded-2xl p-4 border-2 border-[#1A7FE6]/30 shadow-sm flex items-center justify-between gap-4">
+              <div class="flex items-center gap-3.5">
+                <img src="assets/images/avatars/clive.png" alt="Clive" class="w-13 h-13 rounded-full border-2 border-[#1A7FE6] object-cover shrink-0" style="width:52px;height:52px;" />
+                <div>
+                  <div class="flex items-center gap-2">
+                    <span class="text-xs font-extrabold uppercase tracking-wider text-[#1A7FE6]">Clive • Financial & Mortgage Readiness AI</span>
+                    <span class="text-[10px] font-bold px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-800">Ready for AIP</span>
+                  </div>
+                  <p class="text-sm font-semibold text-slate-800 mt-0.5">
+                    "Sarah & Liam, your 6-month AIB & Revolut statements have zero unpaid direct debits and your deposit just hit <strong>€58,000</strong>. You're ready to unlock your Approval in Principle in one tap."
+                  </p>
+                </div>
+              </div>
+            </div>
+
+            <!-- Financial Health Snapshot Cards -->
+            <div class="grid grid-cols-4 gap-4">
+              <div class="bg-white rounded-2xl p-4 border border-slate-200/80 shadow-sm">
+                <div class="text-[11px] font-bold uppercase text-slate-400">Combined Gross Income</div>
+                <div class="font-display text-2xl font-extrabold text-slate-900 mt-1">€142,000<span class="text-xs font-normal text-slate-400">/yr</span></div>
+                <div class="text-[11px] text-emerald-600 font-semibold mt-1">✓ PAYE Revenue EDS Matched</div>
+              </div>
+              <div class="bg-white rounded-2xl p-4 border border-slate-200/80 shadow-sm">
+                <div class="text-[11px] font-bold uppercase text-slate-400">Verified Mortgage Deposit</div>
+                <div class="font-display text-2xl font-extrabold text-emerald-600 mt-1">€58,000</div>
+                <div class="text-[11px] text-slate-500 font-semibold mt-1">€48k Savings + €10k Gift Letter</div>
+              </div>
+              <div class="bg-white rounded-2xl p-4 border border-slate-200/80 shadow-sm">
+                <div class="text-[11px] font-bold uppercase text-slate-400">Monthly Free Cashflow</div>
+                <div class="font-display text-2xl font-extrabold text-slate-900 mt-1">€3,490<span class="text-xs font-normal text-slate-400">/mo</span></div>
+                <div class="text-[11px] text-emerald-600 font-semibold mt-1">✓ Exceeds +2% CBI Stress Test</div>
+              </div>
+              <div class="bg-white rounded-2xl p-4 border border-slate-200/80 shadow-sm">
+                <div class="text-[11px] font-bold uppercase text-slate-400">Broc Readiness Score™</div>
+                <div class="font-display text-2xl font-extrabold text-[#1A7FE6] mt-1">96 <span class="text-sm text-slate-400">/ 100</span></div>
+                <div class="text-[11px] text-emerald-600 font-semibold mt-1">▲ +18 pts over last 90 days</div>
+              </div>
+            </div>
+
+            <!-- HERO CALLOUT: GET ME A MORTGAGE BUTTON -->
+            <div class="rounded-3xl bg-gradient-to-br from-[#0f172a] via-[#1e293b] to-[#00205B] text-white p-7 shadow-xl border border-slate-700 relative overflow-hidden">
+              <div class="relative z-10 flex items-center justify-between gap-6">
+                <div class="max-w-xl">
+                  <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-emerald-500/20 border border-emerald-400/30 text-emerald-300 text-xs font-bold mb-3">
+                    <span>⚡ Zero-Paperwork Instant Mortgage Engine</span>
+                  </div>
+                  <h2 class="font-display text-3xl font-extrabold tracking-tight">Ready to buy your home in Dublin?</h2>
+                  <p class="text-sm text-slate-300 mt-2 leading-relaxed">
+                    Broc automatically packages your OpenBanking statements, KYC identity, Revenue EDS salary proofs, and Central Credit Register check—and submits a 100% pre-underwritten pack directly to <strong class="text-white">Bank of Ireland</strong>.
+                  </p>
+                  <div class="flex items-center gap-4 mt-4 text-xs text-slate-300 font-medium">
+                    <span>✓ Max Qualified Loan: <strong class="text-emerald-300">€420,000</strong></span>
+                    <span>•</span>
+                    <span>✓ Est. Green Rate: <strong class="text-emerald-300">3.65% Fixed</strong></span>
+                    <span>•</span>
+                    <span>✓ 10/10 AIP Criteria Ready</span>
+                  </div>
+                </div>
+
+                <!-- THE BUTTON THE USER ASKED FOR -->
+                <div class="shrink-0 flex flex-col items-center">
+                  <button id="btn-get-mortgage" onclick="jumpToScene(2)" class="target-glow px-8 py-5 rounded-2xl bg-gradient-to-r from-[#43e97b] to-[#38f9d7] text-slate-950 font-display font-black text-xl tracking-tight shadow-2xl hover:scale-105 transition flex items-center gap-3 cursor-pointer">
+                    <span>🏠 Get Me a Mortgage</span>
+                    <span class="text-2xl">→</span>
+                  </button>
+                  <span class="text-[11px] text-emerald-300 font-semibold mt-2">Automates all 10 AIP steps in 4 seconds</span>
+                </div>
+              </div>
+            </div>
+
+            <!-- Connected Accounts & Recent Automated Sweeps -->
+            <div class="grid grid-cols-2 gap-4">
+              <div class="bg-white rounded-2xl p-4 border border-slate-200/80">
+                <div class="text-xs font-bold text-slate-800 mb-2">Connected OpenBanking Accounts</div>
+                <div class="space-y-2 text-xs">
+                  <div class="flex items-center justify-between p-2 rounded-lg bg-slate-50">
+                    <span class="font-semibold text-slate-700">AIB Current Account (••4819) — Salary & Bills</span>
+                    <span class="font-bold text-emerald-600">6 Months Verified</span>
+                  </div>
+                  <div class="flex items-center justify-between p-2 rounded-lg bg-slate-50">
+                    <span class="font-semibold text-slate-700">BOI GoalSaver (••9102) — Mortgage Deposit</span>
+                    <span class="font-bold text-emerald-600">€58,000.00</span>
+                  </div>
+                </div>
+              </div>
+              <div class="bg-white rounded-2xl p-4 border border-slate-200/80">
+                <div class="text-xs font-bold text-slate-800 mb-2">Clara & Clive Recent Hygiene Checks</div>
+                <div class="space-y-2 text-xs">
+                  <div class="flex items-center justify-between p-2 rounded-lg bg-emerald-50/70 text-emerald-900">
+                    <span>✓ 0 Unpaid Direct Debits / 0 Referral Fees (180 days)</span>
+                    <span class="font-bold">25/25 pts</span>
+                  </div>
+                  <div class="flex items-center justify-between p-2 rounded-lg bg-emerald-50/70 text-emerald-900">
+                    <span>✓ BNPL (Klarna/Revolut) & Gambling Exposure: €0</span>
+                    <span class="font-bold">Clean</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- SCENE 2 & 3: AUTOMATED AIP VERIFICATION + CLIVE SAVINGS & FULL MORTGAGE ADVICE -->
+          <div id="scene-2-3-view" class="hidden flex-1 p-6 overflow-y-auto">
+            <div class="grid grid-cols-12 gap-5 h-full">
+              
+              <!-- Left 6 Cols: Automated 10-Step AIP Verification in Seconds -->
+              <div class="col-span-6 bg-white rounded-2xl border border-slate-200 p-5 shadow-sm flex flex-col justify-between">
+                <div>
+                  <div class="flex items-center justify-between border-b border-slate-100 pb-3 mb-3">
+                    <div>
+                      <span class="text-[10px] font-extrabold uppercase tracking-wider px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-800">Stage A • Approval in Principle</span>
+                      <h3 class="font-display text-lg font-extrabold text-slate-900 mt-1">Automated AIP Packaging Engine</h3>
+                    </div>
+                    <div class="text-right">
+                      <div id="aip-counter-badge" class="font-display text-xl font-black text-emerald-600">10 / 10 Verified</div>
+                      <div class="text-[10px] text-slate-400 font-semibold">Completed in 3.8 seconds</div>
+                    </div>
+                  </div>
+
+                  <!-- 10 Automated Steps List -->
+                  <div class="space-y-1.5 text-xs" id="aip-steps-list">
+                    <div class="aip-step-row flex items-center justify-between px-3 py-2 rounded-xl border border-slate-200">
+                      <span class="font-semibold text-slate-800">1. Photo ID (KYC) — Irish Passports Biometric Match</span>
+                      <span class="font-bold text-emerald-700">✓ Verified (0.3s)</span>
+                    </div>
+                    <div class="aip-step-row flex items-center justify-between px-3 py-2 rounded-xl border border-slate-200">
+                      <span class="font-semibold text-slate-800">2. Citizenship & Residency — Irish / EU Citizens</span>
+                      <span class="font-bold text-emerald-700">✓ Verified (0.5s)</span>
+                    </div>
+                    <div class="aip-step-row flex items-center justify-between px-3 py-2 rounded-xl border border-slate-200">
+                      <span class="font-semibold text-slate-800">3. Proof of Address — Electric Ireland & AIB eStatements</span>
+                      <span class="font-bold text-emerald-700">✓ Verified (0.8s)</span>
+                    </div>
+                    <div class="aip-step-row flex items-center justify-between px-3 py-2 rounded-xl border border-slate-200">
+                      <span class="font-semibold text-slate-800">4. PPSN & Tax Status — 2024/25 Revenue EDS Linked</span>
+                      <span class="font-bold text-emerald-700">✓ Verified (1.1s)</span>
+                    </div>
+                    <div class="aip-step-row flex items-center justify-between px-3 py-2 rounded-xl border border-slate-200">
+                      <span class="font-semibold text-slate-800">5. Central Credit Register (CCR) — 0 Arrears / Clean</span>
+                      <span class="font-bold text-emerald-700">✓ Verified (1.5s)</span>
+                    </div>
+                    <div class="aip-step-row flex items-center justify-between px-3 py-2 rounded-xl border border-slate-200">
+                      <span class="font-semibold text-slate-800">6. Employment & Probation — Permanent FT (4+ yrs)</span>
+                      <span class="font-bold text-emerald-700">✓ Verified (1.9s)</span>
+                    </div>
+                    <div class="aip-step-row flex items-center justify-between px-3 py-2 rounded-xl border border-slate-200">
+                      <span class="font-semibold text-slate-800">7. Income Proofs — €142,000 Combined Payslips + EDS</span>
+                      <span class="font-bold text-emerald-700">✓ Verified (2.3s)</span>
+                    </div>
+                    <div class="aip-step-row flex items-center justify-between px-3 py-2 rounded-xl border border-slate-200">
+                      <span class="font-semibold text-slate-800">8. 6-Month Bank Statements — AIB + Revolut PSD2 API</span>
+                      <span class="font-bold text-emerald-700">✓ Verified (2.8s)</span>
+                    </div>
+                    <div class="aip-step-row flex items-center justify-between px-3 py-2 rounded-xl border border-slate-200">
+                      <span class="font-semibold text-slate-800">9. Account Conduct — 0 Unpaid DDs / €1,650/mo Saved</span>
+                      <span class="font-bold text-emerald-700">✓ Verified (3.3s)</span>
+                    </div>
+                    <div class="aip-step-row flex items-center justify-between px-3 py-2 rounded-xl border border-slate-200">
+                      <span class="font-semibold text-slate-800">10. Deposit AML (€58k) & CBI +2% Stress Test (€2,410/mo)</span>
+                      <span class="font-bold text-emerald-700">✓ PASSED (3.8s)</span>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- Qualified Result Bar -->
+                <div class="mt-3 p-3.5 rounded-xl bg-slate-900 text-white flex items-center justify-between">
+                  <div>
+                    <div class="text-[10px] font-bold uppercase text-emerald-400">Broc Score™ 96/100 • CBI Compliant</div>
+                    <div class="font-display text-lg font-extrabold">Qualified for €420,000 AIP (3.8x LTI / 87.9% LTV)</div>
+                  </div>
+                  <span class="px-3 py-1 rounded-full bg-emerald-500/20 text-emerald-300 border border-emerald-400/30 text-xs font-extrabold">AIP READY</span>
+                </div>
+              </div>
+
+              <!-- Right 6 Cols: CLIVE AI SAVINGS ADVICE + ROADMAP TO FULL MORTGAGE -->
+              <div class="col-span-6 flex flex-col justify-between space-y-4">
+                
+                <!-- Clive Savings & Affordability Advice Card -->
+                <div id="clive-advice-card" class="bg-white rounded-2xl border-2 border-[#1A7FE6] p-5 shadow-md transition-all duration-500">
+                  <div class="flex items-start gap-3.5">
+                    <img src="assets/images/avatars/clive.png" alt="Clive" class="w-12 h-12 rounded-full border-2 border-[#1A7FE6] object-cover shrink-0" />
+                    <div class="flex-1">
+                      <div class="flex items-center justify-between">
+                        <span class="text-xs font-extrabold uppercase tracking-wider text-[#1A7FE6]">Clive AI • Smart Savings & Rate Optimization Plan</span>
+                        <span class="text-[10px] font-bold px-2 py-0.5 rounded-full bg-blue-50 text-blue-700">Saves €218/mo</span>
+                      </div>
+                      <h4 class="font-display text-base font-extrabold text-slate-900 mt-0.5">How to Save Appropriately While House-Hunting:</h4>
+                      <div class="mt-2.5 space-y-2 text-xs text-slate-700">
+                        <div class="p-2.5 rounded-xl bg-emerald-50 border border-emerald-200 flex items-start gap-2">
+                          <span class="font-bold text-emerald-700">1.</span>
+                          <span><strong>Automate Your €1,650/mo Standing Order on Payday (1st):</strong> Keep sweeping €1,650 into your BOI Mortgage Saver. This proves <em>"Demonstrated Repayment Capacity"</em> above your €2,410/mo stress-tested mortgage (combined with your €1,250 current rent = €2,900/mo proven ability).</span>
+                        </div>
+                        <div class="p-2.5 rounded-xl bg-blue-50 border border-blue-200 flex items-start gap-2">
+                          <span class="font-bold text-blue-700">2.</span>
+                          <span><strong>Hit €63,000 Deposit in 90 Days for 85% LTV Tier:</strong> Adding €4,950 over the next 3 months drops your LTV below 85% and pairs with a BER A/B home to unlock Bank of Ireland's <strong>3.65% 4-Yr Green Fixed Rate</strong>.</span>
+                        </div>
+                        <div class="p-2 rounded-xl bg-amber-50 border border-amber-200 flex items-start gap-2">
+                          <span class="font-bold text-amber-700">3.</span>
+                          <span><strong>Statement Hygiene Lock:</strong> Clive will alert you before any overdraft, BNPL split-payment, or betting transaction could blemish your 6-month refresh before drawdown.</span>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- Clive's Roadmap to Full Mortgage (Stage B) -->
+                <div class="bg-white rounded-2xl border border-slate-200 p-4 shadow-sm flex-1 flex flex-col justify-between">
+                  <div>
+                    <div class="flex items-center justify-between mb-2">
+                      <span class="text-xs font-extrabold uppercase tracking-wider text-slate-700">Clive's Step-by-Step Roadmap to Full Mortgage (Stage B)</span>
+                      <span class="text-[11px] font-bold text-emerald-600">Auto-Tracked by Broc</span>
+                    </div>
+                    <div class="grid grid-cols-2 gap-2 text-[11px]">
+                      <div class="p-2 rounded-lg bg-slate-50 border border-slate-200 flex items-center gap-2">
+                        <span class="w-5 h-5 rounded-full bg-emerald-100 text-emerald-700 font-bold flex items-center justify-center shrink-0">1</span>
+                        <span><strong>Stamped Salary Cert:</strong> Sent to HR automatically</span>
+                      </div>
+                      <div class="p-2 rounded-lg bg-slate-50 border border-slate-200 flex items-center gap-2">
+                        <span class="w-5 h-5 rounded-full bg-blue-100 text-blue-700 font-bold flex items-center justify-center shrink-0">2</span>
+                        <span><strong>Go Sale Agreed:</strong> Upload Estate Agent Note</span>
+                      </div>
+                      <div class="p-2 rounded-lg bg-slate-50 border border-slate-200 flex items-center gap-2">
+                        <span class="w-5 h-5 rounded-full bg-blue-100 text-blue-700 font-bold flex items-center justify-center shrink-0">3</span>
+                        <span><strong>BOI Panel Valuation:</strong> €185 booking unlocked</span>
+                      </div>
+                      <div class="p-2 rounded-lg bg-slate-50 border border-slate-200 flex items-center gap-2">
+                        <span class="w-5 h-5 rounded-full bg-blue-100 text-blue-700 font-bold flex items-center justify-center shrink-0">4</span>
+                        <span><strong>SEAI BER & Survey:</strong> Auto-pulled via MPRN</span>
+                      </div>
+                      <div class="p-2 rounded-lg bg-slate-50 border border-slate-200 flex items-center gap-2">
+                        <span class="w-5 h-5 rounded-full bg-blue-100 text-blue-700 font-bold flex items-center justify-center shrink-0">5</span>
+                        <span><strong>Solicitor Undertaking:</strong> Digital pack linked</span>
+                      </div>
+                      <div class="p-2 rounded-lg bg-slate-50 border border-slate-200 flex items-center gap-2">
+                        <span class="w-5 h-5 rounded-full bg-blue-100 text-blue-700 font-bold flex items-center justify-center shrink-0">6</span>
+                        <span><strong>Mortgage Protection:</strong> 3 life quotes pre-tendered</span>
+                      </div>
+                    </div>
+                  </div>
+
+                  <!-- CTA to Submit to Bank of Ireland -->
+                  <div class="mt-3 pt-3 border-t border-slate-100 flex items-center justify-between">
+                    <div class="flex items-center gap-2">
+                      <img src="assets/images/banks/bank-of-ireland-logo.png" alt="BOI" class="h-6 object-contain" />
+                      <span class="text-xs font-bold text-slate-600">Direct API Channel Ready</span>
+                    </div>
+                    <button id="btn-submit-to-boi" onclick="jumpToScene(4)" class="target-glow px-5 py-2.5 rounded-xl bg-gradient-to-r from-[#43e97b] to-[#38f9d7] text-slate-950 font-display font-extrabold text-xs shadow-lg hover:scale-105 transition cursor-pointer">
+                      Submit Pre-Verified Pack to Bank of Ireland →
+                    </button>
+                  </div>
+                </div>
+
+              </div>
+            </div>
+          </div>
+
+        </main>
+      </div>
+
+      <!-- ========================================================================= -->
+      <!-- PART B: BANK OF IRELAND × BROC LENDER PORTAL — SCENES 4, 5, 6             -->
+      <!-- ========================================================================= -->
+      <div id="bank-portal-stage" class="hidden w-full h-full flex flex-col bg-[#F4F6F9] transition-opacity duration-500">
+        
+        <!-- Co-Branded Bank of Ireland × Broc Header -->
+        <header class="bg-[#00205B] text-white px-6 py-3.5 flex items-center justify-between border-b border-white/10">
+          <div class="flex items-center gap-4">
+            <div class="flex items-center gap-2.5 bg-white px-3 py-1.5 rounded-xl shadow">
+              <img src="assets/images/banks/bank-of-ireland-logo.png" alt="Bank of Ireland" class="h-6 object-contain" />
+              <span class="text-slate-300 font-light">×</span>
+              <img src="brokerlyai_logo.jpg" alt="Broc" class="h-6 w-6 object-contain rounded" />
+              <span class="text-[10px] font-extrabold uppercase tracking-wider text-slate-800 bg-emerald-100 px-1.5 py-0.5 rounded">Broc. Underwriting Engine</span>
+            </div>
+            <div>
+              <h2 class="font-display text-lg font-extrabold tracking-tight">Bank of Ireland — Pre-Underwritten Mortgage Desk</h2>
+              <p class="text-xs text-slate-300">Live OpenBanking + Revenue EDS + 18-Criteria CBI Automated Packaging</p>
+            </div>
+          </div>
+
+          <!-- Live Incoming Notification Pill -->
+          <div id="live-incoming-toast" class="flex items-center gap-2.5 px-4 py-2 rounded-xl bg-emerald-500/20 border border-emerald-400 text-emerald-200 text-xs font-bold shadow-lg">
+            <span class="w-2.5 h-2.5 rounded-full bg-[#43e97b] animate-ping"></span>
+            <span>⚡ NEW PACK JUST ARRIVED: <strong>Sarah & Liam O'Connor (BROC-IE-9041)</strong> • Score 96/100</span>
+          </div>
+        </header>
+
+        <!-- Main Bank Portal Body: Queue on Left, Underwriter Inspector on Right -->
+        <div class="flex-1 grid grid-cols-12 gap-5 p-5 overflow-hidden">
+          
+          <!-- Left 6 Cols: Applicant Queue -->
+          <div class="col-span-6 bg-white rounded-2xl border border-slate-200 shadow-sm flex flex-col overflow-hidden">
+            <div class="px-4 py-3 border-b border-slate-100 flex items-center justify-between bg-slate-50">
+              <div>
+                <span class="text-xs font-extrabold uppercase tracking-wider text-slate-700">Incoming Mortgage Queue (517 Monthly Avg)</span>
+                <p class="text-[11px] text-slate-500">Click applicant to inspect 18-point CBI verification & issue AIP</p>
+              </div>
+              <span class="px-2.5 py-1 rounded-full bg-emerald-100 text-emerald-800 text-xs font-bold">149 AIP Ready Today</span>
+            </div>
+
+            <div class="divide-y divide-slate-100 overflow-y-auto">
+              <!-- ROW 1: SARAH & LIAM O'CONNOR (NEWLY ARRIVED) -->
+              <div id="row-sarah" onclick="jumpToScene(5)" class="p-4 bg-emerald-50/70 border-l-4 border-[#00205B] cursor-pointer hover:bg-emerald-50 transition flex items-center justify-between">
+                <div class="flex items-center gap-3">
+                  <div class="w-10 h-10 rounded-xl bg-[#00205B] text-white font-display font-extrabold text-sm flex items-center justify-center">SO</div>
+                  <div>
+                    <div class="flex items-center gap-2">
+                      <span class="font-bold text-sm text-slate-900">Sarah & Liam O'Connor</span>
+                      <span class="text-[10px] font-extrabold uppercase px-2 py-0.5 rounded-full bg-emerald-600 text-white">JUST SUBMITTED • NEW</span>
+                    </div>
+                    <div class="text-xs text-slate-500 mt-0.5">BROC-IE-9041 • First-Time Buyer • Joint PAYE (€142k) • Dublin 18</div>
+                  </div>
+                </div>
+                <div class="text-right flex items-center gap-4">
+                  <div>
+                    <div class="text-[10px] font-bold uppercase text-slate-400">Broc Score</div>
+                    <div class="font-display text-lg font-black text-emerald-600">96<span class="text-xs text-slate-400">/100</span></div>
+                  </div>
+                  <div>
+                    <div class="text-[10px] font-bold uppercase text-slate-400">Max Qualified</div>
+                    <div class="font-display text-base font-extrabold text-slate-900">€420,000</div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Other Realistic Queue Rows -->
+              <div class="p-3.5 flex items-center justify-between opacity-75">
+                <div class="flex items-center gap-3">
+                  <div class="w-9 h-9 rounded-xl bg-slate-200 text-slate-700 font-bold text-xs flex items-center justify-center">CM</div>
+                  <div>
+                    <div class="font-bold text-xs text-slate-800">Cian Murphy</div>
+                    <div class="text-[11px] text-slate-500">BROC-IE-9042 • Mover • PAYE (€98k) • Cork</div>
+                  </div>
+                </div>
+                <div class="text-right flex items-center gap-4">
+                  <span class="px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-800 text-[10px] font-bold">Score 91/100</span>
+                  <span class="font-display font-bold text-sm text-slate-800">€335,000</span>
+                </div>
+              </div>
+
+              <div class="p-3.5 flex items-center justify-between opacity-75">
+                <div class="flex items-center gap-3">
+                  <div class="w-9 h-9 rounded-xl bg-slate-200 text-slate-700 font-bold text-xs flex items-center justify-center">AK</div>
+                  <div>
+                    <div class="font-bold text-xs text-slate-800">Aoife Kelly & Priya Nair</div>
+                    <div class="text-[11px] text-slate-500">BROC-IE-9043 • FTB • Stamp 4 IRP Verified (€128k) • Galway</div>
+                  </div>
+                </div>
+                <div class="text-right flex items-center gap-4">
+                  <span class="px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-800 text-[10px] font-bold">Score 89/100</span>
+                  <span class="font-display font-bold text-sm text-slate-800">€448,000</span>
+                </div>
+              </div>
+
+              <div class="p-3.5 flex items-center justify-between opacity-65">
+                <div class="flex items-center gap-3">
+                  <div class="w-9 h-9 rounded-xl bg-slate-200 text-slate-700 font-bold text-xs flex items-center justify-center">DB</div>
+                  <div>
+                    <div class="font-bold text-xs text-slate-800">Declan Byrne</div>
+                    <div class="text-[11px] text-slate-500">BROC-IE-9044 • FTB • Self-Employed Form 11 (€115k) • Kildare</div>
+                  </div>
+                </div>
+                <div class="text-right flex items-center gap-4">
+                  <span class="px-2 py-0.5 rounded-full bg-blue-100 text-blue-800 text-[10px] font-bold">Score 84/100</span>
+                  <span class="font-display font-bold text-sm text-slate-800">€390,000</span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Right 6 Cols: Underwriter Deep-Dive Inspector & "Issue AIP Letter" Action -->
+          <div id="underwriter-drawer" class="col-span-6 bg-white rounded-2xl border-2 border-[#00205B] shadow-lg flex flex-col justify-between p-5 overflow-y-auto">
+            <div>
+              <!-- Applicant Header -->
+              <div class="flex items-start justify-between border-b border-slate-100 pb-3">
+                <div>
+                  <div class="flex items-center gap-2">
+                    <span class="text-[10px] font-extrabold uppercase tracking-wider px-2 py-0.5 rounded bg-[#00205B] text-white">BROC-IE-9041</span>
+                    <span class="text-xs font-bold text-emerald-700">✓ 10/10 Stage A (AIP) Criteria Pre-Verified</span>
+                  </div>
+                  <h3 class="font-display text-xl font-extrabold text-slate-900 mt-1">Sarah & Liam O'Connor</h3>
+                  <p class="text-xs text-slate-500">Joint First-Time Buyers • Irish Citizens • Target Property €478,000 (BER A2)</p>
+                </div>
+                <div class="text-right bg-emerald-50 border border-emerald-200 px-3 py-1.5 rounded-xl">
+                  <div class="text-[10px] font-bold uppercase text-emerald-800">Broc Score™</div>
+                  <div class="font-display text-2xl font-black text-emerald-600">96<span class="text-xs">/100</span></div>
+                </div>
+              </div>
+
+              <!-- Key Credit & CBI Metrics -->
+              <div class="grid grid-cols-4 gap-2.5 my-3.5">
+                <div class="p-2.5 rounded-xl bg-slate-50 border border-slate-200">
+                  <div class="text-[10px] font-bold text-slate-400 uppercase">Max Qualified Loan</div>
+                  <div class="font-display text-base font-extrabold text-[#00205B]">€420,000</div>
+                  <div class="text-[10px] text-emerald-600 font-semibold">3.65% Green 4-Yr</div>
+                </div>
+                <div class="p-2.5 rounded-xl bg-slate-50 border border-slate-200">
+                  <div class="text-[10px] font-bold text-slate-400 uppercase">CBI LTI Ratio</div>
+                  <div class="font-display text-base font-extrabold text-slate-900">2.96x <span class="text-[10px] text-slate-400">/ 4.0x</span></div>
+                  <div class="text-[10px] text-emerald-600 font-semibold">Within FTB Cap</div>
+                </div>
+                <div class="p-2.5 rounded-xl bg-slate-50 border border-slate-200">
+                  <div class="text-[10px] font-bold text-slate-400 uppercase">CBI LTV Ratio</div>
+                  <div class="font-display text-base font-extrabold text-slate-900">87.9% <span class="text-[10px] text-slate-400">/ 90%</span></div>
+                  <div class="text-[10px] text-emerald-600 font-semibold">€58k AML Verified</div>
+                </div>
+                <div class="p-2.5 rounded-xl bg-slate-50 border border-slate-200">
+                  <div class="text-[10px] font-bold text-slate-400 uppercase">+2% Stress Test</div>
+                  <div class="font-display text-base font-extrabold text-emerald-700">€2,410/mo</div>
+                  <div class="text-[10px] text-emerald-600 font-semibold">NDI Cover: 145%</div>
+                </div>
+              </div>
+
+              <!-- Verified Stage A Checklist Summary -->
+              <div class="bg-slate-50 rounded-xl p-3 border border-slate-200">
+                <div class="text-[11px] font-extrabold uppercase text-slate-700 mb-2">Stage A — Approval in Principle Verification Pack (10/10 Passed)</div>
+                <div class="grid grid-cols-2 gap-1.5 text-[11px]">
+                  <div class="flex items-center gap-1.5 text-slate-800"><span class="text-emerald-600 font-bold">✔</span> Photo ID KYC (Passports Biometric)</div>
+                  <div class="flex items-center gap-1.5 text-slate-800"><span class="text-emerald-600 font-bold">✔</span> Irish Citizenship / Residency Verified</div>
+                  <div class="flex items-center gap-1.5 text-slate-800"><span class="text-emerald-600 font-bold">✔</span> Utility & Bank Address Match</div>
+                  <div class="flex items-center gap-1.5 text-slate-800"><span class="text-emerald-600 font-bold">✔</span> PPSN + Revenue EDS (€142,000)</div>
+                  <div class="flex items-center gap-1.5 text-slate-800"><span class="text-emerald-600 font-bold">✔</span> Central Credit Register (0 Arrears)</div>
+                  <div class="flex items-center gap-1.5 text-slate-800"><span class="text-emerald-600 font-bold">✔</span> 6-Mo AIB & Revolut PSD2 Statements</div>
+                  <div class="flex items-center gap-1.5 text-slate-800"><span class="text-emerald-600 font-bold">✔</span> 0 Unpaid DDs / €0 Gambling / Clean</div>
+                  <div class="flex items-center gap-1.5 text-slate-800"><span class="text-emerald-600 font-bold">✔</span> €58k Deposit AML + Gift Letter Signed</div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Underwriter Action Footer -->
+            <div class="mt-4 pt-3 border-t border-slate-200 flex items-center justify-between gap-3">
+              <div class="text-xs text-slate-500">
+                <div>Underwriting Time Saved: <strong class="text-slate-800">4.2 hrs → 18 secs</strong></div>
+                <div class="text-[11px] text-emerald-600 font-semibold">Auto-generates CBI-compliant AIP Certificate</div>
+              </div>
+              <button id="btn-issue-aip" onclick="jumpToScene(6)" class="target-glow px-6 py-3.5 rounded-xl bg-[#00205B] hover:bg-blue-900 text-white font-display font-extrabold text-sm shadow-xl transition flex items-center gap-2 cursor-pointer">
+                <span>✓ Issue Approval in Principle (AIP) Letter</span>
+              </button>
+            </div>
+          </div>
+
+        </div>
+      </div>
+
+      <!-- ========================================================================= -->
+      <!-- SCENE 6 OVERLAY: OFFICIAL BANK OF IRELAND AIP LETTER + CONSUMER SYNC      -->
+      <!-- ========================================================================= -->
+      <div id="scene-6-modal" class="hidden absolute inset-0 z-50 bg-slate-950/80 backdrop-blur-md flex items-center justify-center p-6">
+        <div class="max-w-5xl w-full grid grid-cols-12 gap-6 items-center">
+          
+          <!-- Left 7 Cols: Official Bank of Ireland Approval in Principle Letter -->
+          <div class="col-span-7 bg-white rounded-2xl shadow-2xl border-2 border-[#00205B] p-6 text-slate-900 relative">
+            <div class="flex items-center justify-between border-b-2 border-[#00205B] pb-4">
+              <div class="flex items-center gap-3">
+                <img src="assets/images/banks/bank-of-ireland-logo.png" alt="Bank of Ireland" class="h-7 object-contain" />
+                <span class="text-slate-300">|</span>
+                <div class="flex items-center gap-1.5">
+                  <img src="brokerlyai_logo.jpg" alt="Broc" class="h-6 w-6 object-contain rounded" />
+                  <span class="text-[10px] font-bold uppercase tracking-wider text-slate-500">Verified by Broc.fi</span>
+                </div>
+              </div>
+              <span class="px-3 py-1 rounded-full bg-emerald-100 text-emerald-800 font-extrabold text-xs border border-emerald-300">✓ OFFICIAL AIP ISSUED</span>
+            </div>
+
+            <div class="mt-4">
+              <div class="flex justify-between text-xs text-slate-500">
+                <span><strong>Certificate Ref:</strong> BOI-AIP-2026-9041</span>
+                <span><strong>Valid Until:</strong> 06 May 2027 (6 Months)</span>
+              </div>
+              <h3 class="font-display text-xl font-black text-[#00205B] mt-2">MORTGAGE APPROVAL IN PRINCIPLE</h3>
+              <p class="text-xs text-slate-600 mt-1">
+                Dear <strong>Sarah O'Connor & Liam O'Connor</strong>, based on the automated OpenBanking, Revenue EDS, KYC, and Central Credit Register pack verified via <strong>Broc (Score 96/100)</strong>, Bank of Ireland Mortgage Bank is pleased to confirm your Approval in Principle:
+              </p>
+
+              <div class="grid grid-cols-3 gap-3 my-4 p-3.5 rounded-xl bg-slate-50 border border-slate-200">
+                <div>
+                  <div class="text-[10px] font-bold uppercase text-slate-400">Approved Loan Amount</div>
+                  <div class="font-display text-xl font-black text-[#00205B]">€420,000</div>
+                </div>
+                <div>
+                  <div class="text-[10px] font-bold uppercase text-slate-400">Verified Cash Deposit</div>
+                  <div class="font-display text-xl font-black text-emerald-600">€58,000</div>
+                </div>
+                <div>
+                  <div class="text-[10px] font-bold uppercase text-slate-400">Max Purchase Price</div>
+                  <div class="font-display text-xl font-black text-slate-900">€478,000</div>
+                </div>
+              </div>
+
+              <div class="text-[11px] text-slate-600 space-y-1 bg-blue-50/60 p-3 rounded-xl border border-blue-100">
+                <div><strong>Product Term & Rate:</strong> 30 Years • 3.65% 4-Year Fixed Green EcoSaver (Est. €1,921/mo | Stress-Tested @ 5.65%: €2,410/mo)</div>
+                <div><strong>Next Step to Full Letter of Offer (Stage B):</strong> Upload Estate Agent Sales Advice Note & Panel Valuation inside your Broc app once Sale Agreed.</div>
+              </div>
+
+              <div class="mt-4 pt-3 border-t border-slate-200 flex items-center justify-between text-xs">
+                <div>
+                  <div class="font-bold text-slate-800">Signed: Retail Credit Underwriting Desk</div>
+                  <div class="text-[10px] text-slate-400">Bank of Ireland Mortgage Bank • Pre-Packaged by Broc AI Engine</div>
+                </div>
+                <span class="px-3 py-1.5 rounded-lg bg-slate-900 text-emerald-300 font-mono text-[11px] font-bold">SHA256-BROC-9041-VERIFIED</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Right 5 Cols: Consumer Phone/App Instant Notification Preview -->
+          <div class="col-span-5 bg-[#141619] text-white rounded-3xl p-6 border-2 border-[#43e97b] shadow-2xl">
+            <div class="flex items-center justify-between mb-4">
+              <div class="flex items-center gap-2">
+                <img src="brokerlyai_logo.jpg" alt="Broc" class="w-7 h-7 rounded-lg bg-white p-0.5 object-contain" />
+                <span class="font-display font-bold text-sm">app.broc.fi • Live Customer View</span>
+              </div>
+              <span class="text-[10px] font-bold px-2.5 py-0.5 rounded-full bg-emerald-500/20 text-emerald-300">Delivered in 0.4s</span>
+            </div>
+
+            <div class="p-4 rounded-2xl bg-gradient-to-br from-emerald-500/20 to-teal-500/10 border border-emerald-400/40 mb-4">
+              <div class="text-xs font-extrabold uppercase text-emerald-300">🎉 Congratulations Sarah & Liam!</div>
+              <div class="font-display text-lg font-extrabold mt-1">Your €420,000 Bank of Ireland AIP Letter is Ready!</div>
+              <p class="text-xs text-slate-300 mt-1">
+                You can now share this redacted Estate Agent AIP PDF directly with Sherry FitzGerald / DNG to place offers up to <strong>€478,000</strong>.
+              </p>
+            </div>
+
+            <!-- Clive Next Step Prompt -->
+            <div class="flex items-start gap-3 p-3.5 rounded-2xl bg-slate-900 border border-slate-800">
+              <img src="assets/images/avatars/clive.png" alt="Clive" class="w-10 h-10 rounded-full border border-emerald-400 object-cover shrink-0" />
+              <div class="text-xs text-slate-300">
+                <span class="font-bold text-white">Clive AI:</span> "I've locked your €1,650/mo savings tracker and pre-scheduled your Stage B Full Mortgage checklist for the moment you go Sale Agreed."
+              </div>
+            </div>
+
+            <div class="mt-4 flex gap-2">
+              <button onclick="restartVideo()" class="flex-1 py-2.5 rounded-xl bg-gradient-to-r from-[#43e97b] to-[#38f9d7] text-slate-950 font-display font-extrabold text-xs">
+                ↺ Replay Full Demo Video
+              </button>
+              <a href="index.html" class="px-4 py-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-white font-bold text-xs">
+                Explore Full Portal →
+              </a>
+            </div>
+          </div>
+
+        </div>
+      </div>
+
+      <!-- BOTTOM VOICEOVER / CAPTION PILL -->
+      <div class="caption-pill" id="caption-bar">
+        <span class="w-2.5 h-2.5 rounded-full bg-[#43e97b] shrink-0"></span>
+        <span id="caption-text">Scene 1/6: Sarah & Liam open app.broc.fi — Clive detects they meet all Irish mortgage readiness rules and prompts "Get Me a Mortgage".</span>
+      </div>
+
+    </div>
+  </div>
+
+  <script>
+    let currentScene = 1;
+    let isPlaying = true;
+    let sceneTimer = null;
+    let stepTimers = [];
+
+    const cursor = document.getElementById('sim-cursor');
+    const captionText = document.getElementById('caption-text');
+    const masterProgress = document.getElementById('master-progress');
+
+    function clearAllTimers() {
+      if (sceneTimer) clearTimeout(sceneTimer);
+      stepTimers.forEach(t => clearTimeout(t));
+      stepTimers = [];
+    }
+
+    function moveCursor(topPct, leftPct, clickAfterMs = 0) {
+      cursor.style.top = topPct + '%';
+      cursor.style.left = leftPct + '%';
+      if (clickAfterMs > 0) {
+        const t = setTimeout(() => {
+          cursor.classList.add('clicking');
+          setTimeout(() => cursor.classList.remove('clicking'), 500);
+        }, clickAfterMs);
+        stepTimers.push(t);
+      }
+    }
+
+    function highlightChapter(num) {
+      for (let i = 1; i <= 6; i++) {
+        const btn = document.getElementById('chap-' + i);
+        if (i === num) {
+          btn.className = 'text-left px-2.5 py-1.5 rounded-lg border transition bg-slate-800/90 border-emerald-400 text-white';
+        } else if (i < num) {
+          btn.className = 'text-left px-2.5 py-1.5 rounded-lg border transition bg-slate-900/90 border-emerald-500/30 text-emerald-300';
+        } else {
+          btn.className = 'text-left px-2.5 py-1.5 rounded-lg border transition bg-slate-900/60 border-slate-800 text-slate-400 hover:text-white';
+        }
+      }
+    }
+
+    function renderScene(sceneNum) {
+      clearAllTimers();
+      currentScene = sceneNum;
+      highlightChapter(sceneNum);
+
+      const consumerStage = document.getElementById('consumer-app-stage');
+      const scene1View = document.getElementById('scene-1-view');
+      const scene23View = document.getElementById('scene-2-3-view');
+      const bankStage = document.getElementById('bank-portal-stage');
+      const scene6Modal = document.getElementById('scene-6-modal');
+      const rows = document.querySelectorAll('#aip-steps-list .aip-step-row');
+      const cliveCard = document.getElementById('clive-advice-card');
+
+      // Reset views
+      scene6Modal.classList.add('hidden');
+
+      if (sceneNum === 1) {
+        masterProgress.style.width = '14%';
+        consumerStage.classList.remove('hidden');
+        bankStage.classList.add('hidden');
+        scene1View.classList.remove('hidden');
+        scene23View.classList.add('hidden');
+
+        captionText.textContent = 'Scene 1/6 (Consumer App): In app.broc.fi, Sarah & Liam see their live OpenBanking finances and click "Get Me a Mortgage".';
+        moveCursor(30, 45, 0);
+        stepTimers.push(setTimeout(() => moveCursor(60, 81, 900), 1800));
+
+        if (isPlaying) {
+          sceneTimer = setTimeout(() => renderScene(2), 4500);
+        }
+      }
+      else if (sceneNum === 2) {
+        masterProgress.style.width = '33%';
+        consumerStage.classList.remove('hidden');
+        bankStage.classList.add('hidden');
+        scene1View.classList.add('hidden');
+        scene23View.classList.remove('hidden');
+        cliveCard.classList.remove('ring-4', 'ring-emerald-400');
+
+        captionText.textContent = 'Scene 2/6 (Automated AIP Engine): Broc verifies all 10 Irish Approval-in-Principle criteria (KYC, Stamp 4/Citizenship, EDS, CCR, 6-Mo Statements & Stress Test) in 3.8 seconds.';
+        rows.forEach(r => r.classList.remove('verified'));
+        document.getElementById('aip-counter-badge').textContent = '0 / 10 Verifying...';
+
+        moveCursor(28, 32, 0);
+        rows.forEach((row, idx) => {
+          stepTimers.push(setTimeout(() => {
+            row.classList.add('verified');
+            document.getElementById('aip-counter-badge').textContent = (idx + 1) + ' / 10 Verified';
+          }, (idx + 1) * 360));
+        });
+
+        if (isPlaying) {
+          sceneTimer = setTimeout(() => renderScene(3), 5500);
+        }
+      }
+      else if (sceneNum === 3) {
+        masterProgress.style.width = '52%';
+        consumerStage.classList.remove('hidden');
+        bankStage.classList.add('hidden');
+        scene1View.classList.add('hidden');
+        scene23View.classList.remove('hidden');
+        rows.forEach(r => r.classList.add('verified'));
+        document.getElementById('aip-counter-badge').textContent = '10 / 10 Verified';
+        cliveCard.classList.add('ring-4', 'ring-emerald-400');
+
+        captionText.textContent = 'Scene 3/6 (Clive AI Savings & Stage B Roadmap): Clive coaches Sarah & Liam on their €1,650/mo payday sweep, how to unlock BOI\'s 3.65% Green Rate, and the 6 post-AIP steps to Full Mortgage.';
+        moveCursor(32, 72, 0);
+        stepTimers.push(setTimeout(() => moveCursor(86, 82, 950), 3800));
+
+        if (isPlaying) {
+          sceneTimer = setTimeout(() => renderScene(4), 6000);
+        }
+      }
+      else if (sceneNum === 4) {
+        masterProgress.style.width = '68%';
+        consumerStage.classList.add('hidden');
+        bankStage.classList.remove('hidden');
+
+        captionText.textContent = 'Scene 4/6 (Bank of Ireland Underwriting Desk): Sarah & Liam\'s pre-packaged application arrives instantly in the BOI × Broc portal queue with a 96/100 Broc Score.';
+        moveCursor(12, 75, 0);
+        stepTimers.push(setTimeout(() => moveCursor(31, 28, 900), 2200));
+
+        if (isPlaying) {
+          sceneTimer = setTimeout(() => renderScene(5), 4500);
+        }
+      }
+      else if (sceneNum === 5) {
+        masterProgress.style.width = '84%';
+        consumerStage.classList.add('hidden');
+        bankStage.classList.remove('hidden');
+
+        captionText.textContent = 'Scene 5/6 (18-Point Credit Review): The BOI underwriter inspects the pre-verified €420,000 qualification (2.96x LTI, 87.9% LTV, +2% stress test passed) and clicks "Issue Approval in Principle Letter".';
+        moveCursor(44, 72, 0);
+        stepTimers.push(setTimeout(() => moveCursor(86, 82, 950), 2800));
+
+        if (isPlaying) {
+          sceneTimer = setTimeout(() => renderScene(6), 4800);
+        }
+      }
+      else if (sceneNum === 6) {
+        masterProgress.style.width = '100%';
+        consumerStage.classList.add('hidden');
+        bankStage.classList.remove('hidden');
+        scene6Modal.classList.remove('hidden');
+
+        captionText.textContent = 'Scene 6/6 (AIP Issued in Seconds): Bank of Ireland issues the €420,000 Approval in Principle Certificate—and Sarah & Liam receive it inside app.broc.fi immediately!';
+        moveCursor(48, 48, 0);
+      }
+    }
+
+    function jumpToScene(num) {
+      renderScene(num);
+    }
+
+    function togglePlayPause() {
+      isPlaying = !isPlaying;
+      document.getElementById('play-pause-icon').textContent = isPlaying ? '⏸' : '▶';
+      document.getElementById('play-pause-label').textContent = isPlaying ? 'Pause Video' : 'Auto-Play Video';
+      if (isPlaying) {
+        if (currentScene === 6) {
+          renderScene(1);
+        } else {
+          renderScene(currentScene);
+        }
+      } else {
+        clearAllTimers();
+      }
+    }
+
+    function restartVideo() {
+      isPlaying = true;
+      document.getElementById('play-pause-icon').textContent = '⏸';
+      document.getElementById('play-pause-label').textContent = 'Pause Video';
+      renderScene(1);
+    }
+
+    // Start automatically on load
+    window.addEventListener('DOMContentLoaded', () => {
+      renderScene(1);
+    });
+  </script>
+</body>
+</html>

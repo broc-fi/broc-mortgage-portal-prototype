@@ -228,6 +228,9 @@
       </div>
 
       <div class="flex flex-wrap items-center gap-2.5">
+        <a href="demo.html" class="px-4 py-2 rounded-lg text-xs font-extrabold broc-gradient-pill shadow-sm hover:opacity-95 transition flex items-center gap-2">
+          <span>▶ Watch End-to-End Video Simulation (Consumer App → Bank AIP)</span>
+        </a>
         <button onclick="openScoreModal()" class="px-3.5 py-2 rounded-lg text-xs font-semibold bg-emerald-50 text-emerald-800 border border-emerald-200 hover:bg-emerald-100 transition cursor-pointer flex items-center gap-1.5">
           <img src="assets/icons/broc_favicon1.png" alt="" class="w-4 h-4 object-contain" />
           <span>How the Broc Score (0–100) Works</span>
@@ -682,6 +685,11 @@
         </div>
       </div>
     </div>
+  </div>
+
+  <!-- OFFICIAL AIP / LOAN OFFER CERTIFICATE MODAL -->
+  <div id="aipCertificateModal" class="fixed inset-0 z-50 hidden items-center justify-center p-4" style="background: rgba(15,23,42,0.72);">
+    <div id="aipCertificateModalContent" class="bg-white rounded-2xl max-w-3xl w-full shadow-2xl border-2 border-[#002663] overflow-hidden"></div>
   </div>
 
   <script>
@@ -2842,10 +2850,61 @@
       const toast = document.getElementById('actionFeedbackToast');
       toast.classList.remove('hidden');
       if (type === 'APPROVE') {
+        const docTitle = applicant.targetStage === 'FULL' ? 'FORMAL MORTGAGE LETTER OF OFFER' : 'MORTGAGE APPROVAL IN PRINCIPLE (AIP)';
         toast.textContent = `✅ ${lender.shortName} ${applicant.targetStage === 'FULL' ? 'Formal Loan Offer' : 'Approval in Principle'} (${formatEuro(calc.qualifiedLoan)}) generated & pushed to ${applicant.names}'s Broc App!`;
+        const modal = document.getElementById('aipCertificateModal');
+        const content = document.getElementById('aipCertificateModalContent');
+        content.innerHTML = `
+          <div class="p-6 text-slate-900">
+            <div class="flex items-center justify-between border-b-2 pb-4" style="border-color: ${lender.color};">
+              <div class="flex items-center gap-3">
+                ${currentLenderId === 'BOI' ? `<img src="assets/images/banks/bank-of-ireland-logo.png" alt="BOI" class="h-7 object-contain" /><span class="text-slate-300">|</span>` : ''}
+                <img src="brokerlyai_logo.jpg" alt="Broc" class="h-7 w-7 object-contain rounded" />
+                <span class="text-xs font-bold uppercase tracking-wider text-slate-500">${lender.shortName} × Broc. Automated Underwriting</span>
+              </div>
+              <button onclick="closeAipCertificateModal()" class="px-3 py-1 rounded-lg bg-slate-100 hover:bg-slate-200 text-xs font-bold text-slate-700 cursor-pointer">✕ Close</button>
+            </div>
+            <div class="mt-4">
+              <div class="flex justify-between text-xs text-slate-500">
+                <span><strong>Certificate Ref:</strong> ${lender.code}-AIP-${applicant.id}</span>
+                <span><strong>Validity:</strong> ${lender.aipValidity} from Today</span>
+              </div>
+              <h3 class="font-display text-xl font-black mt-1" style="color: ${lender.color};">${docTitle}</h3>
+              <p class="text-xs text-slate-600 mt-1">
+                Issued to <strong>${applicant.names}</strong> (${applicant.county}) following 18-point automated verification via <strong>Broc.fi (Broc Score™ ${applicant.brocScore}/100)</strong>:
+              </p>
+              <div class="grid grid-cols-3 gap-3 my-4 p-3.5 rounded-xl bg-slate-50 border border-slate-200">
+                <div>
+                  <div class="text-[10px] font-bold uppercase text-slate-400">Approved Loan Amount</div>
+                  <div class="font-display text-xl font-black" style="color: ${lender.color};">${formatEuro(calc.qualifiedLoan)}</div>
+                </div>
+                <div>
+                  <div class="text-[10px] font-bold uppercase text-slate-400">Verified Cash + HTB Deposit</div>
+                  <div class="font-display text-xl font-black text-emerald-600">${formatEuro(calc.totalDeposit)}</div>
+                </div>
+                <div>
+                  <div class="text-[10px] font-bold uppercase text-slate-400">Max Purchase Price</div>
+                  <div class="font-display text-xl font-black text-slate-900">${formatEuro(calc.maxPurchasePrice)}</div>
+                </div>
+              </div>
+              <div class="text-xs text-slate-600 space-y-1 bg-emerald-50/70 p-3 rounded-xl border border-emerald-200">
+                <div><strong>Offered Rate & Stress Test:</strong> ${calc.offeredRate.toFixed(2)}% (${applicant.termYears} yrs • Est. ${formatEuro(calc.monthlyRepaymentOffered)}/mo) | CBI +2% Stress-Tested @ ${calc.stressedRate.toFixed(2)}% (${formatEuro(calc.monthlyRepaymentStressed)}/mo — PASSED)</div>
+                <div><strong>Instant Consumer Delivery:</strong> Dispatched directly to <strong>${applicant.names}</strong> inside <code>https://app.broc.fi</code> with Clive's Stage B Full Mortgage checklist attached.</div>
+              </div>
+            </div>
+          </div>
+        `;
+        modal.classList.remove('hidden');
+        modal.classList.add('flex');
       } else {
         toast.textContent = `📦 Complete 18-Criteria Underwriting Pack (${applicant.id} — KYC, Citizenship, Revenue EDS & 6-Mo Audited CSVs) exported.`;
       }
+    }
+
+    function closeAipCertificateModal() {
+      const m = document.getElementById('aipCertificateModal');
+      m.classList.add('hidden');
+      m.classList.remove('flex');
     }
 
     function openScoreModal() {
