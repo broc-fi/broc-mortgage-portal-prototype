@@ -2884,11 +2884,11 @@
                 </div>
                 <div>
                   <div class="text-[10px] font-bold uppercase text-slate-400">Max Purchase Price</div>
-                  <div class="font-display text-xl font-black text-slate-900">${formatEuro(calc.maxPurchasePrice)}</div>
+                  <div class="font-display text-xl font-black text-slate-900">${formatEuro(calc.maxPurchasingPower)}</div>
                 </div>
               </div>
               <div class="text-xs text-slate-600 space-y-1 bg-emerald-50/70 p-3 rounded-xl border border-emerald-200">
-                <div><strong>Offered Rate & Stress Test:</strong> ${calc.offeredRate.toFixed(2)}% (${applicant.termYears} yrs • Est. ${formatEuro(calc.monthlyRepaymentOffered)}/mo) | CBI +2% Stress-Tested @ ${calc.stressedRate.toFixed(2)}% (${formatEuro(calc.monthlyRepaymentStressed)}/mo — PASSED)</div>
+                <div><strong>Offered Rate & Stress Test:</strong> ${calc.appliedRate.toFixed(2)}% (${applicant.termYears} yrs • Est. ${formatEuro(calc.actualMonthlyPayment)}/mo) | CBI +2% Stress-Tested @ ${calc.stressedRate.toFixed(2)}% (${formatEuro(calc.stressedMonthlyPayment)}/mo — PASSED)</div>
                 <div><strong>Instant Consumer Delivery:</strong> Dispatched directly to <strong>${applicant.names}</strong> inside <code>https://app.broc.fi</code> with Clive's Stage B Full Mortgage checklist attached.</div>
               </div>
             </div>
