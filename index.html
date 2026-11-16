@@ -3,17 +3,13 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="theme-color" content="#10b981" />
   <title>Broc. For Lenders — Underwriting &amp; Pre-Approved Mortgage Desk</title>
   <link rel="icon" type="image/png" href="assets/icons/broc_favicon1.png" />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Outfit:wght@500;600;700;800&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="css/portal.css" />
-  <script>
-    if (localStorage.getItem('broc_portal_theme') === 'dark') {
-      document.documentElement.classList.add('dark');
-    }
-  </script>
 </head>
 <body>
 
@@ -31,9 +27,6 @@
         Broc <span style="display:inline;font-size:0.78rem;margin-left:4px;">For Lenders</span>
       </div>
     </div>
-    <button class="btn-vivien-pill-primary" style="padding:0.35rem 0.75rem;font-size:0.75rem;" onclick="toggleAssistant(true)">
-      Ask AI
-    </button>
   </header>
 
   <div class="portal-shell">
@@ -84,31 +77,16 @@
         <div class="sidebar-divider">
           <button class="sidebar-ai-link" onclick="toggleAssistant(true)">
             <span class="sidebar-ai-avatar-stack">
-              <img src="assets/images/avatars/clara.png" alt="Clara" class="sidebar-ai-avatar" />
-              <img src="assets/images/avatars/clive.png" alt="Clive" class="sidebar-ai-avatar second" />
+              <img src="assets/images/avatars/morgana.png" alt="Morgana" class="sidebar-ai-avatar" />
               <span class="sidebar-ai-dot"></span>
             </span>
-            <span>Clara &amp; Clive AI</span>
+            <span>Morgana AI</span>
           </button>
-
-          <button class="sidebar-nav-item" onclick="openScoreModal()">
-            <span class="nav-icon">
-              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="6"/><path d="M15.477 12.89 17 22l-5-3-5 3 1.523-9.11"/></svg>
-            </span>
-            <span>How Broc Score Works</span>
-          </button>
-
-          <a href="demo.html" class="sidebar-nav-item">
-            <span class="nav-icon">
-              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="23 7 16 12 23 17 23 7"/><rect x="1" y="5" width="15" height="14" rx="2" ry="2"/></svg>
-            </span>
-            <span>Video Simulation</span>
-          </a>
         </div>
       </nav>
 
-      <!-- Sticky Footer: Active Lender & Queue Preset Switchers -->
-      <div id="sidebarFooter" class="sidebar-footer"></div>
+      <!-- Ever-Present Floating Demo Controls Dock (Consolidated) -->
+      <div id="sidebarFooter" class="sidebar-demo-dock" aria-label="Demo Controls"></div>
     </aside>
 
     <!-- ======================================================================= -->
@@ -117,22 +95,14 @@
     <div class="main-wrapper">
       <div class="main-container">
 
-        <!-- Minimal Top Canvas Utility Strip (Matching app.broc.fi) -->
+        <!-- Clean Top Context Strip + Morgana Help Pill -->
         <div class="top-utility-strip">
           <div id="topContextBreadcrumb" class="context-breadcrumb"></div>
-
-          <div class="utility-controls">
-            <button id="privacyToggleBtn" class="utility-icon-btn" onclick="togglePrivacyMode()" title="Blur borrower PII for screen-sharing"></button>
-            <button id="darkModeToggleBtn" class="utility-icon-btn" onclick="toggleDarkMode()" title="Switch light / dark theme"></button>
-            <button class="utility-icon-btn" onclick="openScoreModal()">
-              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
-              <span>Score Model</span>
-            </button>
-            <a href="demo.html" class="utility-icon-btn">
-              <span>Watch Demo ↗</span>
-            </a>
-          </div>
+          <div id="morganaHelpHeaderAnchor" class="header-actions"></div>
         </div>
+
+        <!-- Morgana Expanded Contextual Analysis & Tour Slot -->
+        <div id="morganaBannerSlot" class="banner-home-slot"></div>
 
         <!-- Dynamic Active View Mount -->
         <main id="viewContainer"></main>
@@ -150,32 +120,31 @@
   </aside>
 
   <!-- ========================================================================= -->
-  <!-- FLOATING COPILOT PILL FAB + 840px SLIDE-OVER ASSISTANT DRAWER             -->
+  <!-- FLOATING COPILOT PILL FAB + 560px SLIDE-OVER MORGANA ASSISTANT DRAWER     -->
   <!-- ========================================================================= -->
-  <button id="vivienFabTrigger" class="vivien-floating-trigger" onclick="toggleAssistant(true)" aria-label="Ask Clara and Clive AI Copilot">
+  <button id="vivienFabTrigger" class="vivien-floating-trigger" onclick="toggleAssistant(true)" aria-label="Ask Morgana AI Copilot">
     <span class="vivien-fab-avatars">
-      <img src="assets/images/avatars/clara.png" alt="Clara" class="vivien-fab-img" />
-      <img src="assets/images/avatars/clive.png" alt="Clive" class="vivien-fab-img second" />
+      <img src="assets/images/avatars/morgana.png" alt="Morgana" class="vivien-fab-img" />
       <span class="vivien-fab-status"></span>
     </span>
-    <span class="vivien-fab-text">Ask Clara &amp; Clive</span>
+    <span class="vivien-fab-text">Ask Morgana</span>
   </button>
 
   <div id="assistantOverlay" class="assistant-overlay" onclick="toggleAssistant(false)"></div>
-  <aside id="assistantDrawer" class="assistant-side-panel" role="dialog" aria-label="Clara and Clive Underwriting Copilot">
+  <aside id="assistantDrawer" class="assistant-side-panel" role="dialog" aria-label="Morgana B2B Underwriting Copilot">
     <div class="assistant-header">
       <div class="assistant-persona">
         <div class="sidebar-ai-avatar-stack">
-          <img src="assets/images/avatars/clara.png" alt="Clara" class="sidebar-ai-avatar" style="width:40px;height:40px;" />
-          <img src="assets/images/avatars/clive.png" alt="Clive" class="sidebar-ai-avatar second" style="width:40px;height:40px;" />
+          <img src="assets/images/avatars/morgana.png" alt="Morgana" class="assistant-persona-squircle" />
           <span class="sidebar-ai-dot" style="width:9px;height:9px;"></span>
         </div>
         <div>
-          <h3 class="assistant-name">Clara &amp; Clive Copilot</h3>
-          <div class="assistant-status-tag">Live CBI +2% Stress &amp; Queue Intelligence</div>
+          <h3 class="assistant-name">Morgana Copilot</h3>
+          <div class="assistant-status-tag">B2B Credit Desk • Live CBI +2% Stress &amp; Queue Intelligence</div>
         </div>
       </div>
       <div style="display:flex;align-items:center;gap:8px;">
+        <button id="chatHelpBtn" class="btn-xs-pill help-pill-btn" onclick="openChatHelpModal()" title="Morgana Help &amp; Analysis Guide">? Help</button>
         <button class="btn-xs-pill" onclick="clearAssistantChat()">Clear</button>
         <button class="close-icon-btn" onclick="toggleAssistant(false)" aria-label="Close AI Copilot">✕</button>
       </div>
@@ -186,6 +155,8 @@
     <div class="assistant-input-area">
       <div class="assistant-quick-chips custom-scroll">
         <button class="assistant-chip" onclick="handleAssistantChip('Fast-Track Score 90+')">Fast-Track Score 90+</button>
+        <button class="assistant-chip" onclick="handleAssistantChip('Compare BOI vs White-Label')">Compare BOI vs WL</button>
+        <button class="assistant-chip" onclick="handleAssistantChip('Why is selected or nurture blocked?')">Why Blocked / Pending</button>
         <button class="assistant-chip" onclick="handleAssistantChip('Churn Watchlist (≥30%)')">Churn Watchlist (≥30%)</button>
         <button class="assistant-chip" onclick="handleAssistantChip('Stamp 4 & Self-Employed')">Stamp 4 &amp; Self-Employed</button>
         <button class="assistant-chip" onclick="handleAssistantChip('Explain Selected +2% Stress Pass')">Explain Selected +2% Stress</button>
@@ -327,9 +298,9 @@
     <div id="ruleDetailModalContent" class="portal-modal-card" style="max-width:620px;"></div>
   </div>
 
-  <!-- MODAL 4: OFFICIAL AIP / LOAN OFFER CERTIFICATE MODAL (Keep-Light Paper Contrast) -->
+  <!-- MODAL 4: OFFICIAL AIP / LOAN OFFER CERTIFICATE MODAL -->
   <div id="aipCertificateModal" class="portal-modal-backdrop" onclick="if(event.target===this) closeAipCertificateModal()">
-    <div id="aipCertificateModalContent" class="portal-modal-card keep-light"></div>
+    <div id="aipCertificateModalContent" class="portal-modal-card aip-certificate-card"></div>
   </div>
 
   <!-- Modular Zero-Build Scripts (Netlify publish = ".") -->
@@ -337,6 +308,7 @@
   <script src="js/engine.js"></script>
   <script src="js/charts.js"></script>
   <script src="js/copilot.js"></script>
+  <script src="js/guidance.js"></script>
   <script src="js/portal.js"></script>
 </body>
 </html>

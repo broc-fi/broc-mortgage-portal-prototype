@@ -5,6 +5,15 @@
 
 const PAGE_SIZE = 25;
 
+const STANDARD_CONDITIONS = [
+  'Panel Valuation >= Purchase Price',
+  'Confirm Existing Debt / PCP Closure',
+  'Donor Gift Letter + Bank Statement',
+  'Signed & Stamped Employer Salary Cert',
+  'SEAI BER B3+ Verification',
+  'Solicitor Undertaking & Clean Title'
+];
+
 window.portalState = {
   activeView: 'overview',          // 'overview' | 'pipeline' | 'rules' | 'analytics'
   currentDatasetMode: 'CURATED_7', // 'CURATED_7' | 'MONTHLY_517'
@@ -24,10 +33,18 @@ window.portalState = {
   buyerType: 'ALL',
   berFilter: 'ALL',
   riskFilter: 'ALL',
+  quickChips: new Set(),           // stackable quick chips: GREEN_A, SCORE_90, LOW_LTV, HIGH_CHURN, STAMP4
   sortOrder: 'SCORE_DESC',
   currentPage: 1,
-  isPrivacyMode: false,
-  isDarkMode: (typeof localStorage !== 'undefined' && localStorage.getItem('broc_portal_theme') === 'dark')
+  selectedIds: new Set(),
+  expandedCriteria: new Set(),
+  decisions: {},
+  selectedConditions: {},
+  auditLog: {},
+  policyOverrides: {
+    BOI: {},
+    WHITELABEL: {}
+  }
 };
 
 /* Crisp inline SVG icon library matching Feather / Lucide aesthetic */
@@ -41,8 +58,6 @@ function portalIcon(name, size = 18) {
     video: '<polygon points="23 7 16 12 23 17 23 7"/><rect x="1" y="5" width="15" height="14" rx="2" ry="2"/>',
     eye: '<path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7Z"/><circle cx="12" cy="12" r="3"/>',
     eyeOff: '<path d="M9.88 9.88a3 3 0 1 0 4.24 4.24"/><path d="M10.73 5.08A10.43 10.43 0 0 1 12 5c7 0 10 7 10 7a13.16 13.16 0 0 1-1.67 2.68"/><path d="M6.61 6.61A13.526 13.526 0 0 0 2 12s3 7 10 7a9.74 9.74 0 0 0 5.39-1.61"/><line x1="2" y1="2" x2="22" y2="22"/>',
-    moon: '<path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9Z"/>',
-    sun: '<circle cx="12" cy="12" r="4"/><path d="M12 2v2"/><path d="M12 20v2"/><path d="m4.93 4.93 1.41 1.41"/><path d="m17.66 17.66 1.41 1.41"/><path d="M2 12h2"/><path d="M20 12h2"/><path d="m6.34 17.66-1.41 1.41"/><path d="m19.07 4.93-1.41 1.41"/>',
     search: '<circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/>',
     sliders: '<line x1="4" y1="21" x2="4" y2="14"/><line x1="4" y1="10" x2="4" y2="3"/><line x1="12" y1="21" x2="12" y2="12"/><line x1="12" y1="8" x2="12" y2="3"/><line x1="20" y1="21" x2="20" y2="16"/><line x1="20" y1="12" x2="20" y2="3"/><line x1="1" y1="14" x2="7" y2="14"/><line x1="9" y1="8" x2="15" y2="8"/><line x1="17" y1="16" x2="23" y2="16"/>',
     arrowRight: '<path d="M5 12h14"/><path d="m12 5 7 7-7 7"/>',
@@ -59,6 +74,10 @@ function portalIcon(name, size = 18) {
   return `<svg width="${size}" height="${size}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${icons[name] || ''}</svg>`;
 }
 
+function getActiveLender() {
+  return getEffectiveLenderPolicy(LENDERS[window.portalState.currentLenderId]);
+}
+
 function getActiveDataset() {
   return window.portalState.currentDatasetMode === 'CURATED_7' ? CURATED_7_APPLICANTS : MONTHLY_517_APPLICANTS;
 }
@@ -68,7 +87,24 @@ function getSelectedApplicant() {
   return dataset.find(a => a.id === window.portalState.selectedApplicantId) || dataset[0];
 }
 
-function computeCohortSummary(list, lender) {
+function getDecisionBadgeHtml(applicantId) {
+  const dec = window.portalState.decisions[applicantId];
+  if (!dec) return '';
+  const map = {
+    AIP_ISSUED: { cls: 'approved', label: '✓ AIP Issued' },
+    OFFER_ISSUED: { cls: 'approved', label: '✓ Loan Offer Issued' },
+    CONDITIONAL_AIP: { cls: 'conditional', label: 'Conditional AIP' },
+    RFI_SENT: { cls: 'rfi', label: 'RFI Dispatched' },
+    REFERRED: { cls: 'referred', label: 'Credit Referred' },
+    HOLD: { cls: 'blocked', label: 'Held in Clive' }
+  };
+  const info = map[dec.status];
+  if (!info) return '';
+  return `<span class="decision-badge ${info.cls}">${info.label}</span>`;
+}
+
+function computeCohortSummary(list, baseLender) {
+  const lender = getEffectiveLenderPolicy(baseLender);
   let totalLoan = 0;
   let totalLow = 0;
   let totalHigh = 0;
@@ -85,6 +121,7 @@ function computeCohortSummary(list, lender) {
   let nurtureCount = 0;
   let greenCount = 0;
   let highChurnCount = 0;
+  let stressPassCount = 0;
 
   list.forEach(a => {
     if (a.targetStage === 'AIP') aipReady++;
@@ -92,7 +129,7 @@ function computeCohortSummary(list, lender) {
     else nurtureCount++;
 
     const c = calculateLoanQualification(a, lender);
-    totalLoan += c.qualifiedLoan;
+    totalLoan += c.loanForPricing;
     totalLow += c.loanGrantLow;
     totalHigh += c.loanGrantHigh;
     totalScore += a.brocScore;
@@ -105,11 +142,21 @@ function computeCohortSummary(list, lender) {
     totalNii += c.est10YrNII;
     if (c.isGreenEligible) greenCount++;
     if (c.churnRisk5YrPct >= 30) highChurnCount++;
+    if (c.passesStressTest) stressPassCount++;
   });
 
-  const n = Math.max(1, list.length);
+  if (list.length === 0) {
+    return {
+      count: 0, totalLoan: 0, totalLow: 0, totalHigh: 0, avgScore: 0, avgGain: 0,
+      avgInitLtv: '0.0', avgYr10Ltv: '0.0', avgChurn: 0, avgManagedChurn: 0,
+      avgPdBps: 0, totalNii: 0, aipReady: 0, fullReady: 0, nurtureCount: 0,
+      greenCount: 0, highChurnCount: 0, stressPassCount: 0
+    };
+  }
+
+  const n = list.length;
   return {
-    count: list.length,
+    count: n,
     totalLoan,
     totalLow,
     totalHigh,
@@ -125,61 +172,91 @@ function computeCohortSummary(list, lender) {
     fullReady,
     nurtureCount,
     greenCount,
-    highChurnCount
+    highChurnCount,
+    stressPassCount
   };
+}
+
+function hasActivePipelineFilters() {
+  const s = window.portalState;
+  return (
+    s.search !== '' ||
+    s.area !== 'ALL' ||
+    s.buyerType !== 'ALL' ||
+    s.berFilter !== 'ALL' ||
+    s.riskFilter !== 'ALL' ||
+    s.currentStageFilter !== 'ALL' ||
+    (s.quickChips && s.quickChips.size > 0)
+  );
+}
+
+function matchesNonStageFilters(a, lender) {
+  const s = window.portalState;
+  const search = (s.search || '').toLowerCase().trim();
+
+  if (s.buyerType !== 'ALL' && a.buyerType !== s.buyerType) return false;
+
+  if (s.area !== 'ALL') {
+    const countyLower = a.county.toLowerCase();
+    if (s.area === 'Meath') {
+      if (!countyLower.includes('meath') && !countyLower.includes('louth')) return false;
+    } else if (s.area === 'OTHER') {
+      const major = ['dublin', 'cork', 'galway', 'limerick', 'kildare', 'wicklow', 'meath', 'louth'];
+      if (major.some(m => countyLower.includes(m))) return false;
+    } else if (!countyLower.includes(s.area.toLowerCase())) {
+      return false;
+    }
+  }
+
+  if (s.berFilter !== 'ALL') {
+    if (s.berFilter === 'GREEN' && !['A1', 'A2', 'A3', 'B1', 'B2', 'B3'].includes(a.propertyBER)) return false;
+    if (s.berFilter === 'A_RATED' && !a.propertyBER.startsWith('A')) return false;
+    if (s.berFilter === 'B_RATED' && !a.propertyBER.startsWith('B')) return false;
+    if (s.berFilter === 'NON_GREEN' && ['A1', 'A2', 'A3', 'B1', 'B2', 'B3'].includes(a.propertyBER)) return false;
+  }
+
+  const calc = calculateLoanQualification(a, lender);
+  if (s.riskFilter !== 'ALL') {
+    if (s.riskFilter === 'SCORE_90' && a.brocScore < 90) return false;
+    if (s.riskFilter === 'LOW_LTV' && calc.initialLtvPct > 75) return false;
+    if (s.riskFilter === 'HIGH_LTV' && calc.initialLtvPct <= 80) return false;
+    if (s.riskFilter === 'LOW_CHURN' && calc.churnRisk5YrPct >= 20) return false;
+    if (s.riskFilter === 'HIGH_CHURN' && calc.churnRisk5YrPct < 30) return false;
+  }
+
+  // Stackable quick chips
+  if (s.quickChips && s.quickChips.size > 0) {
+    if (s.quickChips.has('GREEN_A') && !a.propertyBER.startsWith('A')) return false;
+    if (s.quickChips.has('SCORE_90') && a.brocScore < 90) return false;
+    if (s.quickChips.has('LOW_LTV') && calc.initialLtvPct > 75) return false;
+    if (s.quickChips.has('HIGH_CHURN') && calc.churnRisk5YrPct < 30) return false;
+    if (s.quickChips.has('STAMP4') && !`${a.citizenship} ${a.kycBadge}`.toLowerCase().includes('stamp 4')) return false;
+  }
+
+  if (search) {
+    const hay = `${a.names} ${a.id} ${a.county} ${a.targetPropertyAddress} ${a.citizenship} ${a.kycBadge} ${a.buyerType} ${a.propertyBER} ${a.dataSource} ${a.statusBadge} ${a.cliveStory}`.toLowerCase();
+    const terms = search.split(/\s+/).filter(Boolean);
+    if (!terms.every(t => hay.includes(t))) return false;
+  }
+
+  return true;
 }
 
 function getFilteredApplicants() {
   const s = window.portalState;
   const dataset = getActiveDataset();
-  const lender = LENDERS[s.currentLenderId];
-  const search = (s.search || '').toLowerCase().trim();
+  const lender = getActiveLender();
 
   const filtered = dataset.filter(a => {
     if (s.currentStageFilter !== 'ALL' && a.targetStage !== s.currentStageFilter) return false;
-    if (s.buyerType !== 'ALL' && a.buyerType !== s.buyerType) return false;
-
-    if (s.area !== 'ALL') {
-      const countyLower = a.county.toLowerCase();
-      if (s.area === 'Meath') {
-        if (!countyLower.includes('meath') && !countyLower.includes('louth')) return false;
-      } else if (s.area === 'OTHER') {
-        const major = ['dublin', 'cork', 'galway', 'limerick', 'kildare', 'wicklow', 'meath', 'louth'];
-        if (major.some(m => countyLower.includes(m))) return false;
-      } else if (!countyLower.includes(s.area.toLowerCase())) {
-        return false;
-      }
-    }
-
-    if (s.berFilter !== 'ALL') {
-      if (s.berFilter === 'GREEN' && !['A1', 'A2', 'A3', 'B1', 'B2', 'B3'].includes(a.propertyBER)) return false;
-      if (s.berFilter === 'A_RATED' && !a.propertyBER.startsWith('A')) return false;
-      if (s.berFilter === 'B_RATED' && !a.propertyBER.startsWith('B')) return false;
-      if (s.berFilter === 'NON_GREEN' && ['A1', 'A2', 'A3', 'B1', 'B2', 'B3'].includes(a.propertyBER)) return false;
-    }
-
-    const calc = calculateLoanQualification(a, lender);
-    if (s.riskFilter !== 'ALL') {
-      if (s.riskFilter === 'SCORE_90' && a.brocScore < 90) return false;
-      if (s.riskFilter === 'LOW_LTV' && calc.initialLtvPct > 75) return false;
-      if (s.riskFilter === 'HIGH_LTV' && calc.initialLtvPct <= 80) return false;
-      if (s.riskFilter === 'LOW_CHURN' && calc.churnRisk5YrPct >= 20) return false;
-      if (s.riskFilter === 'HIGH_CHURN' && calc.churnRisk5YrPct < 30) return false;
-    }
-
-    if (search) {
-      const hay = `${a.names} ${a.id} ${a.county} ${a.targetPropertyAddress} ${a.citizenship} ${a.kycBadge} ${a.buyerType} ${a.propertyBER} ${a.dataSource} ${a.statusBadge} ${a.cliveStory}`.toLowerCase();
-      const terms = search.split(/\s+/).filter(Boolean);
-      if (!terms.every(t => hay.includes(t))) return false;
-    }
-    return true;
+    return matchesNonStageFilters(a, lender);
   });
 
   filtered.sort((a, b) => {
     if (s.sortOrder === 'SCORE_DESC') return b.brocScore - a.brocScore;
     const calcA = calculateLoanQualification(a, lender);
     const calcB = calculateLoanQualification(b, lender);
-    if (s.sortOrder === 'LOAN_DESC') return calcB.qualifiedLoan - calcA.qualifiedLoan;
+    if (s.sortOrder === 'LOAN_DESC') return calcB.loanForPricing - calcA.loanForPricing;
     if (s.sortOrder === 'LTV_ASC') return calcA.initialLtvPct - calcB.initialLtvPct;
     if (s.sortOrder === 'CHURN_ASC') return calcA.churnRisk5YrPct - calcB.churnRisk5YrPct;
     if (s.sortOrder === 'CHURN_DESC') return calcB.churnRisk5YrPct - calcA.churnRisk5YrPct;
@@ -191,34 +268,22 @@ function getFilteredApplicants() {
 }
 
 /* ==========================================================================
-   Theme, Chrome, Sidebar & Navigation Controls
+   Chrome, Sidebar & Navigation Controls
    ========================================================================== */
-function applyThemeUI() {
-  const dark = window.portalState.isDarkMode;
-  if (typeof document !== 'undefined' && document.documentElement) {
-    document.documentElement.classList.toggle('dark', dark);
-  }
-  const btn = document.getElementById('darkModeToggleBtn');
-  if (btn) {
-    btn.classList.toggle('is-active', dark);
-    btn.innerHTML = `${portalIcon(dark ? 'sun' : 'moon', 15)}<span>${dark ? 'Light Mode' : 'Dark Mode'}</span>`;
-  }
-}
-
-function toggleDarkMode() {
-  window.portalState.isDarkMode = !window.portalState.isDarkMode;
-  try {
-    if (typeof localStorage !== 'undefined') {
-      localStorage.setItem('broc_portal_theme', window.portalState.isDarkMode ? 'dark' : 'light');
-    }
-  } catch (e) {}
+function resetDemoState() {
+  const s = window.portalState;
+  s.currentDatasetMode = 'CURATED_7';
+  s.currentLenderId = 'BOI';
+  s.macroScenario = 'BASE';
+  s.decisions = {};
+  s.selectedConditions = {};
+  s.auditLog = {};
+  s.policyOverrides = { BOI: {}, WHITELABEL: {} };
+  s.selectedIds.clear();
+  clearAllSearchAndFilters(true);
+  s.selectedApplicantId = CURATED_7_APPLICANTS[0].id;
   renderAll();
-}
-
-function togglePrivacyMode() {
-  window.portalState.isPrivacyMode = !window.portalState.isPrivacyMode;
-  renderAll();
-  if (typeof copilotMessages !== 'undefined' && copilotMessages.length > 0 && typeof renderCopilotMessages === 'function') {
+  if (document.getElementById('assistantDrawer')?.classList.contains('open')) {
     seedCopilotWelcome();
   }
 }
@@ -233,6 +298,7 @@ function toggleMobileSidebar(forceOpen) {
 }
 
 function switchView(viewName) {
+  if (window.MorganaGuidance) window.MorganaGuidance.stopTour();
   window.portalState.activeView = viewName;
   toggleMobileSidebar(false);
   renderAll();
@@ -244,9 +310,9 @@ function drillToPipelinePreset(preset) {
   if (preset === 'AIP') window.portalState.currentStageFilter = 'AIP';
   else if (preset === 'FULL') window.portalState.currentStageFilter = 'FULL';
   else if (preset === 'NURTURE') window.portalState.currentStageFilter = 'NURTURE';
-  else if (preset === 'SCORE_90') window.portalState.riskFilter = 'SCORE_90';
+  else if (preset === 'SCORE_90') window.portalState.quickChips.add('SCORE_90');
   else if (preset === 'HIGH_CHURN') {
-    window.portalState.riskFilter = 'HIGH_CHURN';
+    window.portalState.quickChips.add('HIGH_CHURN');
     window.portalState.sortOrder = 'CHURN_DESC';
   }
   window.portalState.activeView = 'pipeline';
@@ -257,6 +323,11 @@ function drillToPipelinePreset(preset) {
 function selectDatasetMode(mode) {
   window.portalState.currentDatasetMode = mode;
   window.portalState.currentPage = 1;
+  window.portalState.selectedIds.clear();
+  const ds = getActiveDataset();
+  if (!ds.some(a => a.id === window.portalState.selectedApplicantId)) {
+    window.portalState.selectedApplicantId = ds[0].id;
+  }
   renderAll();
   if (document.getElementById('assistantDrawer')?.classList.contains('open')) {
     seedCopilotWelcome();
@@ -273,8 +344,9 @@ function selectLender(lenderId) {
 
 function renderSidebarAndChrome() {
   const s = window.portalState;
-  const lender = LENDERS[s.currentLenderId];
+  const lender = getActiveLender();
   const dataset = getActiveDataset();
+  const isBoi = s.currentLenderId === 'BOI';
 
   // Active nav highlighting
   ['overview', 'pipeline', 'rules', 'analytics'].forEach(v => {
@@ -287,46 +359,68 @@ function renderSidebarAndChrome() {
   const rulesBadge = document.getElementById('navBadgeRules');
   if (rulesBadge) rulesBadge.textContent = String(UNDERWRITING_RULES.length);
 
-  // Sticky sidebar footer
+  // Consolidated Ever-Present Floating Demo Controls Dock (Bottom of Side Navbar)
   const footerContainer = document.getElementById('sidebarFooter');
   if (footerContainer) {
-    const isBoi = s.currentLenderId === 'BOI';
-    const queueShort = s.currentDatasetMode === 'CURATED_7' ? '7-Select Queue' : '517 Monthly Avg';
+    const overrideCount = Object.keys(s.policyOverrides[s.currentLenderId] || {}).length;
+    const hasDemoMutations = (
+      s.currentDatasetMode !== 'CURATED_7' ||
+      s.currentLenderId !== 'BOI' ||
+      s.macroScenario !== 'BASE' ||
+      overrideCount > 0 ||
+      Object.keys(s.decisions).length > 0
+    );
+
     footerContainer.innerHTML = `
-      <div class="sidebar-tenant-row">
-        <div class="sidebar-tenant-left">
-          <div class="sidebar-avatar ${isBoi ? 'is-boi' : ''}">
-            <img src="${isBoi ? 'assets/images/banks/bank-of-ireland-logo.png' : 'assets/images/logos/brokerly-logo.png'}" alt="${escapeHtml(lender.shortName)}" />
-          </div>
-          <div style="min-width:0;">
-            <div class="sidebar-footer-name">${escapeHtml(lender.shortName)}</div>
-            <div class="sidebar-footer-role">${queueShort} • CBI Rules</div>
-          </div>
+      <div class="demo-dock-header">
+        <span class="demo-dock-badge">
+          <span class="demo-dock-dot"></span>
+          Demo Controls
+        </span>
+        <div class="demo-dock-header-actions">
+          ${hasDemoMutations ? `<button class="demo-dock-mini-link" onclick="resetDemoState()" title="Reset demo presets, overrides and decisions">↺ Reset</button>` : ''}
+          <a href="demo.html" class="demo-dock-mini-link" title="Open interactive consumer-to-bank walkthrough">
+            ${portalIcon('video', 11)}
+            <span>Video</span>
+          </a>
         </div>
       </div>
 
       <div>
-        <div style="font-size:0.66rem;font-weight:700;text-transform:uppercase;letter-spacing:0.05em;color:var(--text-caption);margin-bottom:4px;">Active Lender Portal</div>
-        <div class="sidebar-toggle-group">
-          <button class="sidebar-toggle-btn ${isBoi ? 'active is-boi' : ''}" onclick="selectLender('BOI')">BOI Co-Brand</button>
+        <div class="demo-dock-label">Lender Tenant</div>
+        <div class="sidebar-toggle-group" role="group" aria-label="Lender Tenant Switcher">
+          <button class="sidebar-toggle-btn ${isBoi ? 'active is-boi' : ''}" onclick="selectLender('BOI')">BOI</button>
           <button class="sidebar-toggle-btn ${!isBoi ? 'active is-mint' : ''}" onclick="selectLender('WHITELABEL')">White-Label</button>
         </div>
       </div>
 
       <div>
-        <div style="font-size:0.66rem;font-weight:700;text-transform:uppercase;letter-spacing:0.05em;color:var(--text-caption);margin-bottom:4px;">Pipeline Volume Preset</div>
-        <div class="sidebar-toggle-group">
+        <div class="demo-dock-label">Pipeline Queue</div>
+        <div class="sidebar-toggle-group" role="group" aria-label="Pipeline Volume Switcher">
           <button class="sidebar-toggle-btn ${s.currentDatasetMode === 'CURATED_7' ? 'active' : ''}" onclick="selectDatasetMode('CURATED_7')">7-Select</button>
           <button class="sidebar-toggle-btn ${s.currentDatasetMode === 'MONTHLY_517' ? 'active' : ''}" onclick="selectDatasetMode('MONTHLY_517')">517 Monthly</button>
         </div>
       </div>
+
+      <div>
+        <div class="demo-dock-label">Macro Stress Scenario</div>
+        <select id="macroScenarioSelect" class="demo-dock-select" onchange="onMacroScenarioChange(this.value)" aria-label="Macro Stress Scenario">
+          <option value="BASE" ${s.macroScenario === 'BASE' ? 'selected' : ''}>CBI Base (+2.5% HPI)</option>
+          <option value="STRESSED" ${s.macroScenario === 'STRESSED' ? 'selected' : ''}>Downside (-5% Yr1, +1%)</option>
+          <option value="UPSIDE" ${s.macroScenario === 'UPSIDE' ? 'selected' : ''}>Green Growth (+4.0% HPI)</option>
+        </select>
+      </div>
+
+      <button class="demo-dock-pill-btn" style="width:100%;" onclick="openScoreModal()">
+        ${portalIcon('score', 13)}
+        <span>How Broc Score Works</span>
+      </button>
     `;
   }
 
-  // Top utility strip
+  // Clean Top Context Strip (passive readout only)
   const breadcrumb = document.getElementById('topContextBreadcrumb');
   if (breadcrumb) {
-    const isBoi = s.currentLenderId === 'BOI';
     breadcrumb.innerHTML = `
       ${isBoi ? '<img src="assets/images/banks/bank-of-ireland-logo.png" alt="BOI" />' : '<img src="assets/images/logos/brokerly-logo.png" alt="Broc" />'}
       <span style="color:var(--text-primary);">${escapeHtml(lender.shortName)}</span>
@@ -336,12 +430,6 @@ function renderSidebarAndChrome() {
       <span class="font-mono">${dataset.length} Packs</span>
     `;
   }
-
-  const privacyBtn = document.getElementById('privacyToggleBtn');
-  if (privacyBtn) {
-    privacyBtn.classList.toggle('is-active', s.isPrivacyMode);
-    privacyBtn.innerHTML = `${portalIcon(s.isPrivacyMode ? 'eyeOff' : 'eye', 15)}<span>${s.isPrivacyMode ? 'PII Hidden' : 'Privacy Blur'}</span>`;
-  }
 }
 
 /* ==========================================================================
@@ -350,10 +438,11 @@ function renderSidebarAndChrome() {
 function renderOverviewView(container) {
   const s = window.portalState;
   const dataset = getActiveDataset();
-  const lender = LENDERS[s.currentLenderId];
+  const lender = getActiveLender();
   const stats = computeCohortSummary(dataset, lender);
+  const cbi = computeCbiExceptionMetrics(dataset, lender);
   const priorityApps = [...dataset].sort((a, b) => b.brocScore - a.brocScore).slice(0, 5);
-  const privacyCls = s.isPrivacyMode ? 'privacy-masked' : '';
+  const decisionsCount = Object.keys(s.decisions).length;
 
   container.innerHTML = `
     <div class="auth-header-wrapper">
@@ -364,10 +453,6 @@ function renderOverviewView(container) {
         </p>
       </div>
       <div class="gen3-header-actions">
-        <button class="btn-vivien-pill-primary" onclick="toggleAssistant(true)">
-          ${portalIcon('sparkles', 15)}
-          <span>Ask Clara &amp; Clive</span>
-        </button>
         <button class="btn-broc-mint" onclick="switchView('pipeline')">
           <span>Open Full Pipeline (${dataset.length})</span>
           ${portalIcon('arrowRight', 15)}
@@ -380,7 +465,7 @@ function renderOverviewView(container) {
       <span class="muted-tag">(${s.currentDatasetMode === 'CURATED_7' ? '7-Select Showcase' : '517 Monthly Volume'})</span>
     </div>
 
-    <div class="v2-metrics-grid">
+    <div id="overviewKpiGrid" class="v2-metrics-grid">
       <div class="v2-metric-card" onclick="drillToPipelinePreset('ALL')">
         <div class="v2-metric-icon-circle">${portalIcon('euro', 20)}</div>
         <div class="v2-metric-data">
@@ -418,9 +503,36 @@ function renderOverviewView(container) {
       </div>
     </div>
 
+    <div id="overviewCbiQuotaCard" class="cbi-quota-card">
+      <div>
+        <div style="display:flex;justify-content:space-between;font-size:0.78rem;font-weight:700;">
+          <span style="color:var(--text-primary);">CBI FTB LTI Exception Allowance (&gt;4.0x)</span>
+          <span style="color:var(--vivien-indigo);">${cbi.ftbUsedPct}% / ${cbi.ftbAllowanceCapPct.toFixed(0)}% Cap</span>
+        </div>
+        <div class="cbi-quota-track">
+          <div class="cbi-quota-fill" style="width:${Math.round((cbi.ftbUsedPct / cbi.ftbAllowanceCapPct) * 100)}%;"></div>
+        </div>
+        <div style="font-size:0.71rem;color:var(--text-muted);margin-top:4px;">
+          ${(cbi.ftbAllowanceCapPct - cbi.ftbUsedPct).toFixed(1)}% headroom available across ${cbi.ftbCount} active FTB packs
+        </div>
+      </div>
+      <div>
+        <div style="display:flex;justify-content:space-between;font-size:0.78rem;font-weight:700;">
+          <span style="color:var(--text-primary);">CBI Mover (SSB) LTI Allowance (&gt;3.5x)</span>
+          <span style="color:var(--status-success-text);">${cbi.ssbUsedPct}% / ${cbi.ssbAllowanceCapPct.toFixed(0)}% Cap</span>
+        </div>
+        <div class="cbi-quota-track">
+          <div class="cbi-quota-fill emerald" style="width:${Math.round((cbi.ssbUsedPct / cbi.ssbAllowanceCapPct) * 100)}%;"></div>
+        </div>
+        <div style="font-size:0.71rem;color:var(--text-muted);margin-top:4px;">
+          ${(cbi.ssbAllowanceCapPct - cbi.ssbUsedPct).toFixed(1)}% headroom available • ${decisionsCount} underwriter action${decisionsCount === 1 ? '' : 's'} logged this session
+        </div>
+      </div>
+    </div>
+
     <div class="overview-two-col">
       <!-- LEFT CARD: UNDERWRITING INSIGHTS -->
-      <div class="v2-analytics-card">
+      <div id="overviewRiskInsightsCard" class="v2-analytics-card">
         <div class="analytics-header">
           <h2 class="analytics-title">Underwriting &amp; Risk Insights</h2>
           <button class="btn-xs-pill" onclick="switchView('analytics')">Open Charts →</button>
@@ -443,13 +555,13 @@ function renderOverviewView(container) {
           <span class="insight-value">${formatCompactEuro(stats.totalNii)} (185 bps margin)</span>
         </div>
         <div class="insight-row">
-          <span class="insight-label">Underwriter Touch Time (Broc Packaged)</span>
-          <span class="insight-value">4.2 hrs manual → 18 secs review</span>
+          <span class="insight-label">+${lender.stressBuffer.toFixed(1)}% Stress Test Pass Rate</span>
+          <span class="insight-value" style="color:var(--status-success-text);">${stats.stressPassCount} of ${stats.count} (${Math.round((stats.stressPassCount / Math.max(1, stats.count)) * 100)}%)</span>
         </div>
       </div>
 
       <!-- RIGHT CARD: PRIORITY UNDERWRITER QUEUE -->
-      <div class="v2-analytics-card">
+      <div id="overviewPriorityQueueCard" class="v2-analytics-card">
         <div class="analytics-header">
           <h2 class="analytics-title">Priority Fast-Track Queue</h2>
           <button class="btn-xs-pill" onclick="switchView('pipeline')">View All (${dataset.length}) →</button>
@@ -465,16 +577,19 @@ function renderOverviewView(container) {
                 <div style="display:flex;align-items:center;gap:12px;min-width:0;">
                   <div class="customer-avatar" style="width:36px;height:36px;font-size:0.78rem;">${escapeHtml(getInitials(a.names))}</div>
                   <div style="min-width:0;">
-                    <div class="customer-name-link ${privacyCls}" style="font-size:0.86rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${escapeHtml(a.names)}</div>
+                    <div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap;">
+                      <span class="customer-name-link" style="font-size:0.86rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${escapeHtml(a.names)}</span>
+                      ${getDecisionBadgeHtml(a.id)}
+                    </div>
                     <div style="font-size:0.75rem;color:var(--text-muted);margin-top:2px;">
-                      <span class="${privacyCls}">${escapeHtml(a.county)}</span> • ${escapeHtml(a.buyerType)} • BER ${escapeHtml(a.propertyBER)}
+                      ${escapeHtml(a.county)} • ${escapeHtml(a.buyerType)} • BER ${escapeHtml(a.propertyBER)} • ${escapeHtml(calc.bindingLabel)}
                     </div>
                   </div>
                 </div>
                 <div style="display:flex;align-items:center;gap:10px;flex-shrink:0;">
                   <span class="customer-stage-badge ${stageCls}"><span class="badge-dot"></span>${stageLabel}</span>
                   <div style="text-align:right;">
-                    <div style="font-family:'Outfit',sans-serif;font-weight:700;font-size:0.88rem;color:var(--text-primary);">${formatEuro(calc.qualifiedLoan)}</div>
+                    <div style="font-family:'Outfit',sans-serif;font-weight:700;font-size:0.88rem;color:var(--text-primary);">${formatEuro(calc.loanForPricing)}</div>
                     <div style="font-size:0.71rem;color:var(--status-success-text);font-weight:600;">Score ${a.brocScore}/100</div>
                   </div>
                 </div>
@@ -493,7 +608,6 @@ function renderOverviewView(container) {
 function renderPipelineView(container) {
   const s = window.portalState;
   const dataset = getActiveDataset();
-  const lender = LENDERS[s.currentLenderId];
 
   container.innerHTML = `
     <div class="gen3-page-header">
@@ -520,7 +634,7 @@ function renderPipelineView(container) {
 
     <div id="pipelineKpiGrid" class="customer-kpi-grid"></div>
 
-    <div class="pipeline-controls-bar">
+    <div id="pipelineControlsBar" class="pipeline-controls-bar">
       <div id="pipelineFilterChips" class="chip-scroll-strip"></div>
 
       <div class="pipeline-search-actions">
@@ -534,7 +648,7 @@ function renderPipelineView(container) {
             oninput="onPipelineSearchInput(this.value)"
           />
         </div>
-        <button id="moreFiltersBtn" class="btn-pill-outline" onclick="toggleFiltersPopover()">
+        <button id="moreFiltersBtn" class="btn-pill-outline ${s.filtersExpanded ? 'is-active' : ''}" onclick="toggleFiltersPopover()">
           ${portalIcon('sliders', 14)}
           <span>Filters</span>
         </button>
@@ -603,17 +717,20 @@ function renderPipelineView(container) {
     </div>
 
     <div id="stageContextBanner" class="stage-context-banner"></div>
+    <div id="bulkActionMount"></div>
 
-    <div class="customer-table-container">
+    <div id="pipelineTableContainer" class="customer-table-container">
       <div class="table-responsive">
         <table class="customer-table">
           <thead>
             <tr>
+              <th style="width:40px;"><input type="checkbox" id="selectAllVisibleCheck" class="table-check" onchange="toggleSelectAllVisible(this.checked)" aria-label="Select all visible rows" /></th>
               <th>Applicant &amp; Profile</th>
-              <th>Underwriting Stage</th>
+              <th>Stage &amp; Decision</th>
+              <th>LTI, Binding Cap &amp; Stress</th>
               <th>LTV → Yr10 &amp; Churn</th>
               <th>Broc Score &amp; PD</th>
-              <th style="text-align:right;">Max Qualified Loan</th>
+              <th style="text-align:right;">Facility / Max Cap</th>
             </tr>
           </thead>
           <tbody id="applicantTableBody"></tbody>
@@ -669,23 +786,15 @@ function setStageFilter(stage) {
 }
 
 function toggleQuickPresetChip(preset) {
-  const s = window.portalState;
-  if (preset === 'GREEN_A') {
-    s.berFilter = s.berFilter === 'A_RATED' ? 'ALL' : 'A_RATED';
-  } else if (preset === 'LOW_LTV') {
-    s.riskFilter = s.riskFilter === 'LOW_LTV' ? 'ALL' : 'LOW_LTV';
-    if (s.riskFilter === 'LOW_LTV') s.sortOrder = 'LTV_ASC';
-  } else if (preset === 'SCORE_90') {
-    s.riskFilter = s.riskFilter === 'SCORE_90' ? 'ALL' : 'SCORE_90';
-  } else if (preset === 'HIGH_CHURN') {
-    s.riskFilter = s.riskFilter === 'HIGH_CHURN' ? 'ALL' : 'HIGH_CHURN';
-    if (s.riskFilter === 'HIGH_CHURN') s.sortOrder = 'CHURN_DESC';
-  } else if (preset === 'STAMP4') {
-    s.search = s.search.toLowerCase() === 'stamp 4' ? '' : 'Stamp 4';
-    const inputEl = document.getElementById('pipelineSearchInput');
-    if (inputEl) inputEl.value = s.search;
+  const chips = window.portalState.quickChips;
+  if (chips.has(preset)) {
+    chips.delete(preset);
+  } else {
+    chips.add(preset);
+    if (preset === 'LOW_LTV') window.portalState.sortOrder = 'LTV_ASC';
+    if (preset === 'HIGH_CHURN') window.portalState.sortOrder = 'CHURN_DESC';
   }
-  s.currentPage = 1;
+  window.portalState.currentPage = 1;
   syncFilterDropdownValues();
   renderPipelineDynamicParts();
 }
@@ -697,6 +806,7 @@ function clearAllSearchAndFilters(skipRender) {
   s.buyerType = 'ALL';
   s.berFilter = 'ALL';
   s.riskFilter = 'ALL';
+  s.quickChips.clear();
   s.sortOrder = 'SCORE_DESC';
   s.currentStageFilter = 'ALL';
   s.currentPage = 1;
@@ -704,8 +814,9 @@ function clearAllSearchAndFilters(skipRender) {
   const inputEl = document.getElementById('pipelineSearchInput');
   if (inputEl) inputEl.value = '';
   syncFilterDropdownValues();
-  if (!skipRender && s.activeView === 'pipeline') {
-    renderPipelineDynamicParts();
+  if (!skipRender) {
+    if (s.activeView === 'pipeline') renderPipelineDynamicParts();
+    else if (s.activeView === 'analytics') renderAnalyticsView(document.getElementById('viewContainer'));
   }
 }
 
@@ -715,13 +826,112 @@ function changePage(page) {
   window.scrollTo({ top: 180, behavior: 'smooth' });
 }
 
+function toggleRowSelection(id, checked) {
+  if (checked) window.portalState.selectedIds.add(id);
+  else window.portalState.selectedIds.delete(id);
+  renderPipelineDynamicParts();
+}
+
+function toggleSelectAllVisible(checked) {
+  const filtered = getFilteredApplicants();
+  const startIdx = (window.portalState.currentPage - 1) * PAGE_SIZE;
+  const pageItems = filtered.slice(startIdx, startIdx + PAGE_SIZE);
+  pageItems.forEach(a => {
+    if (checked) window.portalState.selectedIds.add(a.id);
+    else window.portalState.selectedIds.delete(a.id);
+  });
+  renderPipelineDynamicParts();
+}
+
+function clearBulkSelection() {
+  window.portalState.selectedIds.clear();
+  renderPipelineDynamicParts();
+}
+
+function batchApproveSelected() {
+  const s = window.portalState;
+  const dataset = getActiveDataset();
+  const lender = getActiveLender();
+  let issued = 0;
+  let skipped = 0;
+
+  s.selectedIds.forEach(id => {
+    const app = dataset.find(a => a.id === id);
+    if (!app) return;
+    const calc = calculateLoanQualification(app, lender);
+    if (app.targetStage === 'NURTURE' || !calc.passesStressTest) {
+      skipped++;
+      return;
+    }
+    const status = app.targetStage === 'FULL' ? 'OFFER_ISSUED' : 'AIP_ISSUED';
+    s.decisions[id] = {
+      status,
+      rate: calc.appliedRate,
+      amount: calc.loanForPricing,
+      timestamp: new Date().toLocaleTimeString('en-IE', { hour: '2-digit', minute: '2-digit' })
+    };
+    recordAuditEvent(id, status === 'OFFER_ISSUED' ? 'Batch Loan Offer Issued' : 'Batch AIP Issued', `${lender.shortName} ${formatEuro(calc.loanForPricing)} @ ${calc.appliedRate.toFixed(2)}%`);
+    issued++;
+  });
+
+  s.selectedIds.clear();
+  renderAll();
+  const banner = document.getElementById('stageContextBanner');
+  if (banner) {
+    banner.innerHTML = `<div style="color:var(--status-success-text);font-weight:600;">✅ Batch action complete: ${issued} ${lender.code} decision(s) issued${skipped > 0 ? ` • ${skipped} ineligible/remediating file(s) safely skipped` : ''}.</div>`;
+  }
+}
+
+function exportApplicantsCsv(applicantsList, filenameSuffix) {
+  const lender = getActiveLender();
+  const s = window.portalState;
+  const headers = [
+    'Application ID', 'Applicant Names', 'County', 'Buyer Type', 'Stage', 'Broc Score',
+    'Recognized Income EUR', 'LTI Ratio', 'Qualified Loan EUR', 'Target Facility EUR',
+    'Initial LTV %', 'Binding Constraint', 'Rate %', '+2% Stress Margin EUR',
+    '5-Yr Churn %', 'Decision Status'
+  ];
+
+  const rows = applicantsList.map(a => {
+    const c = calculateLoanQualification(a, lender);
+    const dec = s.decisions[a.id]?.status || 'PENDING_REVIEW';
+    return [
+      a.id, a.names, a.county, a.buyerType, a.targetStage, a.brocScore,
+      c.recognizedIncome, c.actualLtiRatio, c.qualifiedLoan, c.loanForPricing,
+      c.initialLtvPct, c.bindingLabel, c.appliedRate.toFixed(2), c.stressMarginPm,
+      c.churnRisk5YrPct, dec
+    ].map(val => `"${String(val).replace(/"/g, '""')}"`).join(',');
+  });
+
+  const csvContent = [headers.join(','), ...rows].join('\n');
+  try {
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = `broc-${lender.code.toLowerCase()}-${filenameSuffix}.csv`;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    URL.revokeObjectURL(url);
+  } catch (e) {}
+}
+
+function exportSelectedCsv() {
+  const dataset = getActiveDataset();
+  const picked = dataset.filter(a => window.portalState.selectedIds.has(a.id));
+  if (picked.length > 0) {
+    exportApplicantsCsv(picked, `selected-${picked.length}`);
+  }
+}
+
 function renderPipelineDynamicParts() {
   const s = window.portalState;
   const dataset = getActiveDataset();
+  const lender = getActiveLender();
   const filtered = getFilteredApplicants();
-  const activeList = filtered.length > 0 ? filtered : dataset;
-  const lender = LENDERS[s.currentLenderId];
-  const fullStats = computeCohortSummary(dataset, lender);
+  const nonStageMatches = dataset.filter(a => matchesNonStageFilters(a, lender));
+  const stageChipStats = computeCohortSummary(nonStageMatches, lender);
   const filteredStats = computeCohortSummary(filtered, lender);
 
   // Header count & subtitle
@@ -733,12 +943,10 @@ function renderPipelineDynamicParts() {
   }
 
   // Show/hide reset button
-  const hasFilters = s.search !== '' || s.area !== 'ALL' || s.buyerType !== 'ALL' || s.berFilter !== 'ALL' || s.riskFilter !== 'ALL' || s.currentStageFilter !== 'ALL';
   const clearBtn = document.getElementById('clearFiltersBtn');
-  if (clearBtn) clearBtn.style.display = hasFilters ? 'inline-flex' : 'none';
+  if (clearBtn) clearBtn.style.display = hasActivePipelineFilters() ? 'inline-flex' : 'none';
 
-  // Gen-3 KPI Grid
-  const displayStats = filtered.length > 0 ? filteredStats : fullStats;
+  // Gen-3 KPI Grid (shows 0 cleanly when filters return 0 records!)
   const kpiGrid = document.getElementById('pipelineKpiGrid');
   if (kpiGrid) {
     kpiGrid.innerHTML = `
@@ -747,65 +955,65 @@ function renderPipelineDynamicParts() {
           <span class="customer-kpi-label">Avg Broc Score</span>
           <div class="customer-kpi-icon emerald">${portalIcon('score', 16)}</div>
         </div>
-        <div class="customer-kpi-value emerald">${displayStats.avgScore}/100</div>
-        <div class="customer-kpi-sub">↑ +${displayStats.avgGain} pts uplift across ${displayStats.count} packs</div>
+        <div class="customer-kpi-value emerald">${filteredStats.count > 0 ? `${filteredStats.avgScore}/100` : '—'}</div>
+        <div class="customer-kpi-sub">${filteredStats.count > 0 ? `↑ +${filteredStats.avgGain} pts uplift across ${filteredStats.count} packs` : '0 matching packs'}</div>
       </div>
       <div class="customer-kpi-card">
         <div class="customer-kpi-top">
           <span class="customer-kpi-label">Projected Loans Granted</span>
           <div class="customer-kpi-icon indigo">${portalIcon('euro', 16)}</div>
         </div>
-        <div class="customer-kpi-value">${formatCompactEuro(displayStats.totalLoan)}</div>
-        <div class="customer-kpi-sub">P10 ${formatCompactEuro(displayStats.totalLow)} – P90 ${formatCompactEuro(displayStats.totalHigh)}</div>
+        <div class="customer-kpi-value">${formatCompactEuro(filteredStats.totalLoan)}</div>
+        <div class="customer-kpi-sub">P10 ${formatCompactEuro(filteredStats.totalLow)} – P90 ${formatCompactEuro(filteredStats.totalHigh)}</div>
       </div>
       <div class="customer-kpi-card">
         <div class="customer-kpi-top">
           <span class="customer-kpi-label">LTV Trajectory (Yr 10)</span>
           <div class="customer-kpi-icon blue">${portalIcon('analytics', 16)}</div>
         </div>
-        <div class="customer-kpi-value">${displayStats.avgInitLtv}% → ${displayStats.avgYr10Ltv}%</div>
-        <div class="customer-kpi-sub">Weighted Day-1 LTV → 30-Yr Amortized</div>
+        <div class="customer-kpi-value">${filteredStats.count > 0 ? `${filteredStats.avgInitLtv}% → ${filteredStats.avgYr10Ltv}%` : '—'}</div>
+        <div class="customer-kpi-sub">Weighted Day-1 LTV → Amortized</div>
       </div>
       <div class="customer-kpi-card">
         <div class="customer-kpi-top">
           <span class="customer-kpi-label">5-Yr Switcher Churn</span>
           <div class="customer-kpi-icon amber">${portalIcon('shieldAlert', 16)}</div>
         </div>
-        <div class="customer-kpi-value amber">${displayStats.avgChurn}% → ${displayStats.avgManagedChurn}%</div>
+        <div class="customer-kpi-value amber">${filteredStats.count > 0 ? `${filteredStats.avgChurn}% → ${filteredStats.avgManagedChurn}%` : '—'}</div>
         <div class="customer-kpi-sub">Yr 3 &amp; Yr 5 cliff retention w/ Broc</div>
       </div>
     `;
   }
 
-  // Filter chips strip
+  // Filter chips strip (stage chip counts dynamically reflect active non-stage filters; quick chips stack!)
   const chipsEl = document.getElementById('pipelineFilterChips');
   if (chipsEl) {
     chipsEl.innerHTML = `
       <button class="policy-filter-chip ${s.currentStageFilter === 'ALL' ? 'active' : ''}" onclick="setStageFilter('ALL')">
-        <span>All</span><span class="chip-count">${dataset.length}</span>
+        <span>All</span><span class="chip-count">${nonStageMatches.length}</span>
       </button>
       <button class="policy-filter-chip ${s.currentStageFilter === 'AIP' ? 'active' : ''}" onclick="setStageFilter('AIP')">
-        <span>A) AIP Ready</span><span class="chip-count">${fullStats.aipReady}</span>
+        <span>A) AIP Ready</span><span class="chip-count">${stageChipStats.aipReady}</span>
       </button>
       <button class="policy-filter-chip ${s.currentStageFilter === 'FULL' ? 'active' : ''}" onclick="setStageFilter('FULL')">
-        <span>B) Full Mortgage</span><span class="chip-count">${fullStats.fullReady}</span>
+        <span>B) Full Mortgage</span><span class="chip-count">${stageChipStats.fullReady}</span>
       </button>
       <button class="policy-filter-chip ${s.currentStageFilter === 'NURTURE' ? 'active' : ''}" onclick="setStageFilter('NURTURE')">
-        <span>Clive Remediating</span><span class="chip-count">${fullStats.nurtureCount}</span>
+        <span>Clive Remediating</span><span class="chip-count">${stageChipStats.nurtureCount}</span>
       </button>
-      <button class="policy-filter-chip ${s.berFilter === 'A_RATED' ? 'active' : ''}" onclick="toggleQuickPresetChip('GREEN_A')">
+      <button class="policy-filter-chip ${s.quickChips.has('GREEN_A') ? 'active' : ''}" onclick="toggleQuickPresetChip('GREEN_A')">
         Green BER A1–A3
       </button>
-      <button class="policy-filter-chip ${s.riskFilter === 'SCORE_90' ? 'active' : ''}" onclick="toggleQuickPresetChip('SCORE_90')">
+      <button class="policy-filter-chip ${s.quickChips.has('SCORE_90') ? 'active' : ''}" onclick="toggleQuickPresetChip('SCORE_90')">
         Score 90+
       </button>
-      <button class="policy-filter-chip ${s.riskFilter === 'LOW_LTV' ? 'active' : ''}" onclick="toggleQuickPresetChip('LOW_LTV')">
+      <button class="policy-filter-chip ${s.quickChips.has('LOW_LTV') ? 'active' : ''}" onclick="toggleQuickPresetChip('LOW_LTV')">
         LTV ≤75%
       </button>
-      <button class="policy-filter-chip ${s.riskFilter === 'HIGH_CHURN' ? 'active' : ''}" onclick="toggleQuickPresetChip('HIGH_CHURN')">
+      <button class="policy-filter-chip ${s.quickChips.has('HIGH_CHURN') ? 'active' : ''}" onclick="toggleQuickPresetChip('HIGH_CHURN')">
         Churn ≥30%
       </button>
-      <button class="policy-filter-chip ${s.search.toLowerCase() === 'stamp 4' ? 'active' : ''}" onclick="toggleQuickPresetChip('STAMP4')">
+      <button class="policy-filter-chip ${s.quickChips.has('STAMP4') ? 'active' : ''}" onclick="toggleQuickPresetChip('STAMP4')">
         Stamp 4 IRP
       </button>
     `;
@@ -815,13 +1023,38 @@ function renderPipelineDynamicParts() {
   const banner = document.getElementById('stageContextBanner');
   if (banner) {
     if (s.currentStageFilter === 'AIP') {
-      banner.innerHTML = `<div><span class="customer-stage-badge aip-ready"><span class="badge-dot"></span>Stage A: AIP (10 Core Criteria)</span> <span style="margin-left:8px;">Identity KYC, Citizenship/Stamp 4, Address AML, PPSN, CCR Bureau, Permanent PAYE, Revenue EDS, 6-Mo Statements, Clean Conduct, Deposit AML + +2% Stress.</span></div>`;
+      banner.innerHTML = `<div><span class="customer-stage-badge aip-ready"><span class="badge-dot"></span>Stage A: AIP (10 Core Criteria)</span> <span style="margin-left:8px;">Identity KYC, Citizenship/Stamp 4, Address AML, PPSN, CCR Bureau, Permanent PAYE, Revenue EDS, 6-Mo Statements, Clean Conduct, Deposit AML + +${lender.stressBuffer.toFixed(1)}% Stress.</span></div>`;
     } else if (s.currentStageFilter === 'FULL') {
       banner.innerHTML = `<div><span class="customer-stage-badge full-ready"><span class="badge-dot"></span>Stage B: Full Mortgage (18 Criteria)</span> <span style="margin-left:8px;">Includes all Stage A checks + Stamped Salary Cert, Refresh, Sales Advice Note, Panel Valuation, SEAI BER, Engineer Survey, Solicitor Undertaking &amp; Bound Protection.</span></div>`;
     } else if (s.currentStageFilter === 'NURTURE') {
-      banner.innerHTML = `<div><span class="customer-stage-badge remediating"><span class="badge-dot"></span>Clive AI Remediation Mode</span> <span style="margin-left:8px;">Applicants held in <code>app.broc.fi</code> to clear Klarna/BNPL &amp; complete 6 clean savings months before reaching underwriter queue.</span></div>`;
+      banner.innerHTML = `<div><span class="customer-stage-badge remediating"><span class="badge-dot"></span>Clive AI Remediation Mode</span> <span style="margin-left:8px;">Applicants held in <code>app.broc.fi</code> until conduct clears — automated AIP issuance disabled by guardrail.</span></div>`;
     } else {
-      banner.innerHTML = `<div><strong>Active Ruleset: ${escapeHtml(lender.name)}</strong> • Green ${lender.greenRate.toFixed(2)}% (+2% stressed @ ${(lender.greenRate + lender.stressBuffer).toFixed(2)}%) • CBI Caps: 4.0x FTB / 3.5x Mover</div><div class="font-mono" style="font-size:0.74rem;color:var(--text-muted);">${filtered.length} matching records</div>`;
+      banner.innerHTML = `<div><strong>Active Ruleset: ${escapeHtml(lender.name)}</strong> • Green ${lender.greenRate.toFixed(2)}% (+${lender.stressBuffer.toFixed(1)}% stressed @ ${(lender.greenRate + lender.stressBuffer).toFixed(2)}%) • ${Math.round(lender.maxVariableBonusPct * 100)}% Bonus Recognition</div><div class="font-mono" style="font-size:0.74rem;color:var(--text-muted);">${filtered.length} matching records</div>`;
+    }
+  }
+
+  // Bulk Action Bar
+  const bulkMount = document.getElementById('bulkActionMount');
+  if (bulkMount) {
+    if (s.selectedIds.size > 0) {
+      bulkMount.innerHTML = `
+        <div class="bulk-action-bar">
+          <div style="font-size:0.82rem;font-weight:700;color:var(--vivien-indigo-dark);">
+            ${s.selectedIds.size} application${s.selectedIds.size === 1 ? '' : 's'} selected
+          </div>
+          <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;">
+            <button class="btn-broc-primary" style="padding:0.38rem 0.9rem;font-size:0.76rem;" onclick="batchApproveSelected()">
+              ✓ Batch Issue Eligible AIP / Offer
+            </button>
+            <button class="btn-pill-outline" style="padding:0.38rem 0.85rem;font-size:0.76rem;" onclick="exportSelectedCsv()">
+              ${portalIcon('download', 14)} Export Selected CSV
+            </button>
+            <button class="btn-xs-pill" onclick="clearBulkSelection()">Clear</button>
+          </div>
+        </div>
+      `;
+    } else {
+      bulkMount.innerHTML = '';
     }
   }
 
@@ -832,17 +1065,21 @@ function renderPipelineDynamicParts() {
 
   const startIdx = (s.currentPage - 1) * PAGE_SIZE;
   const pageItems = filtered.slice(startIdx, startIdx + PAGE_SIZE);
-  const privacyCls = s.isPrivacyMode ? 'privacy-masked' : '';
+
+  const masterCheck = document.getElementById('selectAllVisibleCheck');
+  if (masterCheck) {
+    masterCheck.checked = pageItems.length > 0 && pageItems.every(a => s.selectedIds.has(a.id));
+  }
 
   const tbody = document.getElementById('applicantTableBody');
   if (tbody) {
     if (pageItems.length === 0) {
       tbody.innerHTML = `
         <tr>
-          <td colspan="5">
+          <td colspan="7">
             <div class="empty-state-box">
               <div style="font-weight:700;color:var(--text-primary);font-size:0.95rem;">No applications match your current search or filters</div>
-              <p style="font-size:0.8rem;margin:6px 0 14px;">Try searching for another county (Dublin, Cork, Galway), BER rating, or clear active filters.</p>
+              <p style="font-size:0.8rem;margin:6px 0 14px;">Try adjusting county, BER, or quick filter chips to see matching borrower files.</p>
               <button class="btn-broc-primary" onclick="clearAllSearchAndFilters()">Reset Search &amp; Filters</button>
             </div>
           </td>
@@ -852,6 +1089,7 @@ function renderPipelineDynamicParts() {
       tbody.innerHTML = pageItems.map(a => {
         const calc = calculateLoanQualification(a, lender);
         const isSelected = a.id === s.selectedApplicantId;
+        const isChecked = s.selectedIds.has(a.id);
         const aipMet = a.aipCriteria.filter(c => c.met).length;
         const fullMet = a.fullCriteria.filter(c => c.met).length;
 
@@ -880,32 +1118,49 @@ function renderPipelineDynamicParts() {
 
         return `
           <tr class="${isSelected && s.drawerOpen ? 'is-selected' : ''}" onclick="selectAndOpenDrawer('${a.id}')">
+            <td onclick="event.stopPropagation()">
+              <input type="checkbox" class="table-check" ${isChecked ? 'checked' : ''} onchange="toggleRowSelection('${a.id}', this.checked)" aria-label="Select ${escapeHtml(a.id)}" />
+            </td>
             <td>
-              <div style="display:flex;align-items:center;gap:12px;">
+              <div style="display:flex;align-items:center;gap:11px;">
                 <div class="customer-avatar">${escapeHtml(getInitials(a.names))}</div>
                 <div style="min-width:0;">
                   <div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap;">
-                    <span class="customer-name-link ${privacyCls}">${escapeHtml(a.names)}</span>
+                    <span class="customer-name-link">${escapeHtml(a.names)}</span>
                     <span class="policy-tag">${escapeHtml(a.buyerType)}</span>
                     <span class="policy-tag" style="${calc.isGreenEligible ? 'border-color:var(--status-success-border);color:var(--status-success-text);background:var(--status-success-bg);' : ''}">BER ${escapeHtml(a.propertyBER)}</span>
                   </div>
-                  <div style="font-size:0.76rem;color:var(--text-muted);margin-top:2px;">
-                    <span class="${privacyCls}">${escapeHtml(a.county)}</span> • ${escapeHtml(a.citizenship)}
+                  <div style="font-size:0.75rem;color:var(--text-muted);margin-top:2px;">
+                    ${escapeHtml(a.county)} • ${escapeHtml(a.citizenship)}
                   </div>
-                  <div class="font-mono" style="font-size:0.7rem;color:var(--text-caption);margin-top:1px;">
+                  <div class="font-mono" style="font-size:0.69rem;color:var(--text-caption);margin-top:1px;">
                     ${escapeHtml(a.id)} • ${escapeHtml(a.dataSource.split('(')[0].trim())}
                   </div>
                 </div>
               </div>
             </td>
             <td>
-              <span class="customer-stage-badge ${stageBadgeCls}"><span class="badge-dot"></span>${stageText}</span>
-              <div style="font-size:0.74rem;color:var(--text-muted);margin-top:5px;">
-                AIP: ${aipMet}/10 • Full: ${aipMet + fullMet}/18
+              <div style="display:flex;flex-direction:column;align-items:flex-start;gap:4px;">
+                <span class="customer-stage-badge ${stageBadgeCls}"><span class="badge-dot"></span>${stageText}</span>
+                ${getDecisionBadgeHtml(a.id)}
+                <div style="font-size:0.72rem;color:var(--text-muted);">
+                  AIP: ${aipMet}/10 • Full: ${aipMet + fullMet}/18
+                </div>
               </div>
             </td>
             <td>
-              <div style="font-weight:700;color:var(--text-primary);font-size:0.84rem;">
+              <div style="font-weight:700;font-size:0.81rem;color:var(--text-primary);">
+                ${calc.actualLtiRatio}x LTI <span style="color:var(--text-muted);font-weight:500;">(cap ${calc.ltiMultiplier.toFixed(1)}x)</span>
+              </div>
+              <div style="font-size:0.73rem;color:var(--vivien-indigo);font-weight:600;margin-top:2px;">
+                ${escapeHtml(calc.bindingLabel)}
+              </div>
+              <div style="font-size:0.71rem;color:${calc.passesStressTest ? 'var(--status-success-text)' : 'var(--status-danger-text)'};font-weight:600;margin-top:1px;">
+                Stress: ${calc.stressMarginPm >= 0 ? '+' : ''}${formatEuro(calc.stressMarginPm)}/mo
+              </div>
+            </td>
+            <td>
+              <div style="font-weight:700;color:var(--text-primary);font-size:0.83rem;">
                 ${calc.initialLtvPct}% <span style="color:var(--vivien-indigo);font-weight:600;">→ ${calc.year10LtvPct}% Yr10</span>
               </div>
               <div style="margin-top:4px;">
@@ -916,18 +1171,20 @@ function renderPipelineDynamicParts() {
             </td>
             <td>
               <span class="customer-stage-badge ${scoreBadgeCls}">${a.brocScore}/100</span>
-              <div style="font-size:0.73rem;color:var(--status-success-text);font-weight:600;margin-top:4px;">
+              <div style="font-size:0.72rem;color:var(--status-success-text);font-weight:600;margin-top:4px;">
                 ↑ from ${a.brocScoreBefore} • PD ${calc.pd12MoBps}bps
               </div>
             </td>
             <td style="text-align:right;">
-              <div style="display:flex;align-items:center;justify-content:flex-end;gap:12px;">
+              <div style="display:flex;align-items:center;justify-content:flex-end;gap:10px;">
                 <div>
-                  <div style="font-family:'Outfit',sans-serif;font-weight:700;font-size:0.98rem;color:var(--text-primary);">${formatEuro(calc.qualifiedLoan)}</div>
-                  <div style="font-size:0.71rem;color:var(--text-muted);">Range ${formatCompactEuro(calc.loanGrantLow)}–${formatCompactEuro(calc.loanGrantHigh)}</div>
-                  <div style="font-size:0.71rem;color:var(--status-success-text);font-weight:600;">+${formatCompactEuro(calc.totalDeposit)} Deposit</div>
+                  <div style="font-family:'Outfit',sans-serif;font-weight:700;font-size:0.96rem;color:var(--text-primary);">${formatEuro(calc.loanForPricing)}</div>
+                  ${calc.loanForPricing !== calc.qualifiedLoan
+                    ? `<div style="font-size:0.7rem;color:var(--vivien-indigo);font-weight:600;">Max Cap ${formatCompactEuro(calc.qualifiedLoan)}</div>`
+                    : `<div style="font-size:0.7rem;color:var(--text-muted);">Range ${formatCompactEuro(calc.loanGrantLow)}–${formatCompactEuro(calc.loanGrantHigh)}</div>`}
+                  <div style="font-size:0.7rem;color:var(--status-success-text);font-weight:600;">+${formatCompactEuro(calc.totalDeposit)} ${a.buyerType === 'SWITCHER' ? 'Equity' : 'Deposit'}</div>
                 </div>
-                <button class="btn-vivien-pill-primary" style="padding:0.38rem 0.8rem;font-size:0.75rem;" onclick="event.stopPropagation(); selectAndOpenDrawer('${a.id}')">
+                <button class="btn-vivien-pill-primary" style="padding:0.38rem 0.78rem;font-size:0.74rem;" onclick="event.stopPropagation(); selectAndOpenDrawer('${a.id}')">
                   360° File
                 </button>
               </div>
@@ -944,14 +1201,15 @@ function renderPipelineDynamicParts() {
     if (totalFiltered <= PAGE_SIZE) {
       footer.innerHTML = `
         <span>Showing all <strong>${totalFiltered}</strong> matching applications</span>
-        ${s.currentDatasetMode === 'CURATED_7'
-          ? `<button class="btn-xs-pill" onclick="selectDatasetMode('MONTHLY_517')">Switch to 517 Monthly Avg Queue →</button>`
-          : ''}
+        <div style="display:flex;gap:8px;align-items:center;">
+          ${totalFiltered > 0 ? `<button class="btn-xs-pill" onclick="exportApplicantsCsv(getFilteredApplicants(), 'cohort')">Export Cohort CSV</button>` : ''}
+        </div>
       `;
     } else {
       footer.innerHTML = `
         <div>Showing <strong>${startIdx + 1}–${Math.min(startIdx + PAGE_SIZE, totalFiltered)}</strong> of <strong>${totalFiltered}</strong> monthly applications (Page ${s.currentPage} of ${totalPages})</div>
         <div style="display:flex;gap:6px;">
+          <button class="btn-xs-pill" onclick="exportApplicantsCsv(getFilteredApplicants(), 'filtered-cohort')">Export CSV</button>
           <button class="btn-xs-pill" onclick="changePage(${s.currentPage - 1})" ${s.currentPage === 1 ? 'disabled' : ''}>← Prev</button>
           <button class="btn-xs-pill" onclick="changePage(${s.currentPage + 1})" ${s.currentPage === totalPages ? 'disabled' : ''}>Next →</button>
         </div>
@@ -961,10 +1219,36 @@ function renderPipelineDynamicParts() {
 }
 
 /* ==========================================================================
-   VIEW 3: UNDERWRITING RULES & CRITERIA (Modular .policy-card Library)
+   VIEW 3: UNDERWRITING RULES & INTERACTIVE POLICY SIMULATOR
    ========================================================================== */
+function updatePolicyOverride(field, rawValue) {
+  const s = window.portalState;
+  const val = Number(rawValue);
+  if (!Number.isFinite(val)) return;
+  if (!s.policyOverrides[s.currentLenderId]) {
+    s.policyOverrides[s.currentLenderId] = {};
+  }
+  s.policyOverrides[s.currentLenderId][field] = val;
+  renderAll();
+}
+
+function resetPolicyOverrides() {
+  const s = window.portalState;
+  s.policyOverrides[s.currentLenderId] = {};
+  renderAll();
+}
+
 function renderRulesView(container) {
   const s = window.portalState;
+  const baseLender = LENDERS[s.currentLenderId];
+  const activeLender = getActiveLender();
+  const dataset = getActiveDataset();
+  const baselineStats = computeCohortSummary(dataset, baseLender);
+  const simStats = computeCohortSummary(dataset, activeLender);
+  const volDelta = simStats.totalLoan - baselineStats.totalLoan;
+  const passDelta = simStats.stressPassCount - baselineStats.stressPassCount;
+  const hasOverrides = Object.keys(s.policyOverrides[s.currentLenderId] || {}).length > 0;
+
   const searchLower = (s.rulesSearch || '').toLowerCase().trim();
   const filteredRules = UNDERWRITING_RULES.filter(r => {
     if (s.rulesFilter !== 'ALL' && r.type !== s.rulesFilter) return false;
@@ -979,10 +1263,10 @@ function renderRulesView(container) {
     <div class="gen3-page-header">
       <div>
         <div class="gen3-title-row">
-          <h1 class="gen3-title">Underwriting Rules &amp; Criteria</h1>
+          <h1 class="gen3-title">Underwriting Rules &amp; Credit Policy</h1>
           <span class="gen3-count-pill">${filteredRules.length} of ${UNDERWRITING_RULES.length} Rules</span>
         </div>
-        <p class="gen3-subtitle">Modular policy bank governing Broc Score™ (0–100), Stage A (AIP 10-Pt), and Stage B (Full Offer 18-Pt) checks.</p>
+        <p class="gen3-subtitle">Live credit policy parameters for <strong>${escapeHtml(activeLender.name)}</strong> plus the 23-rule Broc Score &amp; CBI matrix.</p>
       </div>
       <div class="gen3-header-actions">
         <button class="btn-vivien-pill-primary" onclick="openScoreModal()">
@@ -996,7 +1280,55 @@ function renderRulesView(container) {
       </div>
     </div>
 
-    <div class="customer-kpi-grid cols-3">
+    <!-- INTERACTIVE POLICY SIMULATOR -->
+    <div id="policySimulatorCard" class="policy-simulator-card">
+      <div style="display:flex;align-items:center;justify-content:space-between;gap:1rem;flex-wrap:wrap;">
+        <div>
+          <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;">
+            <span class="analytics-badge is-indigo">Live Credit Policy Simulator</span>
+            <strong style="font-family:'Outfit',sans-serif;font-size:1rem;color:var(--text-primary);">${escapeHtml(activeLender.shortName)} Thresholds</strong>
+            ${hasOverrides ? `<span class="decision-badge conditional">Modified Policy Active</span>` : ''}
+          </div>
+          <div style="font-size:0.78rem;color:var(--text-muted);margin-top:3px;">
+            Adjust rates, variable bonus recognition, or NDI living cost benchmarks to simulate real-time impact across all <strong>${dataset.length} packs</strong>.
+          </div>
+        </div>
+        <div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap;">
+          <div style="text-align:right;font-size:0.76rem;">
+            <div style="color:var(--text-muted);">Simulated Cohort Volume</div>
+            <strong style="font-family:'Outfit',sans-serif;font-size:0.98rem;color:var(--text-primary);">${formatCompactEuro(simStats.totalLoan)}</strong>
+            <span style="color:${volDelta >= 0 ? 'var(--status-success-text)' : 'var(--status-danger-text)'};font-weight:700;margin-left:4px;">(${volDelta >= 0 ? '+' : ''}${formatCompactEuro(volDelta)})</span>
+          </div>
+          <div style="text-align:right;font-size:0.76rem;">
+            <div style="color:var(--text-muted);">Stress Pass Rate</div>
+            <strong style="font-family:'Outfit',sans-serif;font-size:0.98rem;color:var(--status-success-text);">${simStats.stressPassCount}/${dataset.length}</strong>
+            <span style="color:${passDelta >= 0 ? 'var(--status-success-text)' : 'var(--status-danger-text)'};font-weight:700;margin-left:4px;">(${passDelta >= 0 ? '+' : ''}${passDelta})</span>
+          </div>
+          ${hasOverrides ? `<button class="btn-xs-pill" onclick="resetPolicyOverrides()">Reset Defaults</button>` : ''}
+        </div>
+      </div>
+
+      <div class="policy-slider-grid">
+        <div class="policy-control-box">
+          <label for="simGreenRate"><span>Green EcoSaver APR</span><span class="font-mono">${activeLender.greenRate.toFixed(2)}%</span></label>
+          <input id="simGreenRate" type="range" min="3.10" max="4.50" step="0.05" value="${activeLender.greenRate.toFixed(2)}" oninput="updatePolicyOverride('greenRate', this.value)" />
+        </div>
+        <div class="policy-control-box">
+          <label for="simStdRate"><span>Standard Fixed APR</span><span class="font-mono">${activeLender.stdRate.toFixed(2)}%</span></label>
+          <input id="simStdRate" type="range" min="3.40" max="5.10" step="0.05" value="${activeLender.stdRate.toFixed(2)}" oninput="updatePolicyOverride('stdRate', this.value)" />
+        </div>
+        <div class="policy-control-box">
+          <label for="simBonusPct"><span>Variable Bonus Recognized</span><span class="font-mono">${Math.round(activeLender.maxVariableBonusPct * 100)}%</span></label>
+          <input id="simBonusPct" type="range" min="0.20" max="1.00" step="0.05" value="${activeLender.maxVariableBonusPct.toFixed(2)}" oninput="updatePolicyOverride('maxVariableBonusPct', this.value)" />
+        </div>
+        <div class="policy-control-box">
+          <label for="simCoupleNdi"><span>Couple NDI Living Cost</span><span class="font-mono">${formatEuro(activeLender.livingCostCouple)}/mo</span></label>
+          <input id="simCoupleNdi" type="range" min="2000" max="2900" step="50" value="${activeLender.livingCostCouple}" oninput="updatePolicyOverride('livingCostCouple', this.value)" />
+        </div>
+      </div>
+    </div>
+
+    <div id="rulesStageSummaryGrid" class="customer-kpi-grid cols-3">
       <div class="customer-kpi-card">
         <div class="customer-kpi-top">
           <span class="customer-kpi-label">Broc Score Framework</span>
@@ -1011,7 +1343,7 @@ function renderRulesView(container) {
           <div class="customer-kpi-icon blue">${portalIcon('rules', 16)}</div>
         </div>
         <div class="customer-kpi-value">10 Criteria</div>
-        <div class="customer-kpi-sub">KYC, Residency, EDS, CCR &amp; +2% Stress</div>
+        <div class="customer-kpi-sub">KYC, Residency, EDS, CCR &amp; +${activeLender.stressBuffer.toFixed(1)}% Stress</div>
       </div>
       <div class="customer-kpi-card">
         <div class="customer-kpi-top">
@@ -1023,7 +1355,7 @@ function renderRulesView(container) {
       </div>
     </div>
 
-    <div class="pipeline-controls-bar">
+    <div id="rulesFilterControlsBar" class="pipeline-controls-bar">
       <div class="chip-scroll-strip">
         <button class="policy-filter-chip ${s.rulesFilter === 'ALL' ? 'active' : ''}" onclick="setRulesFilter('ALL')">All Rules <span class="chip-count">${UNDERWRITING_RULES.length}</span></button>
         <button class="policy-filter-chip ${s.rulesFilter === 'template' ? 'active' : ''}" onclick="setRulesFilter('template')">5 Score Pillars <span class="chip-count">5</span></button>
@@ -1103,8 +1435,9 @@ function renderAnalyticsView(container) {
   const s = window.portalState;
   const dataset = getActiveDataset();
   const filtered = getFilteredApplicants();
+  const isFilteredCohort = hasActivePipelineFilters();
   const activeList = filtered.length > 0 ? filtered : dataset;
-  const lender = LENDERS[s.currentLenderId];
+  const lender = getActiveLender();
   const macro = getMacroScenario();
   const selectedApp = getSelectedApplicant();
 
@@ -1118,17 +1451,21 @@ function renderAnalyticsView(container) {
         <p id="analyticsHeaderSubtitle" class="gen3-subtitle"></p>
       </div>
       <div class="analytics-control-bar">
-        <div class="scope-segmented-control">
+        <div id="analyticsScopeBar" class="scope-segmented-control">
           <button class="scope-seg-btn ${s.analyticsScope === 'PORTFOLIO' ? 'active' : ''}" onclick="setAnalyticsScope('PORTFOLIO')">Portfolio (${activeList.length})</button>
           <button class="scope-seg-btn ${s.analyticsScope === 'APPLICANT' ? 'active' : ''}" onclick="setAnalyticsScope('APPLICANT')">Selected (${escapeHtml(selectedApp.id)})</button>
         </div>
-        <select id="macroScenarioSelect" class="macro-select-pill" onchange="onMacroScenarioChange(this.value)">
-          <option value="BASE" ${s.macroScenario === 'BASE' ? 'selected' : ''}>Scenario: CBI Base Case (+2.5% HPI)</option>
-          <option value="STRESSED" ${s.macroScenario === 'STRESSED' ? 'selected' : ''}>Scenario: Downside Stress (-5% Yr1, +1% Rate)</option>
-          <option value="UPSIDE" ${s.macroScenario === 'UPSIDE' ? 'selected' : ''}>Scenario: Green Growth (+4.0% HPI, Overpay)</option>
-        </select>
       </div>
     </div>
+
+    ${isFilteredCohort && s.analyticsScope === 'PORTFOLIO' ? `
+      <div class="analytics-filter-alert">
+        <div>
+          <strong>Pipeline Filter Active:</strong> Showing <strong>${filtered.length}</strong> of <strong>${dataset.length}</strong> applications matching your Pipeline filters${filtered.length === 0 ? ' (showing full cohort fallback because 0 rows matched)' : ''}.
+        </div>
+        <button class="btn-xs-pill" onclick="clearAllSearchAndFilters()">Reset to All ${dataset.length} Packs</button>
+      </div>
+    ` : ''}
 
     <div id="analyticsChartsBody"></div>
   `;
@@ -1141,27 +1478,21 @@ function renderAnalyticsView(container) {
     lender,
     macro,
     selectedApplicant: selectedApp,
-    analyticsScope: s.analyticsScope,
-    isDarkMode: s.isDarkMode,
-    isPrivacyMode: s.isPrivacyMode
+    analyticsScope: s.analyticsScope
   });
 }
 
 function setAnalyticsScope(scope) {
   window.portalState.analyticsScope = scope;
   if (window.portalState.activeView === 'analytics') {
+    if (window.MorganaGuidance) window.MorganaGuidance.renderMorganaHelpUI();
     renderAnalyticsView(document.getElementById('viewContainer'));
   }
 }
 
 function onMacroScenarioChange(val) {
   window.portalState.macroScenario = val;
-  if (window.portalState.activeView === 'analytics') {
-    renderAnalyticsView(document.getElementById('viewContainer'));
-  }
-  if (window.portalState.drawerOpen) {
-    renderApplicantDrawer();
-  }
+  renderAll();
 }
 
 /* ==========================================================================
@@ -1173,7 +1504,6 @@ function selectAndOpenDrawer(applicantId, forceTab) {
     window.portalState.activeDrawerTab = forceTab;
   }
   const app = getSelectedApplicant();
-  // Default scenario selection smoothly aligns to Green if BER A1–B3, else Standard
   const isGreen = ['A1', 'A2', 'A3', 'B1', 'B2', 'B3'].includes(app.propertyBER);
   window.portalState.selectedScenarioKey = isGreen ? 'GREEN_RECOMMENDED' : 'STANDARD';
 
@@ -1188,6 +1518,7 @@ function selectAndOpenDrawer(applicantId, forceTab) {
 }
 
 function closeApplicantDrawer() {
+  if (window.MorganaGuidance) window.MorganaGuidance.stopTour();
   window.portalState.drawerOpen = false;
   document.getElementById('drawerBackdrop')?.classList.remove('open');
   document.getElementById('applicantDrawerPanel')?.classList.remove('open');
@@ -1202,8 +1533,59 @@ function switchDrawerTab(tab) {
 }
 
 function selectDrawerScenario(key) {
+  const applicant = getSelectedApplicant();
+  const lender = getActiveLender();
+  const scenarios = getApplicantOfferScenarios(applicant, lender);
+  if (scenarios[key] && scenarios[key].isIssuable === false) {
+    return; // Non-Green properties cannot issue Green EcoSaver rate directly
+  }
   window.portalState.selectedScenarioKey = key;
   renderApplicantDrawer();
+}
+
+function toggleCriterionEvidence(critKey) {
+  const set = window.portalState.expandedCriteria;
+  if (set.has(critKey)) set.delete(critKey);
+  else set.add(critKey);
+  renderApplicantDrawer();
+}
+
+function toggleConditionForApplicant(applicantId, conditionLabel) {
+  const map = window.portalState.selectedConditions;
+  if (!map[applicantId]) map[applicantId] = [];
+  const idx = map[applicantId].indexOf(conditionLabel);
+  if (idx >= 0) map[applicantId].splice(idx, 1);
+  else map[applicantId].push(conditionLabel);
+  renderApplicantDrawer();
+}
+
+function recordAuditEvent(applicantId, action, detail) {
+  const log = window.portalState.auditLog;
+  if (!log[applicantId]) log[applicantId] = [];
+  const time = new Date().toLocaleTimeString('en-IE', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+  log[applicantId].unshift({
+    time,
+    actor: `${getActiveLender().code} Underwriter`,
+    action,
+    detail
+  });
+}
+
+function buildEvidenceSnippet(applicant, item, lender, calc) {
+  const name = item.name.toLowerCase();
+  if (name.includes('income') || name.includes('payslips') || name.includes('eds')) {
+    return `Revenue EDS matched against 3 payroll cycles: Base ${formatEuro(applicant.baseIncome)} + Variable ${formatEuro(applicant.bonusIncome)} (${Math.round(lender.maxVariableBonusPct * 100)}% recognized = ${formatEuro(calc.recognizedIncome)}).`;
+  }
+  if (name.includes('statements') || name.includes('conduct') || name.includes('refresh')) {
+    return `Feed: ${escapeHtml(applicant.dataSource)} • Net Income ${formatEuro(applicant.netMonthlyIncome)}/mo • Rent ${formatEuro(applicant.verifiedRentPm)}/mo + Savings ${formatEuro(applicant.verifiedSavingsPm)}/mo • Debt ${formatEuro(applicant.existingDebtPm)}/mo.`;
+  }
+  if (name.includes('deposit') || name.includes('stress')) {
+    return `Deposit Source: Savings ${formatEuro(applicant.depositSaved)}${applicant.helpToBuyGrant ? ` + HTB ${formatEuro(applicant.helpToBuyGrant)}` : ''}${applicant.giftAmount ? ` + Gift ${formatEuro(applicant.giftAmount)}` : ''} • Stress Margin: ${calc.stressMarginPm >= 0 ? '+' : ''}${formatEuro(calc.stressMarginPm)}/mo @ ${calc.stressedRate.toFixed(2)}%.`;
+  }
+  if (name.includes('ber')) {
+    return `SEAI Register Lookup: Rating <strong>${escapeHtml(applicant.propertyBER)}</strong> • ${calc.isGreenEligible ? `Qualifies for ${lender.greenRate.toFixed(2)}% Green EcoSaver` : `Standard ${lender.stdRate.toFixed(2)}% rate applies (requires BER B3+ for Green discount)`}.`;
+  }
+  return `${escapeHtml(item.detail)} • Source verified via Broc Automated Underwriting Vault.`;
 }
 
 function renderApplicantDrawer() {
@@ -1211,23 +1593,37 @@ function renderApplicantDrawer() {
   if (!root) return;
 
   const s = window.portalState;
-  const lender = LENDERS[s.currentLenderId];
+  const lender = getActiveLender();
   const applicant = getSelectedApplicant();
   const baseCalc = calculateLoanQualification(applicant, lender);
   const scenarios = getApplicantOfferScenarios(applicant, lender);
-  const activeScenario = scenarios[s.selectedScenarioKey] || scenarios.GREEN_RECOMMENDED;
+  let activeScenario = scenarios[s.selectedScenarioKey] || scenarios.STANDARD;
+  if (activeScenario.isIssuable === false) {
+    activeScenario = scenarios.STANDARD;
+    s.selectedScenarioKey = 'STANDARD';
+  }
   const scenarioCalc = activeScenario.calc;
+  const dynamicPillars = getDynamicScorePillars(applicant, lender, baseCalc);
 
   const aipMet = applicant.aipCriteria.filter(c => c.met).length;
   const fullMet = applicant.fullCriteria.filter(c => c.met).length;
-  const privacyCls = s.isPrivacyMode ? 'privacy-masked' : '';
+  const isNurtureBlocked = applicant.targetStage === 'NURTURE';
+  const canIssueDirect = !isNurtureBlocked && scenarioCalc.passesStressTest;
   const stageCls = applicant.targetStage === 'FULL' ? 'full-ready' : applicant.targetStage === 'AIP' ? 'aip-ready' : 'remediating';
   const stageLabel = applicant.targetStage === 'FULL' ? 'B) Full Mortgage Ready' : applicant.targetStage === 'AIP' ? 'A) Instant AIP Qualified' : 'Clive AI Remediating';
+  const activeConditions = s.selectedConditions[applicant.id] || [];
+  const auditEntries = s.auditLog[applicant.id] || [];
 
   let bodyHtml = '';
 
   if (s.activeDrawerTab === 'SCORE') {
     bodyHtml = `
+      ${isNurtureBlocked ? `
+        <div class="drawer-guardrail-banner">
+          <strong>⛔ Pre-Submission Hold Active:</strong> Only ${aipMet}/10 Stage A checks met. Direct AIP issuance is blocked until Clive finishes conduct remediation inside <code>app.broc.fi</code>.
+        </div>
+      ` : ''}
+
       <div class="customer-drawer-vivien-card">
         <div style="display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap;">
           <div style="display:flex;align-items:center;gap:10px;">
@@ -1247,7 +1643,7 @@ function renderApplicantDrawer() {
       </div>
 
       <div class="score-progress-list" style="margin-bottom:1rem;">
-        ${applicant.scorePillars.map(p => {
+        ${dynamicPillars.map(p => {
           const pct = Math.round((p.earned / p.max) * 100);
           const barCls = pct >= 90 ? 'is-emerald' : pct >= 75 ? 'is-blue' : 'is-amber';
           return `
@@ -1277,14 +1673,21 @@ function renderApplicantDrawer() {
           <div class="customer-timeline-dot" style="background:var(--brand-emerald);"></div>
           <div class="customer-timeline-content">
             <div style="font-weight:700;font-size:0.82rem;color:var(--text-primary);margin-bottom:4px;">Verified Data Provenance &amp; Audit Feed</div>
-            <div style="font-size:0.78rem;color:var(--text-muted);">${escapeHtml(applicant.dataSource)} • Net Monthly Income ${formatEuro(applicant.netMonthlyIncome)} • Proven Repayment Capacity ${formatEuro(baseCalc.provenMonthlyCapacity)}/mo vs ${formatEuro(baseCalc.stressedMonthlyPayment)}/mo stressed</div>
+            <div style="font-size:0.78rem;color:var(--text-muted);">
+              ${escapeHtml(applicant.dataSource)} • Net Monthly Income ${formatEuro(applicant.netMonthlyIncome)} • Effective Capacity ${formatEuro(baseCalc.effectiveMonthlyCapacity)}/mo vs ${formatEuro(baseCalc.stressedMonthlyPayment)}/mo stressed (${baseCalc.stressMarginPm >= 0 ? '+' : ''}${formatEuro(baseCalc.stressMarginPm)}/mo)
+            </div>
           </div>
         </div>
       </div>
     `;
   } else if (s.activeDrawerTab === 'ANALYTICS') {
-    const milestoneYears = [0, 5, 10, 15, 20, 25, 30];
+    const maxTerm = baseCalc.seriesMaxYear || 30;
+    const milestoneYears = [0, 5, 10, 15, 20, 25, maxTerm].filter((v, i, arr) => arr.indexOf(v) === i);
     bodyHtml = `
+      <div class="customer-drawer-card">
+        ${renderDrawerLtvAndConstraintSvg(applicant, lender)}
+      </div>
+
       <div class="customer-drawer-card">
         <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;">
           <strong style="font-size:0.86rem;color:var(--text-primary);">1. Projected Loan Grant Range (${escapeHtml(lender.shortName)})</strong>
@@ -1308,7 +1711,7 @@ function renderApplicantDrawer() {
 
       <div class="customer-drawer-card">
         <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;">
-          <strong style="font-size:0.86rem;color:var(--text-primary);">2. 30-Yr LTV Amortization (${applicant.termYears}-Yr Term)</strong>
+          <strong style="font-size:0.86rem;color:var(--text-primary);">2. ${maxTerm}-Yr LTV Amortization (${applicant.termYears}-Yr Term)</strong>
           <span style="font-size:0.76rem;font-weight:700;color:var(--status-success-text);">Clive saves ${baseCalc.yearsSavedByClive} yrs</span>
         </div>
         <div class="table-responsive" style="border:1px solid var(--border-default);border-radius:10px;overflow:hidden;">
@@ -1324,7 +1727,7 @@ function renderApplicantDrawer() {
             </thead>
             <tbody>
               ${milestoneYears.map(yr => {
-                const pt = baseCalc.ltv30YrSeries[yr];
+                const pt = baseCalc.ltv30YrSeries[yr] || baseCalc.ltv30YrSeries[baseCalc.ltv30YrSeries.length - 1];
                 return `
                   <tr>
                     <td><strong>Yr ${yr}</strong></td>
@@ -1365,24 +1768,45 @@ function renderApplicantDrawer() {
       </div>
     `;
   } else if (s.activeDrawerTab === 'CHECKLIST') {
+    const renderCriterionList = (items, prefix) => items.map((item, idx) => {
+      const critKey = `${applicant.id}-${prefix}-${idx}`;
+      const isExpanded = s.expandedCriteria.has(critKey);
+      return `
+        <div class="criterion-item expandable" onclick="toggleCriterionEvidence('${critKey}')">
+          <span class="criterion-status-dot ${item.met ? 'met' : 'pending'}">${item.met ? '✓' : '•'}</span>
+          <div class="criterion-content">
+            <div class="criterion-head">
+              <span class="criterion-title">${escapeHtml(item.name)}</span>
+              <span class="criterion-cat-badge">${escapeHtml(item.cat)} ${isExpanded ? '▾' : '▸'}</span>
+            </div>
+            <div class="criterion-detail">${escapeHtml(item.detail)}</div>
+            ${isExpanded ? `
+              <div class="criterion-evidence-box" onclick="event.stopPropagation()">
+                <div><strong>Audit Evidence:</strong> ${buildEvidenceSnippet(applicant, item, lender, baseCalc)}</div>
+                ${!item.met ? `
+                  <div style="margin-top:6px;">
+                    <button class="btn-xs-pill" style="color:var(--vivien-indigo);border-color:var(--vivien-border-strong);" onclick="triggerUnderwriterAction('RFI', '${escapeHtml(item.name)}')">
+                      Dispatch RFI Task to app.broc.fi →
+                    </button>
+                  </div>
+                ` : ''}
+              </div>
+            ` : ''}
+          </div>
+        </div>
+      `;
+    }).join('');
+
     bodyHtml = `
+      <div style="font-size:0.75rem;color:var(--text-muted);margin-bottom:0.8rem;">
+        Click any criterion row to inspect verified underlying data or dispatch a document RFI to <code>app.broc.fi</code>.
+      </div>
       <div style="margin-bottom:1rem;">
         <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:0.55rem;">
           <span class="policy-badge policy-badge-clause">A) MORTGAGE IN PRINCIPLE (${aipMet}/10 VERIFIED)</span>
         </div>
         <div class="criterion-list">
-          ${applicant.aipCriteria.map(item => `
-            <div class="criterion-item">
-              <span class="criterion-status-dot ${item.met ? 'met' : 'pending'}">${item.met ? '✓' : '•'}</span>
-              <div class="criterion-content">
-                <div class="criterion-head">
-                  <span class="criterion-title">${escapeHtml(item.name)}</span>
-                  <span class="criterion-cat-badge">${escapeHtml(item.cat)}</span>
-                </div>
-                <div class="criterion-detail">${escapeHtml(item.detail)}</div>
-              </div>
-            </div>
-          `).join('')}
+          ${renderCriterionList(applicant.aipCriteria, 'A')}
         </div>
       </div>
 
@@ -1391,43 +1815,40 @@ function renderApplicantDrawer() {
           <span class="policy-badge policy-badge-rider">B) FULL MORTGAGE POST SALE-AGREED (${fullMet}/8 VERIFIED)</span>
         </div>
         <div class="criterion-list">
-          ${applicant.fullCriteria.map(item => `
-            <div class="criterion-item">
-              <span class="criterion-status-dot ${item.met ? 'met' : 'pending'}">${item.met ? '✓' : '•'}</span>
-              <div class="criterion-content">
-                <div class="criterion-head">
-                  <span class="criterion-title">${escapeHtml(item.name)}</span>
-                  <span class="criterion-cat-badge">${escapeHtml(item.cat)}</span>
-                </div>
-                <div class="criterion-detail">${escapeHtml(item.detail)}</div>
-              </div>
-            </div>
-          `).join('')}
+          ${renderCriterionList(applicant.fullCriteria, 'B')}
         </div>
       </div>
     `;
   } else {
-    // OFFERS Tab: 3-Tile Vivien Scenario Modeler
+    // OFFERS Tab: 3-Tile Vivien Scenario Modeler + Conditions + Audit Trail
     const tileOrder = ['STANDARD', 'GREEN_RECOMMENDED', 'CLIVE_OVERPAY'];
     bodyHtml = `
+      ${isNurtureBlocked ? `
+        <div class="drawer-guardrail-banner">
+          <strong>⛔ Issuance Guardrail:</strong> ${escapeHtml(applicant.names)} is currently in <strong>Clive Remediation Mode</strong> (${aipMet}/10 Stage A verified). Use <em>Request Info (RFI)</em> or <em>Refer Credit Override</em> below rather than issuing an unverified AIP.
+        </div>
+      ` : ''}
+
       <div class="vivien-guidance-card">
         <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:0.8rem;gap:8px;flex-wrap:wrap;">
           <div style="display:flex;align-items:center;gap:8px;">
             <span class="analytics-badge is-indigo">Clive &amp; ${escapeHtml(lender.code)} Offer Modeler</span>
-            <span style="font-size:0.78rem;color:var(--text-muted);">Select rate tier to bind certificate terms</span>
+            <span style="font-size:0.78rem;color:var(--text-muted);">Select eligible rate tier to bind terms</span>
           </div>
-          <span style="font-size:0.74rem;font-weight:700;color:var(--status-success-text);">BER ${escapeHtml(applicant.propertyBER)}</span>
+          <span style="font-size:0.74rem;font-weight:700;color:${baseCalc.isGreenEligible ? 'var(--status-success-text)' : 'var(--status-warn-text)'};">BER ${escapeHtml(applicant.propertyBER)} ${baseCalc.isGreenEligible ? '• Green Eligible' : '• Std Rate Only'}</span>
         </div>
 
         <div class="vivien-tiles-grid">
           ${tileOrder.map(key => {
             const tile = scenarios[key];
             const isSelected = s.selectedScenarioKey === key;
+            const projCls = tile.isIssuable === false ? 'is-projection-only' : '';
             return `
               <button
                 type="button"
-                class="vivien-price-tile ${tile.isRecommended ? 'recommended' : ''} ${isSelected ? 'selected' : ''}"
+                class="vivien-price-tile ${tile.isRecommended ? 'recommended' : ''} ${isSelected ? 'selected' : ''} ${projCls}"
                 onclick="selectDrawerScenario('${key}')"
+                ${tile.isIssuable === false ? 'title="Requires BER B3+ retrofit certification before issuance"' : ''}
               >
                 <div>
                   <div class="tile-header">
@@ -1446,9 +1867,9 @@ function renderApplicantDrawer() {
         </div>
       </div>
 
-      <div class="customer-drawer-card" style="margin-bottom:0;">
+      <div class="customer-drawer-card">
         <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;">
-          <strong style="font-size:0.86rem;color:var(--text-primary);">Selected Certificate Offer Preview: ${escapeHtml(activeScenario.title)}</strong>
+          <strong style="font-size:0.86rem;color:var(--text-primary);">Selected Offer Preview: ${escapeHtml(activeScenario.title)}</strong>
           <span class="analytics-badge is-emerald">${activeScenario.rate.toFixed(2)}% APR</span>
         </div>
         <div class="drawer-p-grid">
@@ -1456,40 +1877,63 @@ function renderApplicantDrawer() {
             <span class="analytics-mini-stat-label">Scheduled Monthly</span>
             <span class="analytics-mini-stat-val">${formatEuro(activeScenario.monthlyPayment)}/mo</span>
           </div>
-          <div class="drawer-p-box is-highlight">
-            <span class="analytics-mini-stat-label" style="color:var(--status-success-text);">+2% CBI Stress Test</span>
-            <span class="analytics-mini-stat-val" style="color:var(--status-success-text);">${formatEuro(activeScenario.stressedPayment)}/mo PASS</span>
+          <div class="drawer-p-box ${scenarioCalc.passesStressTest ? 'is-highlight' : ''}">
+            <span class="analytics-mini-stat-label" style="color:${scenarioCalc.passesStressTest ? 'var(--status-success-text)' : 'var(--status-danger-text)'};">+${lender.stressBuffer.toFixed(1)}% CBI Stress Test</span>
+            <span class="analytics-mini-stat-val" style="color:${scenarioCalc.passesStressTest ? 'var(--status-success-text)' : 'var(--status-danger-text)'};">${formatEuro(activeScenario.stressedPayment)}/mo ${scenarioCalc.passesStressTest ? 'PASS' : 'FAIL'}</span>
           </div>
           <div class="drawer-p-box">
             <span class="analytics-mini-stat-label">Effective Payoff</span>
             <span class="analytics-mini-stat-val">${scenarioCalc.effectiveTermYears} Yrs (${s.selectedScenarioKey === 'CLIVE_OVERPAY' ? scenarioCalc.year10CliveLtvPct : scenarioCalc.year10LtvPct}% Yr10 LTV)</span>
           </div>
         </div>
-        <p style="font-size:0.76rem;color:var(--text-muted);margin:10px 0 0 0;line-height:1.45;">
-          Issuing the ${applicant.targetStage === 'FULL' ? 'Formal Loan Offer' : 'AIP Certificate'} below transmits these exact <strong>${escapeHtml(activeScenario.title)}</strong> terms straight into <strong>${escapeHtml(applicant.names)}</strong>'s <code>app.broc.fi</code> workspace.
-        </p>
       </div>
+
+      <div class="customer-drawer-card">
+        <div style="font-weight:700;font-size:0.82rem;color:var(--text-primary);margin-bottom:8px;">Attach Offer Conditions Precedent (${activeConditions.length} selected)</div>
+        <div style="display:flex;flex-wrap:wrap;gap:6px;">
+          ${STANDARD_CONDITIONS.map(cond => {
+            const isActive = activeConditions.includes(cond);
+            return `<button type="button" class="condition-chip-btn ${isActive ? 'active' : ''}" onclick="toggleConditionForApplicant('${applicant.id}', '${escapeHtml(cond)}')">${isActive ? '✓ ' : '+ '}${escapeHtml(cond)}</button>`;
+          }).join('')}
+        </div>
+      </div>
+
+      ${auditEntries.length > 0 ? `
+        <div class="customer-drawer-card" style="margin-bottom:0;">
+          <div style="font-weight:700;font-size:0.82rem;color:var(--text-primary);margin-bottom:8px;">Underwriter Decision Audit Trail</div>
+          <div style="display:flex;flex-direction:column;gap:6px;font-size:0.75rem;">
+            ${auditEntries.map(ev => `
+              <div style="padding:6px 8px;border-radius:8px;background:var(--bg-elevated);border:1px solid var(--border-default);display:flex;justify-content:space-between;gap:8px;">
+                <div><strong>${escapeHtml(ev.action)}</strong> — ${escapeHtml(ev.detail)}</div>
+                <span class="font-mono" style="color:var(--text-caption);white-space:nowrap;">${escapeHtml(ev.time)}</span>
+              </div>
+            `).join('')}
+          </div>
+        </div>
+      ` : ''}
     `;
   }
 
   root.innerHTML = `
-    <div class="drawer-header">
+    <div id="drawerHeaderBox" class="drawer-header">
       <div style="display:flex;align-items:flex-start;gap:12px;min-width:0;">
         <div class="customer-avatar" style="width:46px;height:46px;font-size:0.95rem;">${escapeHtml(getInitials(applicant.names))}</div>
         <div style="min-width:0;">
           <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;">
-            <h2 class="${privacyCls}" style="font-family:'Outfit',sans-serif;font-size:1.18rem;font-weight:700;margin:0;color:var(--text-primary);">${escapeHtml(applicant.names)}</h2>
+            <h2 style="font-family:'Outfit',sans-serif;font-size:1.18rem;font-weight:700;margin:0;color:var(--text-primary);">${escapeHtml(applicant.names)}</h2>
             <span class="customer-stage-badge ${stageCls}"><span class="badge-dot"></span>${stageLabel}</span>
+            ${getDecisionBadgeHtml(applicant.id)}
           </div>
           <div style="font-size:0.78rem;color:var(--text-secondary);margin-top:4px;">
             <span class="font-mono">${escapeHtml(applicant.id)}</span> • ${escapeHtml(applicant.kycBadge)} • ${escapeHtml(applicant.citizenship)}
           </div>
-          <div class="${privacyCls}" style="font-size:0.75rem;color:var(--text-muted);margin-top:2px;">
+          <div style="font-size:0.75rem;color:var(--text-muted);margin-top:2px;">
             📍 ${escapeHtml(applicant.targetPropertyAddress)}
           </div>
         </div>
       </div>
       <div style="display:flex;align-items:center;gap:10px;flex-shrink:0;">
+        ${window.MorganaGuidance ? window.MorganaGuidance.getDrawerMorganaHeaderPillHtml() : ''}
         <div style="text-align:right;">
           <div style="font-size:0.68rem;font-weight:700;text-transform:uppercase;color:var(--text-muted);">Broc Score</div>
           <div style="font-family:'Outfit',sans-serif;font-size:1.35rem;font-weight:700;color:var(--status-success-text);line-height:1;">${applicant.brocScore}<span style="font-size:0.75rem;font-weight:500;">/100</span></div>
@@ -1498,18 +1942,21 @@ function renderApplicantDrawer() {
       </div>
     </div>
 
-    <div class="drawer-metric-ribbon">
+    <div id="drawerMetricRibbon" class="drawer-metric-ribbon">
       <div class="drawer-metric-box">
-        <div class="drawer-metric-label">Qualified Loan</div>
-        <div class="drawer-metric-val">${formatEuro(baseCalc.qualifiedLoan)}</div>
+        <div class="drawer-metric-label">${baseCalc.loanForPricing !== baseCalc.qualifiedLoan ? 'Target Facility' : 'Qualified Loan'}</div>
+        <div class="drawer-metric-val">${formatEuro(baseCalc.loanForPricing)}</div>
+        ${baseCalc.loanForPricing !== baseCalc.qualifiedLoan ? `<div style="font-size:0.67rem;color:var(--text-muted);">Max Cap ${formatCompactEuro(baseCalc.qualifiedLoan)}</div>` : ''}
       </div>
       <div class="drawer-metric-box">
-        <div class="drawer-metric-label">Grant Range (P10–90)</div>
-        <div class="drawer-metric-val">${formatCompactEuro(baseCalc.loanGrantLow)}–${formatCompactEuro(baseCalc.loanGrantHigh)}</div>
+        <div class="drawer-metric-label">Binding Rule</div>
+        <div class="drawer-metric-val" style="font-size:0.9rem;">${escapeHtml(baseCalc.bindingLabel)}</div>
+        <div style="font-size:0.67rem;color:var(--text-muted);">${baseCalc.actualLtiRatio}x / ${baseCalc.ltiMultiplier.toFixed(1)}x LTI</div>
       </div>
       <div class="drawer-metric-box">
         <div class="drawer-metric-label">Day-1 → Yr10 LTV</div>
         <div class="drawer-metric-val" style="color:var(--vivien-indigo);">${baseCalc.initialLtvPct}% → ${baseCalc.year10LtvPct}%</div>
+        <div style="font-size:0.67rem;color:${baseCalc.passesStressTest ? 'var(--status-success-text)' : 'var(--status-danger-text)'};">Stress ${baseCalc.stressMarginPm >= 0 ? '+' : ''}${formatEuro(baseCalc.stressMarginPm)}/mo</div>
       </div>
       <div class="drawer-metric-box">
         <div class="drawer-metric-label">5-Yr Churn Hazard</div>
@@ -1521,25 +1968,37 @@ function renderApplicantDrawer() {
       <button class="drawer-tab-btn ${s.activeDrawerTab === 'SCORE' ? 'active' : ''}" onclick="switchDrawerTab('SCORE')">Readiness &amp; Score (${applicant.brocScore})</button>
       <button class="drawer-tab-btn ${s.activeDrawerTab === 'ANALYTICS' ? 'active' : ''}" onclick="switchDrawerTab('ANALYTICS')">LTV &amp; Risk</button>
       <button class="drawer-tab-btn ${s.activeDrawerTab === 'CHECKLIST' ? 'active' : ''}" onclick="switchDrawerTab('CHECKLIST')">18-Pt Checklist (${aipMet + fullMet}/18)</button>
-      <button class="drawer-tab-btn ${s.activeDrawerTab === 'OFFERS' ? 'active' : ''}" onclick="switchDrawerTab('OFFERS')">AIP Offer &amp; Scenarios</button>
+      <button class="drawer-tab-btn ${s.activeDrawerTab === 'OFFERS' ? 'active' : ''}" onclick="switchDrawerTab('OFFERS')">AIP Offer &amp; Decisions</button>
     </div>
 
-    <div class="drawer-body custom-scroll">
+    <div id="drawerBodyScroll" class="drawer-body custom-scroll">
+      ${window.MorganaGuidance ? window.MorganaGuidance.getDrawerMorganaBannerHtml(applicant, lender, baseCalc) : ''}
       ${bodyHtml}
     </div>
 
-    <div class="drawer-footer">
-      <button
-        class="drawer-btn-primary ${s.currentLenderId === 'BOI' ? 'is-boi' : ''}"
-        onclick="triggerUnderwriterAction('APPROVE')"
-      >
-        ${portalIcon('checkCircle', 16)}
-        <span>${applicant.targetStage === 'FULL' ? `Issue ${lender.code} Loan Offer` : `Issue Instant ${lender.code} AIP`} (${activeScenario.rate.toFixed(2)}%)</span>
-      </button>
-      <button class="btn-pill-outline" onclick="triggerUnderwriterAction('EXPORT')">
-        ${portalIcon('download', 15)}
-        <span>Export 18-Pt Pack</span>
-      </button>
+    <div id="drawerFooterBar" class="drawer-footer">
+      <div class="drawer-action-row">
+        <button
+          class="drawer-btn-primary ${s.currentLenderId === 'BOI' ? 'is-boi' : ''}"
+          onclick="triggerUnderwriterAction('APPROVE')"
+          ${!canIssueDirect ? 'disabled title="Blocked while in Clive Remediation or Stress Shortfall — use RFI or Refer"' : ''}
+        >
+          ${portalIcon('checkCircle', 16)}
+          <span>${!canIssueDirect
+            ? `Blocked (${aipMet}/10 Stage A)`
+            : `${applicant.targetStage === 'FULL' ? `Issue ${lender.code} Loan Offer` : `Issue ${lender.code} AIP`} (${activeScenario.rate.toFixed(2)}%)`}</span>
+        </button>
+        <button class="btn-pill-outline" onclick="triggerUnderwriterAction('RFI')">
+          Request Info (RFI)
+        </button>
+        <button class="btn-pill-outline" onclick="triggerUnderwriterAction('REFER')">
+          Refer Exception
+        </button>
+        <button class="btn-pill-outline" onclick="triggerUnderwriterAction('EXPORT')" title="Download CSV Underwriting Pack">
+          ${portalIcon('download', 15)}
+          <span>Export</span>
+        </button>
+      </div>
       <div id="actionFeedbackToast" class="action-feedback-toast" style="display:none;"></div>
     </div>
   `;
@@ -1548,22 +2007,36 @@ function renderApplicantDrawer() {
 /* ==========================================================================
    UNDERWRITER ACTIONS & COMPLIANCE MODALS (AIP Certificate, Score, 18-Pt)
    ========================================================================== */
-function triggerUnderwriterAction(type) {
+function triggerUnderwriterAction(type, customSubject) {
   const s = window.portalState;
-  const lender = LENDERS[s.currentLenderId];
+  const lender = getActiveLender();
   const applicant = getSelectedApplicant();
   const scenarios = getApplicantOfferScenarios(applicant, lender);
-  const chosen = scenarios[s.selectedScenarioKey] || scenarios.GREEN_RECOMMENDED;
+  let chosen = scenarios[s.selectedScenarioKey] || scenarios.STANDARD;
+  if (chosen.isIssuable === false) chosen = scenarios.STANDARD;
   const calc = chosen.calc;
-
-  const toast = document.getElementById('actionFeedbackToast');
-  if (toast) toast.style.display = 'block';
+  const conditions = s.selectedConditions[applicant.id] || [];
 
   if (type === 'APPROVE') {
-    const docTitle = applicant.targetStage === 'FULL' ? 'FORMAL MORTGAGE LETTER OF OFFER' : 'MORTGAGE APPROVAL IN PRINCIPLE (AIP)';
-    if (toast) {
-      toast.textContent = `✅ ${lender.shortName} ${applicant.targetStage === 'FULL' ? 'Formal Offer' : 'AIP'} (${formatEuro(calc.qualifiedLoan)} @ ${chosen.rate.toFixed(2)}%) dispatched to ${s.isPrivacyMode ? applicant.id : applicant.names}!`;
+    if (applicant.targetStage === 'NURTURE' || !calc.passesStressTest) {
+      return; // Enforce guardrail
     }
+    const status = conditions.length > 0
+      ? 'CONDITIONAL_AIP'
+      : (applicant.targetStage === 'FULL' ? 'OFFER_ISSUED' : 'AIP_ISSUED');
+    s.decisions[applicant.id] = {
+      status,
+      rate: chosen.rate,
+      amount: calc.loanForPricing,
+      conditions: [...conditions]
+    };
+    recordAuditEvent(
+      applicant.id,
+      status === 'CONDITIONAL_AIP' ? 'Conditional AIP Issued' : (applicant.targetStage === 'FULL' ? 'Formal Loan Offer Issued' : 'Instant AIP Issued'),
+      `${formatEuro(calc.loanForPricing)} @ ${chosen.rate.toFixed(2)}%${conditions.length ? ` (${conditions.length} condition${conditions.length === 1 ? '' : 's'})` : ''}`
+    );
+
+    const docTitle = applicant.targetStage === 'FULL' ? 'FORMAL MORTGAGE LETTER OF OFFER' : 'MORTGAGE APPROVAL IN PRINCIPLE (AIP)';
     const modal = document.getElementById('aipCertificateModal');
     const content = document.getElementById('aipCertificateModalContent');
     if (modal && content) {
@@ -1583,30 +2056,31 @@ function triggerUnderwriterAction(type) {
             <span><strong>Validity:</strong> ${escapeHtml(lender.aipValidity)} from Issue Date</span>
           </div>
 
-          <h3 style="font-family:'Outfit',sans-serif;font-size:1.3rem;font-weight:800;margin:8px 0 4px;color:${lender.color};">${docTitle}</h3>
+          <h3 style="font-family:'Outfit',sans-serif;font-size:1.3rem;font-weight:800;margin:8px 0 4px;color:${lender.color};">${docTitle}${conditions.length ? ' (CONDITIONAL)' : ''}</h3>
           <p style="font-size:0.82rem;color:#475569;margin:0;">
             Issued to <strong>${escapeHtml(applicant.names)}</strong> (${escapeHtml(applicant.county)}) following 18-point automated verification via <strong>Broc.fi (Broc Score™ ${applicant.brocScore}/100)</strong>:
           </p>
 
           <div class="aip-cert-metrics">
             <div>
-              <div style="font-size:0.68rem;font-weight:700;text-transform:uppercase;color:#64748b;">Approved Loan Amount</div>
-              <div style="font-family:'Outfit',sans-serif;font-size:1.35rem;font-weight:800;color:${lender.color};margin-top:2px;">${formatEuro(calc.qualifiedLoan)}</div>
+              <div style="font-size:0.68rem;font-weight:700;text-transform:uppercase;color:#64748b;">Approved Facility</div>
+              <div style="font-family:'Outfit',sans-serif;font-size:1.35rem;font-weight:800;color:${lender.color};margin-top:2px;">${formatEuro(calc.loanForPricing)}</div>
             </div>
             <div>
-              <div style="font-size:0.68rem;font-weight:700;text-transform:uppercase;color:#64748b;">Verified Cash + HTB Deposit</div>
+              <div style="font-size:0.68rem;font-weight:700;text-transform:uppercase;color:#64748b;">Verified Deposit / Equity</div>
               <div style="font-family:'Outfit',sans-serif;font-size:1.35rem;font-weight:800;color:#059669;margin-top:2px;">${formatEuro(calc.totalDeposit)}</div>
             </div>
             <div>
-              <div style="font-size:0.68rem;font-weight:700;text-transform:uppercase;color:#64748b;">Max Purchase Price</div>
-              <div style="font-family:'Outfit',sans-serif;font-size:1.35rem;font-weight:800;color:#0f172a;margin-top:2px;">${formatEuro(calc.maxPurchasingPower)}</div>
+              <div style="font-size:0.68rem;font-weight:700;text-transform:uppercase;color:#64748b;">Target Property Value</div>
+              <div style="font-family:'Outfit',sans-serif;font-size:1.35rem;font-weight:800;color:#0f172a;margin-top:2px;">${formatEuro(calc.targetPropertyValue)}</div>
             </div>
           </div>
 
           <div class="aip-cert-terms-box">
             <div><strong>Selected Product Tier:</strong> ${escapeHtml(chosen.title)} — ${chosen.rate.toFixed(2)}% APR (${calc.effectiveTermYears} yrs • ${formatEuro(chosen.monthlyPayment)}/mo${s.selectedScenarioKey === 'CLIVE_OVERPAY' ? ` incl. +${formatEuro(calc.monthlyOverpay)}/mo Clive Overpay` : ''})</div>
-            <div style="margin-top:4px;"><strong>CBI +2.0% Stress Verification:</strong> Stressed @ ${chosen.stressedRate.toFixed(2)}% (${formatEuro(chosen.stressedPayment)}/mo) vs Proven Capacity ${formatEuro(calc.provenMonthlyCapacity)}/mo — <strong>PASSED</strong></div>
-            <div style="margin-top:4px;"><strong>Instant Consumer Delivery:</strong> Dispatched straight into <strong>${escapeHtml(applicant.names)}</strong>'s <code>https://app.broc.fi</code> workspace with Stage B checklists attached.</div>
+            <div style="margin-top:4px;"><strong>CBI +${lender.stressBuffer.toFixed(1)}% Stress Verification:</strong> Stressed @ ${chosen.stressedRate.toFixed(2)}% (${formatEuro(chosen.stressedPayment)}/mo) vs Net Capacity ${formatEuro(calc.effectiveMonthlyCapacity)}/mo — <strong>PASSED (+${formatEuro(calc.stressMarginPm)}/mo)</strong></div>
+            ${conditions.length > 0 ? `<div style="margin-top:4px;"><strong>Conditions Precedent:</strong> ${conditions.map(c => escapeHtml(c)).join(' • ')}</div>` : ''}
+            <div style="margin-top:4px;"><strong>Instant Consumer Delivery:</strong> Dispatched straight into <strong>${escapeHtml(applicant.names)}</strong>'s <code>https://app.broc.fi</code> workspace.</div>
           </div>
 
           <div class="aip-cert-footer-sig">
@@ -1620,9 +2094,39 @@ function triggerUnderwriterAction(type) {
       `;
       modal.classList.add('open');
     }
-  } else {
+    renderAll();
+    const toast = document.getElementById('actionFeedbackToast');
     if (toast) {
-      toast.textContent = `📦 Exported complete 18-Criteria Underwriting Pack (${applicant.id} — KYC, Citizenship, Revenue EDS & 6-Mo Audited CSVs).`;
+      toast.style.display = 'block';
+      toast.textContent = `✅ ${lender.shortName} ${applicant.targetStage === 'FULL' ? 'Formal Offer' : 'AIP'} (${formatEuro(calc.loanForPricing)} @ ${chosen.rate.toFixed(2)}%) issued & logged.`;
+    }
+  } else if (type === 'RFI') {
+    const subject = customSubject || 'Updated Payslip / Conduct Verification';
+    s.decisions[applicant.id] = { status: 'RFI_SENT' };
+    recordAuditEvent(applicant.id, 'RFI Dispatched', `Task sent to app.broc.fi: ${subject}`);
+    renderAll();
+    const toast = document.getElementById('actionFeedbackToast');
+    if (toast) {
+      toast.style.display = 'block';
+      toast.textContent = `📨 RFI dispatched to ${applicant.names}'s app.broc.fi Tasks (${subject}).`;
+    }
+  } else if (type === 'REFER') {
+    s.decisions[applicant.id] = { status: 'REFERRED' };
+    recordAuditEvent(applicant.id, 'Referred to Senior Credit', `Flagged for manual / CBI LTI exception review (${calc.actualLtiRatio}x LTI)`);
+    renderAll();
+    const toast = document.getElementById('actionFeedbackToast');
+    if (toast) {
+      toast.style.display = 'block';
+      toast.textContent = `⚖️ File ${applicant.id} referred to Senior Credit Committee for exception review.`;
+    }
+  } else {
+    exportApplicantsCsv([applicant], applicant.id.toLowerCase());
+    recordAuditEvent(applicant.id, '18-Pt Pack Exported', `Downloaded CSV summary for ${lender.shortName}`);
+    renderAll();
+    const toast = document.getElementById('actionFeedbackToast');
+    if (toast) {
+      toast.style.display = 'block';
+      toast.textContent = `📦 Downloaded underwriting pack CSV for ${applicant.id}.`;
     }
   }
 }
@@ -1670,7 +2174,7 @@ function openRuleDetailModal(ruleId) {
       </div>
       <div style="padding:0.75rem 0.9rem;border-radius:10px;background:var(--bg-elevated);border:1px solid var(--border-default);display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px;">
         <span>Automation Engine: <strong style="color:var(--text-primary);">${escapeHtml(rule.autoVerified)}</strong></span>
-        <button class="btn-vivien-pill-primary" style="padding:0.35rem 0.85rem;font-size:0.76rem;" onclick="closeRuleDetailModal(); openAssistantWithPrompt('Explain Selected +2% Stress Pass');">Ask Clara &amp; Clive →</button>
+        <button class="btn-vivien-pill-primary" style="padding:0.35rem 0.85rem;font-size:0.76rem;" onclick="closeRuleDetailModal(); openAssistantWithPrompt('Explain Selected +2% Stress Pass');">Ask Morgana →</button>
       </div>
     </div>
   `;
@@ -1685,8 +2189,10 @@ function closeRuleDetailModal() {
    MASTER RENDER ROUTER & STARTUP
    ========================================================================== */
 function renderAll() {
-  applyThemeUI();
   renderSidebarAndChrome();
+  if (window.MorganaGuidance) {
+    window.MorganaGuidance.renderMorganaHelpUI();
+  }
 
   const viewEl = document.getElementById('viewContainer');
   if (viewEl) {
@@ -1704,6 +2210,11 @@ function renderAll() {
 
 document.addEventListener('keydown', e => {
   if (e.key === 'Escape') {
+    if (window.MorganaGuidance && window.MorganaGuidance.isTourOpen()) {
+      window.MorganaGuidance.stopTour();
+      return;
+    }
+    if (typeof closeChatHelpModal === 'function') closeChatHelpModal();
     closeAipCertificateModal();
     closeScoreModal();
     closeRulesComparisonModal();
@@ -1717,5 +2228,9 @@ document.addEventListener('keydown', e => {
 });
 
 window.addEventListener('DOMContentLoaded', () => {
+  document.documentElement.classList.remove('dark');
+  try {
+    if (typeof localStorage !== 'undefined') localStorage.removeItem('broc_portal_theme');
+  } catch (e) {}
   renderAll();
 });

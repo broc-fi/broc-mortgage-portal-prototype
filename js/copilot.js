@@ -1,5 +1,5 @@
 /* ==========================================================================
-   Broc. For Lenders — Clara & Clive Floating AI Copilot Drawer (840px)
+   Broc. For Lenders — Morgana Floating B2B Underwriting Copilot Drawer (560px)
    Deterministic Underwriting Intelligence over Live Queue & CBI Stress Math
    ========================================================================== */
 
@@ -78,7 +78,8 @@ function handleAssistantKeydown(e) {
 
 function seedCopilotWelcome() {
   const state = window.portalState || { currentLenderId: 'BOI', currentDatasetMode: 'CURATED_7' };
-  const lender = LENDERS[state.currentLenderId] || LENDERS.BOI;
+  const baseLender = LENDERS[state.currentLenderId] || LENDERS.BOI;
+  const lender = typeof getEffectiveLenderPolicy === 'function' ? getEffectiveLenderPolicy(baseLender) : baseLender;
   const dataset = typeof getActiveDataset === 'function' ? getActiveDataset() : CURATED_7_APPLICANTS;
   const fullCount = dataset.filter(a => a.targetStage === 'FULL').length;
   const aipCount = dataset.filter(a => a.targetStage === 'AIP').length;
@@ -89,16 +90,16 @@ function seedCopilotWelcome() {
       role: 'assistant',
       html: `
         <div style="display:flex;align-items:center;gap:8px;margin-bottom:8px;">
-          <span class="analytics-badge is-indigo">Clara &amp; Clive Live Desk</span>
+          <span class="analytics-badge is-indigo">Morgana • B2B Credit Copilot</span>
           <span style="font-size:0.75rem;color:var(--text-muted);">${escapeHtml(lender.name)} • ${dataset.length} Packaged Files</span>
         </div>
         <p style="margin:0 0 8px 0;">
-          Hi there! I'm tracking <strong>${dataset.length} borrower files</strong> in your active queue:
+          Hi, I'm <strong>Morgana</strong>, your lender underwriting copilot. I'm tracking <strong>${dataset.length} borrower packs</strong> pre-verified by Clara &amp; Clive:
           <strong>${fullCount} Full Mortgage</strong>, <strong>${aipCount} Instant AIP</strong>, and
           <strong>${nurtureCount} in Clive Remediation</strong> (held cleanly inside <code>app.broc.fi</code> before submission).
         </p>
         <p style="margin:0;color:var(--text-muted);font-size:0.83rem;">
-          Ask me to surface Score 90+ fast-track packs, audit Stamp 4 / Self-Employed files, inspect Churn Watchlist accounts, or explain any borrower's <strong>+${lender.stressBuffer.toFixed(1)}% CBI stress test</strong>.
+          Ask me to surface Score 90+ fast-track packs, compare BOI vs White-Label terms for the selected borrower, audit Stamp 4 / Self-Employed files, inspect Churn Watchlist accounts, or explain any borrower's <strong>+${lender.stressBuffer.toFixed(1)}% CBI stress test</strong>.
         </p>
       `
     }
@@ -107,7 +108,6 @@ function seedCopilotWelcome() {
 }
 
 function buildCopilotCustomerCard(applicant, calc, customNote) {
-  const privacyCls = (window.portalState && window.portalState.isPrivacyMode) ? 'privacy-masked' : '';
   const stageCls = applicant.targetStage === 'FULL'
     ? 'full-ready'
     : applicant.targetStage === 'AIP'
@@ -126,17 +126,17 @@ function buildCopilotCustomerCard(applicant, calc, customNote) {
           <div class="customer-avatar" style="width:36px;height:36px;font-size:0.78rem;">${escapeHtml(getInitials(applicant.names))}</div>
           <div style="min-width:0;">
             <div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap;">
-              <strong class="${privacyCls}" style="color:var(--text-primary);font-size:0.86rem;">${escapeHtml(applicant.names)}</strong>
+              <strong style="color:var(--text-primary);font-size:0.86rem;">${escapeHtml(applicant.names)}</strong>
               <span class="customer-stage-badge ${stageCls}"><span class="badge-dot"></span>${stageText}</span>
             </div>
             <div style="font-size:0.75rem;color:var(--text-muted);margin-top:2px;">
-              ${escapeHtml(applicant.id)} • <span class="${privacyCls}">${escapeHtml(applicant.county)}</span> • BER ${escapeHtml(applicant.propertyBER)} • Score <strong>${applicant.brocScore}/100</strong>
+              ${escapeHtml(applicant.id)} • ${escapeHtml(applicant.county)} • BER ${escapeHtml(applicant.propertyBER)} • Score <strong>${applicant.brocScore}/100</strong>
             </div>
           </div>
         </div>
         <div style="text-align:right;">
-          <div style="font-family:'Outfit',sans-serif;font-weight:700;font-size:0.95rem;color:var(--text-primary);">${formatEuro(calc.qualifiedLoan)}</div>
-          <div style="font-size:0.71rem;color:var(--text-muted);">LTV ${calc.initialLtvPct}% • Churn ${calc.churnRisk5YrPct}%</div>
+          <div style="font-family:'Outfit',sans-serif;font-weight:700;font-size:0.95rem;color:var(--text-primary);">${formatEuro(calc.loanForPricing)}</div>
+          <div style="font-size:0.71rem;color:var(--text-muted);">LTV ${calc.initialLtvPct}% • ${escapeHtml(calc.bindingLabel)}</div>
         </div>
       </div>
       ${customNote ? `<div style="margin-top:7px;font-size:0.76rem;color:var(--text-secondary);line-height:1.45;">${customNote}</div>` : ''}
@@ -157,43 +157,96 @@ function buildCopilotCustomerCard(applicant, calc, customNote) {
 function generateCopilotReply(queryText) {
   const q = queryText.toLowerCase().trim();
   const state = window.portalState || { currentLenderId: 'BOI', selectedApplicantId: 'BROC-IE-9001' };
-  const lender = LENDERS[state.currentLenderId] || LENDERS.BOI;
+  const baseLender = LENDERS[state.currentLenderId] || LENDERS.BOI;
+  const lender = typeof getEffectiveLenderPolicy === 'function' ? getEffectiveLenderPolicy(baseLender) : baseLender;
   const dataset = typeof getActiveDataset === 'function' ? getActiveDataset() : CURATED_7_APPLICANTS;
   const selectedApp = dataset.find(a => a.id === state.selectedApplicantId) || dataset[0];
 
-  // 1. Selected applicant +2% stress pass explanation
-  if (q.includes('explain') || q.includes('stress') || q.includes('selected') || q.includes('ndi')) {
-    const calc = calculateLoanQualification(selectedApp, lender);
-    const privacyCls = state.isPrivacyMode ? 'privacy-masked' : '';
+  // 1. Compare BOI vs White-Label for selected applicant
+  if (q.includes('compare') || q.includes('white-label') || q.includes('white label') || q.includes('boi vs')) {
+    const boiCalc = calculateLoanQualification(selectedApp, LENDERS.BOI);
+    const wlCalc = calculateLoanQualification(selectedApp, LENDERS.WHITELABEL);
     return `
       <div style="margin-bottom:8px;">
-        <strong>CBI +2.0% Stress Test Breakdown — <span class="${privacyCls}">${escapeHtml(selectedApp.names)}</span> (${escapeHtml(selectedApp.id)})</strong>
+        <strong>Lender Policy Comparison — ${escapeHtml(selectedApp.names)} (${escapeHtml(selectedApp.id)})</strong>
       </div>
       <div style="display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;margin-bottom:10px;font-size:0.78rem;">
         <div style="padding:8px 10px;border-radius:10px;background:var(--bg-elevated);border:1px solid var(--border-default);">
-          <div style="color:var(--text-muted);">Recognized Income (${lender.shortName})</div>
+          <div style="color:var(--text-muted);font-weight:700;">Bank of Ireland (60% Bonus)</div>
+          <div style="font-family:'Outfit',sans-serif;font-size:1rem;font-weight:700;color:var(--text-primary);margin-top:2px;">${formatEuro(boiCalc.qualifiedLoan)}</div>
+          <div style="color:var(--text-secondary);margin-top:2px;">${boiCalc.appliedRate.toFixed(2)}% APR • ${formatEuro(boiCalc.actualMonthlyPayment)}/mo</div>
+          <div style="color:var(--text-caption);">Binding: ${escapeHtml(boiCalc.bindingLabel)}</div>
+        </div>
+        <div style="padding:8px 10px;border-radius:10px;background:var(--bg-elevated);border:1px solid var(--border-default);">
+          <div style="color:var(--brand-emerald-dark);font-weight:700;">White-Label (50% Bonus)</div>
+          <div style="font-family:'Outfit',sans-serif;font-size:1rem;font-weight:700;color:var(--text-primary);margin-top:2px;">${formatEuro(wlCalc.qualifiedLoan)}</div>
+          <div style="color:var(--text-secondary);margin-top:2px;">${wlCalc.appliedRate.toFixed(2)}% APR • ${formatEuro(wlCalc.actualMonthlyPayment)}/mo</div>
+          <div style="color:var(--text-caption);">Binding: ${escapeHtml(wlCalc.bindingLabel)}</div>
+        </div>
+      </div>
+      ${buildCopilotCustomerCard(selectedApp, calculateLoanQualification(selectedApp, lender), `Monthly payment delta: <strong>${formatEuro(Math.abs(boiCalc.actualMonthlyPayment - wlCalc.actualMonthlyPayment))}/mo</strong>`)}
+    `;
+  }
+
+  // 2. Why blocked / pending / missing items check
+  if (q.includes('block') || q.includes('missing') || q.includes('why') || q.includes('fail') || q.includes('rfi')) {
+    const target = selectedApp.targetStage === 'NURTURE'
+      ? selectedApp
+      : (dataset.find(a => a.targetStage === 'NURTURE') || selectedApp);
+    const calc = calculateLoanQualification(target, lender);
+    const pendingAip = target.aipCriteria.filter(c => !c.met);
+    const pendingFull = target.fullCriteria.filter(c => !c.met);
+    return `
+      <div style="margin-bottom:8px;">
+        <strong>Underwriting Hold &amp; Pending Evidence — ${escapeHtml(target.names)} (${escapeHtml(target.id)})</strong>
+      </div>
+      <p style="margin:0 0 8px 0;font-size:0.8rem;">
+        Stage: <strong>${escapeHtml(target.statusBadge)}</strong> • Binding Cap: <strong>${escapeHtml(calc.bindingLabel)}</strong> (${formatEuro(calc.qualifiedLoan)}).
+      </p>
+      ${pendingAip.length > 0 ? `
+        <div style="padding:8px 10px;border-radius:10px;background:var(--status-warn-bg);border:1px solid var(--status-warn-border);font-size:0.78rem;margin-bottom:8px;">
+          <strong style="color:var(--status-warn-text);">Stage A Blockers (${pendingAip.length}):</strong>
+          <ul style="margin:4px 0 0 16px;padding:0;">
+            ${pendingAip.map(p => `<li><strong>${escapeHtml(p.name)}:</strong> ${escapeHtml(p.detail)}</li>`).join('')}
+          </ul>
+        </div>
+      ` : `<p style="margin:0 0 8px 0;font-size:0.78rem;color:var(--status-success-text);">All 10 Stage A AIP criteria are verified. ${pendingFull.length} Stage B post-Sale-Agreed items remain.</p>`}
+      ${buildCopilotCustomerCard(target, calc, target.cliveStory)}
+    `;
+  }
+
+  // 3. Selected applicant +2% stress pass explanation
+  if (q.includes('explain') || q.includes('stress') || q.includes('selected') || q.includes('ndi')) {
+    const calc = calculateLoanQualification(selectedApp, lender);
+    return `
+      <div style="margin-bottom:8px;">
+        <strong>CBI +${lender.stressBuffer.toFixed(1)}% Stress Test Breakdown — ${escapeHtml(selectedApp.names)} (${escapeHtml(selectedApp.id)})</strong>
+      </div>
+      <div style="display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;margin-bottom:10px;font-size:0.78rem;">
+        <div style="padding:8px 10px;border-radius:10px;background:var(--bg-elevated);border:1px solid var(--border-default);">
+          <div style="color:var(--text-muted);">Recognized Income (${escapeHtml(lender.shortName)})</div>
           <strong style="color:var(--text-primary);">${formatEuro(calc.recognizedIncome)}</strong>
           <div style="color:var(--text-caption);">CBI ${calc.ltiMultiplier}x Cap = ${formatEuro(calc.maxLoanByLTI)}</div>
         </div>
         <div style="padding:8px 10px;border-radius:10px;background:var(--bg-elevated);border:1px solid var(--border-default);">
-          <div style="color:var(--text-muted);">Proven Capacity vs +2% Stressed</div>
-          <strong style="color:var(--status-success-text);">${formatEuro(calc.effectiveMonthlyCapacity)}/mo vs ${formatEuro(calc.stressedMonthlyPayment)}/mo</strong>
-          <div style="color:var(--text-caption);">Stressed @ ${calc.stressedRate.toFixed(2)}% (Offered ${calc.appliedRate.toFixed(2)}%)</div>
+          <div style="color:var(--text-muted);">Net Capacity vs +${lender.stressBuffer.toFixed(1)}% Stressed</div>
+          <strong style="color:${calc.passesStressTest ? 'var(--status-success-text)' : 'var(--status-danger-text)'};">${formatEuro(calc.effectiveMonthlyCapacity)}/mo vs ${formatEuro(calc.stressedMonthlyPayment)}/mo</strong>
+          <div style="color:var(--text-caption);">Stressed @ ${calc.stressedRate.toFixed(2)}% • ${calc.passesStressTest ? `+${formatEuro(calc.stressMarginPm)}/mo PASS` : 'SHORTFALL'}</div>
         </div>
       </div>
       <p style="margin:0 0 8px 0;font-size:0.8rem;">
-        <strong>Clive Remediation Impact:</strong> Saved <strong>${formatEuro(selectedApp.cliveMonthlySavingsUnlocked)}/mo</strong> in recurring utility &amp; subscription tenders, expanding stress-tested borrowing capacity by <strong>+${formatEuro(calc.cliveLoanBoost)}</strong> and lifting Broc Score from <strong>${selectedApp.brocScoreBefore} → ${selectedApp.brocScore}/100</strong>.
+        <strong>Binding Rule:</strong> ${escapeHtml(calc.bindingLabel)} • <strong>Clive Remediation Impact:</strong> Saved <strong>${formatEuro(selectedApp.cliveMonthlySavingsUnlocked)}/mo</strong>, expanding stress capacity by <strong>+${formatEuro(calc.cliveLoanBoost)}</strong> and lifting Broc Score <strong>${selectedApp.brocScoreBefore} → ${selectedApp.brocScore}/100</strong>.
       </p>
-      ${buildCopilotCustomerCard(selectedApp, calc, `Binding Cap: <strong>${formatEuro(calc.qualifiedLoan)}</strong> (${calc.initialLtvPct}% LTV • PD ${calc.pd12MoBps} bps)`)}
+      ${buildCopilotCustomerCard(selectedApp, calc, `Facility: <strong>${formatEuro(calc.loanForPricing)}</strong> (${calc.initialLtvPct}% LTV • PD ${calc.pd12MoBps} bps)`)}
     `;
   }
 
-  // 2. Fast-track 90+ queue
+  // 4. Fast-track 90+ queue
   if (q.includes('90+') || q.includes('fast-track') || q.includes('fast track') || q.includes('top')) {
     const matches = dataset
       .filter(a => a.brocScore >= 90 && a.targetStage !== 'NURTURE')
       .sort((a, b) => b.brocScore - a.brocScore);
-    const totalVol = matches.reduce((s, a) => s + calculateLoanQualification(a, lender).qualifiedLoan, 0);
+    const totalVol = matches.reduce((s, a) => s + calculateLoanQualification(a, lender).loanForPricing, 0);
     const preview = matches.slice(0, 4);
     return `
       <p style="margin:0 0 8px 0;">
@@ -205,7 +258,7 @@ function generateCopilotReply(queryText) {
     `;
   }
 
-  // 3. Churn watchlist >=30%
+  // 5. Churn watchlist >=30%
   if (q.includes('churn') || q.includes('watchlist') || q.includes('switcher') || q.includes('refinance') || q.includes('retention')) {
     const items = dataset
       .map(a => ({ a, calc: calculateLoanQualification(a, lender) }))
@@ -227,7 +280,7 @@ function generateCopilotReply(queryText) {
     `;
   }
 
-  // 4. Stamp 4 & Self-Employed complex underwriting
+  // 6. Stamp 4 & Self-Employed complex underwriting
   if (q.includes('stamp 4') || q.includes('self-employed') || q.includes('self employed') || q.includes('form 11') || q.includes('residency')) {
     const complex = dataset.filter(a => {
       const hay = `${a.citizenship} ${a.kycBadge} ${a.statusBadge}`.toLowerCase();
@@ -241,7 +294,7 @@ function generateCopilotReply(queryText) {
     `;
   }
 
-  // 5. Clive Remediation / Nurture queue
+  // 7. Clive Remediation / Nurture queue
   if (q.includes('remediation') || q.includes('nurture') || q.includes('klarna') || q.includes('bnpl') || q.includes('clive')) {
     const nurture = dataset.filter(a => a.targetStage === 'NURTURE');
     return `
@@ -253,8 +306,13 @@ function generateCopilotReply(queryText) {
     `;
   }
 
-  // 6. General search across dataset (county, names, id, BER, HTB, etc.)
-  const terms = q.split(/\s+/).filter(t => t.length > 1 && !['show', 'me', 'find', 'the', 'for', 'and', 'with', 'who', 'are', 'what'].includes(t));
+  // 8. General search across dataset (county, names, id, BER, HTB, etc.)
+  const stopwords = new Set([
+    'show', 'me', 'find', 'the', 'for', 'and', 'with', 'who', 'are', 'what',
+    'why', 'how', 'when', 'where', 'which', 'is', 'in', 'on', 'of', 'to',
+    'from', 'a', 'an', 'any', 'list', 'get', 'check', 'about', 'tell', 'please'
+  ]);
+  const terms = q.split(/\s+/).filter(t => t.length > 1 && !stopwords.has(t));
   const matched = terms.length > 0
     ? dataset.filter(a => {
         const hay = `${a.names} ${a.id} ${a.county} ${a.citizenship} ${a.buyerType} ${a.propertyBER} ${a.statusBadge} ${a.cliveStory} ${a.helpToBuyGrant > 0 ? 'htb help to buy' : ''}`.toLowerCase();
@@ -274,7 +332,7 @@ function generateCopilotReply(queryText) {
   return `
     <p style="margin:0 0 8px 0;">
       I searched all <strong>${dataset.length} applications</strong> for "<em>${escapeHtml(queryText)}</em>" under ${escapeHtml(lender.shortName)} credit rules.
-      Try filtering by county (e.g. <strong>Dublin</strong>, <strong>Cork</strong>, <strong>Galway</strong>), borrower name, <strong>Stamp 4</strong>, <strong>BER A2</strong>, <strong>Switcher</strong>, or tap a quick prompt below!
+      Try filtering by county (e.g. <strong>Dublin</strong>, <strong>Cork</strong>, <strong>Galway</strong>), borrower name, <strong>Stamp 4</strong>, <strong>BER A2</strong>, <strong>Compare BOI vs White-Label</strong>, or tap a quick prompt below!
     </p>
   `;
 }

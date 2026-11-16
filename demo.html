@@ -11,14 +11,15 @@
   <link rel="stylesheet" href="css/demo.css" />
   <style>
     :root {
-      --broc-mint: #43e97b;
-      --broc-cyan: #38f9d7;
-      --broc-blue: #1A7FE6;
+      --broc-emerald: #10b981;
+      --broc-emerald-dark: #059669;
+      --broc-sapphire: #2563eb;
+      --clive-amber: #ea580c;
       --boi-navy: #00205B;
     }
     body {
       font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
-      background: #0b0f17;
+      background: #0f1419;
       color: #0f172a;
       margin: 0;
       overflow-x: hidden;
@@ -37,11 +38,17 @@
     .video-viewport {
       position: relative;
       width: 100%;
-      height: 760px;
-      background: #F8F9FA;
+      min-height: 760px;
+      background: #f8fafc;
       border-radius: 20px;
       overflow: hidden;
       box-shadow: 0 25px 80px rgba(0, 0, 0, 0.65), 0 0 0 1px rgba(255, 255, 255, 0.12);
+    }
+    .kpi-fluid-num {
+      font-size: clamp(1.05rem, 1.55vw, 1.45rem);
+      font-variant-numeric: tabular-nums;
+      line-height: 1.2;
+      white-space: nowrap;
     }
 
     /* Fake Animated Cursor */
@@ -66,8 +73,8 @@
       width: 44px;
       height: 44px;
       border-radius: 50%;
-      border: 3px solid #43e97b;
-      background: rgba(67, 233, 123, 0.25);
+      border: 3px solid #10b981;
+      background: rgba(16, 185, 129, 0.25);
       opacity: 0;
       transform: scale(0.3);
       pointer-events: none;
@@ -87,12 +94,12 @@
       left: 50%;
       transform: translateX(-50%);
       z-index: 9000;
-      background: rgba(15, 23, 42, 0.92);
+      background: rgba(15, 20, 25, 0.92);
       backdrop-filter: blur(12px);
       color: #ffffff;
       padding: 10px 22px;
       border-radius: 999px;
-      border: 1px solid rgba(67, 233, 123, 0.35);
+      border: 1px solid rgba(16, 185, 129, 0.42);
       box-shadow: 0 12px 32px rgba(0, 0, 0, 0.45);
       font-size: 13.5px;
       font-weight: 600;
@@ -109,8 +116,8 @@
       animation: targetPulse 1.5s infinite;
     }
     @keyframes targetPulse {
-      0%, 100% { box-shadow: 0 0 0 0 rgba(67, 233, 123, 0.6), 0 10px 25px rgba(26, 127, 230, 0.35); }
-      50% { box-shadow: 0 0 0 10px rgba(67, 233, 123, 0), 0 10px 25px rgba(26, 127, 230, 0.5); }
+      0%, 100% { box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.58), 0 10px 25px rgba(16, 185, 129, 0.32); }
+      50% { box-shadow: 0 0 0 10px rgba(16, 185, 129, 0), 0 10px 25px rgba(16, 185, 129, 0.48); }
     }
 
     /* Checkmark item animation */
@@ -135,7 +142,7 @@
 <body class="text-slate-900">
 
   <!-- TOP PLAYER HEADER & CONTROLS -->
-  <div class="bg-[#141619] border-b border-slate-800 text-white px-6 py-2.5">
+  <div class="bg-[#131a22] border-b border-slate-800 text-white px-6 py-2.5">
     <div class="max-w-[1440px] mx-auto flex flex-wrap items-center justify-between gap-4">
       <!-- Brand + Title -->
       <div class="flex items-center gap-3">
@@ -155,7 +162,7 @@
 
       <!-- Playback Controls -->
       <div class="flex items-center gap-2.5">
-        <button id="btn-play-pause" onclick="togglePlayPause()" class="flex items-center gap-2 px-4 py-1.5 rounded-lg text-xs font-extrabold bg-gradient-to-r from-[#43e97b] to-[#38f9d7] text-slate-950 shadow hover:opacity-95 transition">
+        <button id="btn-play-pause" onclick="togglePlayPause()" class="flex items-center gap-2 px-4 py-1.5 rounded-lg text-xs font-extrabold bg-gradient-to-r from-[#10b981] to-[#059669] text-white shadow hover:opacity-95 transition">
           <span id="play-pause-icon">⏸</span>
           <span id="play-pause-label">Pause Video</span>
         </button>
@@ -216,7 +223,7 @@
       </div>
       <!-- Smooth Progress Bar -->
       <div class="w-full h-1 bg-slate-800 rounded-full overflow-hidden mt-2">
-        <div id="master-progress" class="h-full bg-gradient-to-r from-[#43e97b] to-[#38f9d7] transition-all duration-300" style="width: 5%"></div>
+        <div id="master-progress" class="h-full bg-gradient-to-r from-[#10b981] to-[#059669] transition-all duration-300" style="width: 5%"></div>
       </div>
     </div>
   </div>
@@ -229,14 +236,14 @@
       <div id="sim-cursor" style="top: 62%; left: 72%;">
         <div class="cursor-ripple"></div>
         <svg width="28" height="28" viewBox="0 0 28 28" fill="none" xmlns="http://www.w3.org/2000/svg">
-          <path d="M5.5 3.5L22.5 13.2L14.2 15.6L10.5 23.5L5.5 3.5Z" fill="#111827" stroke="#43e97b" stroke-width="2.2" stroke-linejoin="round"/>
+          <path d="M5.5 3.5L22.5 13.2L14.2 15.6L10.5 23.5L5.5 3.5Z" fill="#0f1419" stroke="#10b981" stroke-width="2.2" stroke-linejoin="round"/>
         </svg>
       </div>
 
       <!-- ========================================================================= -->
       <!-- PART A: CONSUMER APP (https://app.broc.fi) — SCENES 1, 2, 3               -->
       <!-- ========================================================================= -->
-      <div id="consumer-app-stage" class="w-full h-full flex bg-[#F8F9FA] transition-opacity duration-500">
+      <div id="consumer-app-stage" class="w-full h-full flex bg-[#f8fafc] transition-opacity duration-500">
         
         <!-- Authentic app.broc.fi Left Desktop Sidebar -->
         <aside class="w-[225px] bg-white border-r border-slate-200 flex flex-col justify-between shrink-0 h-full">
@@ -249,7 +256,7 @@
 
             <!-- Nav Items matching app.broc.fi -->
             <nav class="p-3 space-y-1">
-              <div class="flex items-center gap-3 px-3.5 py-2.5 rounded-xl bg-blue-50 text-[#1A7FE6] font-bold text-sm">
+              <div class="broc-nav-active flex items-center gap-3 px-3.5 py-2.5 rounded-xl font-bold text-sm">
                 <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24"><path d="M3 9.5L12 3l9 6.5V20a1 1 0 0 1-1 1h-5v-6h-6v6H4a1 1 0 0 1-1-1V9.5z"/></svg>
                 <span>Overview</span>
               </div>
@@ -276,22 +283,22 @@
                 <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="6"/><circle cx="12" cy="12" r="2"/></svg>
                 <span>Goals</span>
               </div>
-              <div class="flex items-center justify-between px-3.5 py-2.5 rounded-xl bg-slate-900 text-white font-bold text-sm mt-2">
+              <div class="flex items-center justify-between px-3.5 py-2.5 rounded-xl bg-[#131a22] text-white font-bold text-sm mt-2">
                 <div class="flex items-center gap-2.5">
                   <div class="flex -space-x-2">
-                    <img src="assets/images/avatars/clive.png" alt="Clive" class="w-6 h-6 rounded-full border border-emerald-400 object-cover" />
-                    <img src="assets/images/avatars/clara.png" alt="Clara" class="w-6 h-6 rounded-full border border-cyan-400 object-cover" />
+                    <img src="assets/images/avatars/clive.png" alt="Clive" class="w-6 h-6 rounded-full border border-[#fb923c] object-cover" />
+                    <img src="assets/images/avatars/clara.png" alt="Clara" class="w-6 h-6 rounded-full border border-emerald-400 object-cover" />
                   </div>
                   <span>Assistant</span>
                 </div>
-                <span class="w-2 h-2 rounded-full bg-[#43e97b]"></span>
+                <span class="w-2 h-2 rounded-full bg-[#10b981]"></span>
               </div>
             </nav>
           </div>
 
           <div class="p-4 border-t border-slate-100">
             <div class="bg-slate-50 rounded-xl p-2.5 border border-slate-200/80 flex items-center gap-2.5">
-              <div class="w-8 h-8 rounded-full bg-[#1A7FE6] text-white font-bold text-xs flex items-center justify-center">SO</div>
+              <div class="w-8 h-8 rounded-full bg-[#10b981] text-white font-bold text-xs flex items-center justify-center">SO</div>
               <div class="min-w-0">
                 <div class="text-xs font-bold text-slate-900 truncate">Sarah & Liam O'Connor</div>
                 <div class="text-[10px] text-emerald-600 font-semibold">● OpenBanking Synced</div>
@@ -320,14 +327,14 @@
           </div>
 
           <!-- SCENE 1: CONSUMER OVERVIEW & "GET ME A MORTGAGE" CTA -->
-          <div id="scene-1-view" class="flex-1 p-6 overflow-y-auto space-y-5">
-            <!-- Clive Signature Assistant Banner -->
-            <div class="bg-white rounded-2xl p-4 border-2 border-[#1A7FE6]/30 shadow-sm flex items-center justify-between gap-4">
+          <div id="scene-1-view" class="flex-1 p-5 overflow-y-auto space-y-4" style="padding-bottom:76px;">
+            <!-- Clive Signature Assistant Banner (Warm Amber-Orange — variables.css) -->
+            <div class="bg-white rounded-2xl p-4 border-2 border-[#ea580c]/30 shadow-sm flex items-center justify-between gap-4">
               <div class="flex items-center gap-3.5">
-                <img src="assets/images/avatars/clive.png" alt="Clive" class="w-13 h-13 rounded-full border-2 border-[#1A7FE6] object-cover shrink-0" style="width:52px;height:52px;" />
+                <img src="assets/images/avatars/clive.png" alt="Clive" class="w-13 h-13 rounded-full border-2 border-[#ea580c] object-cover shrink-0" style="width:52px;height:52px;" />
                 <div>
                   <div class="flex items-center gap-2">
-                    <span class="text-xs font-extrabold uppercase tracking-wider text-[#1A7FE6]">Clive • Financial & Mortgage Readiness AI</span>
+                    <span class="text-xs font-extrabold uppercase tracking-wider text-[#ea580c]">Clive • Financial & Mortgage Readiness AI</span>
                     <span class="text-[10px] font-bold px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-800">Ready for AIP</span>
                   </div>
                   <p class="text-sm font-semibold text-slate-800 mt-0.5">
@@ -338,41 +345,41 @@
             </div>
 
             <!-- Financial Health Snapshot Cards -->
-            <div class="grid grid-cols-4 gap-4">
-              <div class="bg-white rounded-2xl p-4 border border-slate-200/80 shadow-sm">
+            <div class="grid grid-cols-4 gap-3">
+              <div class="bg-white rounded-2xl p-3.5 border border-slate-200/80 shadow-sm min-w-0">
                 <div class="text-[11px] font-bold uppercase text-slate-400">Combined Gross Income</div>
-                <div class="font-display text-2xl font-extrabold text-slate-900 mt-1">€142,000<span class="text-xs font-normal text-slate-400">/yr</span></div>
+                <div class="font-display font-extrabold text-slate-900 mt-1 kpi-fluid-num">€142,000<span class="text-xs font-normal text-slate-400">/yr</span></div>
                 <div class="text-[11px] text-emerald-600 font-semibold mt-1">✓ PAYE Revenue EDS Matched</div>
               </div>
-              <div class="bg-white rounded-2xl p-4 border border-slate-200/80 shadow-sm">
-                <div class="text-[11px] font-bold uppercase text-slate-400">Verified Mortgage Deposit</div>
-                <div class="font-display text-2xl font-extrabold text-emerald-600 mt-1">€58,000</div>
-                <div class="text-[11px] text-slate-500 font-semibold mt-1">€48k Savings + €10k Gift Letter</div>
+              <div class="bg-[#f0fdf4] rounded-2xl p-3.5 border border-[#d1fae5] shadow-sm min-w-0">
+                <div class="text-[11px] font-bold uppercase text-emerald-700">Verified Mortgage Deposit</div>
+                <div class="font-display font-extrabold text-[#064e3b] mt-1 kpi-fluid-num">€58,000</div>
+                <div class="text-[11px] text-emerald-700 font-semibold mt-1">€48k Savings + €10k Gift Letter</div>
               </div>
-              <div class="bg-white rounded-2xl p-4 border border-slate-200/80 shadow-sm">
+              <div class="bg-white rounded-2xl p-3.5 border border-slate-200/80 shadow-sm min-w-0">
                 <div class="text-[11px] font-bold uppercase text-slate-400">Monthly Free Cashflow</div>
-                <div class="font-display text-2xl font-extrabold text-slate-900 mt-1">€3,490<span class="text-xs font-normal text-slate-400">/mo</span></div>
+                <div class="font-display font-extrabold text-slate-900 mt-1 kpi-fluid-num">€3,490<span class="text-xs font-normal text-slate-400">/mo</span></div>
                 <div class="text-[11px] text-emerald-600 font-semibold mt-1">✓ Exceeds +2% CBI Stress Test</div>
               </div>
-              <div class="bg-white rounded-2xl p-4 border border-slate-200/80 shadow-sm">
-                <div class="text-[11px] font-bold uppercase text-slate-400">Broc Readiness Score™</div>
-                <div class="font-display text-2xl font-extrabold text-[#1A7FE6] mt-1">96 <span class="text-sm text-slate-400">/ 100</span></div>
-                <div class="text-[11px] text-emerald-600 font-semibold mt-1">▲ +18 pts over last 90 days</div>
+              <div class="bg-[#fff7ed] rounded-2xl p-3.5 border border-amber-200 shadow-sm min-w-0">
+                <div class="text-[11px] font-bold uppercase text-[#c2410c]">Broc Readiness Score™</div>
+                <div class="font-display font-extrabold text-[#059669] mt-1 kpi-fluid-num">96 <span class="text-sm text-slate-400">/ 100</span></div>
+                <div class="text-[11px] text-emerald-700 font-semibold mt-1">▲ +18 pts over last 90 days</div>
               </div>
             </div>
 
             <!-- HERO CALLOUT: GET ME A MORTGAGE BUTTON -->
-            <div class="rounded-3xl bg-gradient-to-br from-[#0f172a] via-[#1e293b] to-[#00205B] text-white p-7 shadow-xl border border-slate-700 relative overflow-hidden">
-              <div class="relative z-10 flex items-center justify-between gap-6">
-                <div class="max-w-xl">
-                  <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-emerald-500/20 border border-emerald-400/30 text-emerald-300 text-xs font-bold mb-3">
+            <div class="rounded-3xl bg-gradient-to-br from-[#0f1419] via-[#161d26] to-[#00205B] text-white p-6 shadow-xl border border-slate-700 relative overflow-hidden">
+              <div class="relative z-10 flex items-center justify-between gap-5">
+                <div class="flex-1 min-w-0">
+                  <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-emerald-500/20 border border-emerald-400/30 text-emerald-300 text-xs font-bold mb-2">
                     <span>⚡ Zero-Paperwork Instant Mortgage Engine</span>
                   </div>
-                  <h2 class="font-display text-3xl font-extrabold tracking-tight">Ready to buy your home in Dublin?</h2>
-                  <p class="text-sm text-slate-300 mt-2 leading-relaxed">
+                  <h2 class="font-display text-2xl font-extrabold tracking-tight">Ready to buy your home in Dublin?</h2>
+                  <p class="text-xs text-slate-300 mt-2 leading-relaxed">
                     Broc automatically packages your OpenBanking statements, KYC identity, Revenue EDS salary proofs, and Central Credit Register check—and submits a 100% pre-underwritten pack directly to <strong class="text-white">Bank of Ireland</strong>.
                   </p>
-                  <div class="flex items-center gap-4 mt-4 text-xs text-slate-300 font-medium">
+                  <div class="flex items-center flex-wrap gap-3 mt-3 text-xs text-slate-300 font-medium">
                     <span>✓ Max Qualified Loan: <strong class="text-emerald-300">€420,000</strong></span>
                     <span>•</span>
                     <span>✓ Est. Green Rate: <strong class="text-emerald-300">3.65% Fixed</strong></span>
@@ -383,9 +390,9 @@
 
                 <!-- THE BUTTON THE USER ASKED FOR -->
                 <div class="shrink-0 flex flex-col items-center">
-                  <button id="btn-get-mortgage" onclick="jumpToScene(2)" class="target-glow px-8 py-5 rounded-2xl bg-gradient-to-r from-[#43e97b] to-[#38f9d7] text-slate-950 font-display font-black text-xl tracking-tight shadow-2xl hover:scale-105 transition flex items-center gap-3 cursor-pointer">
+                  <button id="btn-get-mortgage" onclick="jumpToScene(2)" class="target-glow px-5 py-3 rounded-2xl bg-gradient-to-r from-[#10b981] to-[#059669] text-white font-display font-black text-base tracking-tight shadow-2xl hover:scale-105 transition flex items-center gap-2.5 cursor-pointer">
                     <span>🏠 Get Me a Mortgage</span>
-                    <span class="text-2xl">→</span>
+                    <span class="text-lg">→</span>
                   </button>
                   <span class="text-[11px] text-emerald-300 font-semibold mt-2">Automates all 10 AIP steps in 4 seconds</span>
                 </div>
@@ -500,13 +507,13 @@
               <div class="col-span-6 flex flex-col justify-between space-y-4">
                 
                 <!-- Clive Savings & Affordability Advice Card -->
-                <div id="clive-advice-card" class="bg-white rounded-2xl border-2 border-[#1A7FE6] p-5 shadow-md transition-all duration-500">
+                <div id="clive-advice-card" class="bg-white rounded-2xl border-2 border-[#ea580c] p-5 shadow-md transition-all duration-500">
                   <div class="flex items-start gap-3.5">
-                    <img src="assets/images/avatars/clive.png" alt="Clive" class="w-12 h-12 rounded-full border-2 border-[#1A7FE6] object-cover shrink-0" />
+                    <img src="assets/images/avatars/clive.png" alt="Clive" class="w-12 h-12 rounded-full border-2 border-[#ea580c] object-cover shrink-0" />
                     <div class="flex-1">
                       <div class="flex items-center justify-between">
-                        <span class="text-xs font-extrabold uppercase tracking-wider text-[#1A7FE6]">Clive AI • Smart Savings & Rate Optimization Plan</span>
-                        <span class="text-[10px] font-bold px-2 py-0.5 rounded-full bg-blue-50 text-blue-700">Saves €218/mo</span>
+                        <span class="text-xs font-extrabold uppercase tracking-wider text-[#ea580c]">Clive AI • Smart Savings & Rate Optimization Plan</span>
+                        <span class="text-[10px] font-bold px-2 py-0.5 rounded-full bg-amber-50 text-[#c2410c]">Saves €218/mo</span>
                       </div>
                       <h4 class="font-display text-base font-extrabold text-slate-900 mt-0.5">How to Save Appropriately While House-Hunting:</h4>
                       <div class="mt-2.5 space-y-2 text-xs text-slate-700">
@@ -531,33 +538,33 @@
                 <div class="bg-white rounded-2xl border border-slate-200 p-4 shadow-sm flex-1 flex flex-col justify-between">
                   <div>
                     <div class="flex items-center justify-between mb-2">
-                      <span class="text-xs font-extrabold uppercase tracking-wider text-slate-700">Clive's Step-by-Step Roadmap to Full Mortgage (Stage B)</span>
+                      <span class="text-xs font-extrabold uppercase tracking-wider text-slate-700">Clive's 8-Criteria Roadmap to Full Mortgage (Stage B)</span>
                       <span class="text-[11px] font-bold text-emerald-600">Auto-Tracked by Broc</span>
                     </div>
                     <div class="grid grid-cols-2 gap-2 text-[11px]">
                       <div class="p-2 rounded-lg bg-slate-50 border border-slate-200 flex items-center gap-2">
-                        <span class="w-5 h-5 rounded-full bg-emerald-100 text-emerald-700 font-bold flex items-center justify-center shrink-0">1</span>
-                        <span><strong>Stamped Salary Cert:</strong> Sent to HR automatically</span>
+                        <span class="w-5 h-5 rounded-full bg-emerald-100 text-emerald-700 font-bold flex items-center justify-center shrink-0">11</span>
+                        <span><strong>Stamped Salary Cert &amp; Refresh:</strong> HR + Live Feed</span>
                       </div>
                       <div class="p-2 rounded-lg bg-slate-50 border border-slate-200 flex items-center gap-2">
-                        <span class="w-5 h-5 rounded-full bg-blue-100 text-blue-700 font-bold flex items-center justify-center shrink-0">2</span>
-                        <span><strong>Go Sale Agreed:</strong> Upload Estate Agent Note</span>
+                        <span class="w-5 h-5 rounded-full bg-blue-100 text-blue-700 font-bold flex items-center justify-center shrink-0">13</span>
+                        <span><strong>Sale Agreed Note:</strong> Estate Agent &amp; Deposit</span>
                       </div>
                       <div class="p-2 rounded-lg bg-slate-50 border border-slate-200 flex items-center gap-2">
-                        <span class="w-5 h-5 rounded-full bg-blue-100 text-blue-700 font-bold flex items-center justify-center shrink-0">3</span>
+                        <span class="w-5 h-5 rounded-full bg-blue-100 text-blue-700 font-bold flex items-center justify-center shrink-0">14</span>
                         <span><strong>BOI Panel Valuation:</strong> €185 booking unlocked</span>
                       </div>
                       <div class="p-2 rounded-lg bg-slate-50 border border-slate-200 flex items-center gap-2">
-                        <span class="w-5 h-5 rounded-full bg-blue-100 text-blue-700 font-bold flex items-center justify-center shrink-0">4</span>
-                        <span><strong>SEAI BER & Survey:</strong> Auto-pulled via MPRN</span>
+                        <span class="w-5 h-5 rounded-full bg-blue-100 text-blue-700 font-bold flex items-center justify-center shrink-0">15</span>
+                        <span><strong>SEAI BER &amp; Survey:</strong> Register + Engineer Check</span>
                       </div>
                       <div class="p-2 rounded-lg bg-slate-50 border border-slate-200 flex items-center gap-2">
-                        <span class="w-5 h-5 rounded-full bg-blue-100 text-blue-700 font-bold flex items-center justify-center shrink-0">5</span>
-                        <span><strong>Solicitor Undertaking:</strong> Digital pack linked</span>
+                        <span class="w-5 h-5 rounded-full bg-blue-100 text-blue-700 font-bold flex items-center justify-center shrink-0">17</span>
+                        <span><strong>Solicitor Undertaking:</strong> Clean Title &amp; Contracts</span>
                       </div>
                       <div class="p-2 rounded-lg bg-slate-50 border border-slate-200 flex items-center gap-2">
-                        <span class="w-5 h-5 rounded-full bg-blue-100 text-blue-700 font-bold flex items-center justify-center shrink-0">6</span>
-                        <span><strong>Mortgage Protection:</strong> 3 life quotes pre-tendered</span>
+                        <span class="w-5 h-5 rounded-full bg-blue-100 text-blue-700 font-bold flex items-center justify-center shrink-0">18</span>
+                        <span><strong>Protection &amp; SEPA DD:</strong> Life + Home Tender</span>
                       </div>
                     </div>
                   </div>
@@ -568,7 +575,7 @@
                       <img src="assets/images/banks/bank-of-ireland-logo.png" alt="BOI" class="h-6 object-contain" />
                       <span class="text-xs font-bold text-slate-600">Direct API Channel Ready</span>
                     </div>
-                    <button id="btn-submit-to-boi" onclick="jumpToScene(4)" class="target-glow px-5 py-2.5 rounded-xl bg-gradient-to-r from-[#43e97b] to-[#38f9d7] text-slate-950 font-display font-extrabold text-xs shadow-lg hover:scale-105 transition cursor-pointer">
+                    <button id="btn-submit-to-boi" onclick="jumpToScene(4)" class="target-glow px-5 py-2.5 rounded-xl bg-gradient-to-r from-[#10b981] to-[#059669] text-white font-display font-extrabold text-xs shadow-lg hover:scale-105 transition cursor-pointer">
                       Submit Pre-Verified Pack to Bank of Ireland →
                     </button>
                   </div>
@@ -584,7 +591,7 @@
       <!-- ========================================================================= -->
       <!-- PART B: BANK OF IRELAND × BROC B2B LENDER PORTAL — SCENES 4, 5, 6         -->
       <!-- ========================================================================= -->
-      <div id="bank-portal-stage" class="hidden w-full h-full flex bg-[#f8f9fa] transition-opacity duration-500">
+      <div id="bank-portal-stage" class="hidden w-full h-full flex bg-[#f8fafc] transition-opacity duration-500">
 
         <!-- Compact B2B White Sidebar (Mirrors refactored index.html) -->
         <aside class="w-[196px] shrink-0 bg-white border-r border-slate-200 p-4 flex flex-col justify-between">
@@ -601,9 +608,9 @@
               <div class="px-3 py-2 rounded-lg text-slate-500 flex items-center justify-between">
                 <span>Overview</span>
               </div>
-              <div class="px-3 py-2 rounded-lg bg-[#43e97b]/15 text-[#059669] font-semibold flex items-center justify-between">
+              <div class="broc-nav-active px-3 py-2 rounded-lg font-bold flex items-center justify-between">
                 <span>Pipeline</span>
-                <span class="font-mono text-[10px] bg-white px-1.5 py-0.5 rounded-full border border-emerald-200 text-emerald-700">517</span>
+                <span class="font-mono tabular-nums text-[10px] bg-white/20 px-1.5 py-0.5 rounded-full text-white">517</span>
               </div>
               <div class="px-3 py-2 rounded-lg text-slate-500 flex items-center justify-between">
                 <span>18-Pt Rules</span>
@@ -873,7 +880,7 @@
           </div>
 
           <!-- Right 5 Cols: Consumer Phone/App Instant Notification Preview -->
-          <div class="col-span-5 bg-[#141619] text-white rounded-3xl p-6 border-2 border-[#43e97b] shadow-2xl">
+          <div class="col-span-5 bg-[#131a22] text-white rounded-3xl p-6 border-2 border-[#10b981] shadow-2xl">
             <div class="flex items-center justify-between mb-4">
               <div class="flex items-center gap-2">
                 <img src="assets/images/logos/brokerly-logo.png" alt="Broc" class="w-7 h-7 rounded-lg bg-white p-0.5 object-contain" />
@@ -891,15 +898,15 @@
             </div>
 
             <!-- Clive Next Step Prompt -->
-            <div class="flex items-start gap-3 p-3.5 rounded-2xl bg-slate-900 border border-slate-800">
-              <img src="assets/images/avatars/clive.png" alt="Clive" class="w-10 h-10 rounded-full border border-emerald-400 object-cover shrink-0" />
+            <div class="flex items-start gap-3 p-3.5 rounded-2xl bg-[#1c2530] border border-slate-800">
+              <img src="assets/images/avatars/clive.png" alt="Clive" class="w-10 h-10 rounded-full border border-[#fb923c] object-cover shrink-0" />
               <div class="text-xs text-slate-300">
                 <span class="font-bold text-white">Clive AI:</span> "I've locked your €1,650/mo savings tracker and pre-scheduled your Stage B Full Mortgage checklist for the moment you go Sale Agreed."
               </div>
             </div>
 
             <div class="mt-4 flex gap-2">
-              <button onclick="restartVideo()" class="flex-1 py-2.5 rounded-xl bg-gradient-to-r from-[#43e97b] to-[#38f9d7] text-slate-950 font-display font-extrabold text-xs">
+              <button onclick="restartVideo()" class="flex-1 py-2.5 rounded-xl bg-gradient-to-r from-[#10b981] to-[#059669] text-white font-display font-extrabold text-xs">
                 ↺ Replay Full Demo Video
               </button>
               <a href="index.html" class="px-4 py-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-white font-bold text-xs">
@@ -913,7 +920,7 @@
 
       <!-- BOTTOM VOICEOVER / CAPTION PILL -->
       <div class="caption-pill" id="caption-bar">
-        <span class="w-2.5 h-2.5 rounded-full bg-[#43e97b] shrink-0"></span>
+        <span class="w-2.5 h-2.5 rounded-full bg-[#10b981] shrink-0"></span>
         <span id="caption-text">Scene 1/6: Sarah & Liam open app.broc.fi — Clive detects they meet all Irish mortgage readiness rules and prompts "Get Me a Mortgage".</span>
       </div>
 
@@ -1026,7 +1033,7 @@
         document.getElementById('aip-counter-badge').textContent = '10 / 10 Verified';
         cliveCard.classList.add('ring-4', 'ring-emerald-400');
 
-        captionText.textContent = 'Scene 3/6 (Clive AI Savings & Stage B Roadmap): Clive coaches Sarah & Liam on their €1,650/mo payday sweep, how to unlock BOI\'s 3.65% Green Rate, and the 6 post-AIP steps to Full Mortgage.';
+        captionText.textContent = 'Scene 3/6 (Clive AI Savings & Stage B Roadmap): Clive coaches Sarah & Liam on their €1,650/mo payday sweep, how to unlock BOI\'s 3.65% Green Rate, and the Stage B criteria (11–18) to Full Mortgage.';
         moveCursor(32, 72, 0);
         stepTimers.push(setTimeout(() => moveCursor(86, 82, 950), 3800));
 
